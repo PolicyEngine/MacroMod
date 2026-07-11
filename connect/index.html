@@ -119,6 +119,56 @@
 .prose ul { padding-left: 20px; }
 .prose li { margin: 7px 0; line-height: 1.6; }
 .prose p code, .prose li code { font-family: var(--mono); font-size: 0.92em; }
+
+/* ---------- code section ---------- */
+.moves {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px; margin: 26px 0 22px;
+}
+.move {
+  border: 1px solid var(--line-soft); border-radius: 6px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.move-n {
+  font-family: var(--mono); font-size: 11px; color: var(--amber);
+  letter-spacing: 0.1em;
+}
+.move b { font-size: 14.5px; letter-spacing: -0.01em; }
+.move span.d { font-size: 12.5px; color: var(--paper-faint); line-height: 1.45; }
+.code-window {
+  border: 1px solid var(--line-soft); border-radius: 8px; overflow: hidden;
+  margin: 22px 0; background: color-mix(in srgb, var(--background, #fff) 72%, transparent);
+  backdrop-filter: blur(6px);
+}
+.cw-bar {
+  display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.cw-dots { display: inline-flex; gap: 6px; }
+.cw-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line-soft); }
+.cw-name { font-family: var(--mono); font-size: 12px; color: var(--paper-faint); }
+.cw-copy {
+  margin-left: auto; border: 0; background: none; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; color: var(--paper-faint);
+}
+.cw-copy:hover { color: var(--text, #111); }
+.code-window pre { margin: 0; padding: 18px 20px; overflow-x: auto; }
+.code-window code { font-family: var(--mono); font-size: 13px; line-height: 1.7; white-space: pre; }
+.cw-out .cw-bar { color: var(--amber); }
+.cw-out pre { color: var(--paper-faint); }
+.out-val { color: var(--text, #111); }
+.dials {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px; margin: 24px 0;
+}
+.dial { border: 1px solid var(--line-soft); border-radius: 6px; padding: 16px 18px; }
+.dial-name {
+  display: inline-block; font-family: var(--mono); font-size: 12px;
+  color: var(--text, #111); border: 1px solid var(--line-soft);
+  border-radius: 4px; padding: 3px 9px; margin-bottom: 10px;
+}
+.dial p { font-size: 13px; line-height: 1.55; color: var(--paper-faint); margin: 0; }
+.dial p code { font-size: 0.9em; }
 </style>
 </head>
 <body>
@@ -278,48 +328,90 @@
     <div class="prose">
       <p>
         No connector, no CLI — just Python (3.11–3.13). Install straight from
-        GitHub (no clone needed), then the whole scoring loop is four moves:
-        <strong>build</strong> a reform, <strong>solve</strong> baseline and
-        reform, <strong>map</strong> to £bn, <strong>read</strong> the results.
+        GitHub, no clone needed. The whole scoring loop is four moves:
       </p>
-      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pip install git+https://github.com/PSLmodels/OG-UK</code></pre></div>
-      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+      <div class="moves">
+        <div class="move"><span class="move-n">01 · build</span><b>the reform</b><span class="d">a PolicyEngine parameter + a new value</span></div>
+        <div class="move"><span class="move-n">02 · solve</span><b>both worlds</b><span class="d">baseline and reform steady states</span></div>
+        <div class="move"><span class="move-n">03 · map</span><b>to £bn</b><span class="d">model units → current-price aggregates</span></div>
+        <div class="move"><span class="move-n">04 · read</span><b>the impact</b><span class="d">level, change, and % per aggregate</span></div>
+      </div>
+
+      <div class="code-window">
+        <div class="cw-bar">
+          <span class="cw-dots"><i></i><i></i><i></i></span>
+          <span class="cw-name">install</span>
+          <button class="cw-copy" data-copy>copy</button>
+        </div>
+        <pre><code>pip install git+https://github.com/PSLmodels/OG-UK</code></pre>
+      </div>
+
+      <div class="code-window">
+        <div class="cw-bar">
+          <span class="cw-dots"><i></i><i></i><i></i></span>
+          <span class="cw-name">score_reform.py</span>
+          <button class="cw-copy" data-copy>copy</button>
+        </div>
+        <pre><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime
 <span class="kw">from</span> policyengine.core <span class="kw">import</span> ParameterValue, Policy
 <span class="kw">from</span> policyengine.tax_benefit_models.uk <span class="kw">import</span> uk_latest
 <span class="kw">from</span> oguk <span class="kw">import</span> solve_steady_state, map_to_real_world
 
-<span class="cm"># BUILD — a reform is real statute: a PolicyEngine parameter + a new value.</span>
-<span class="cm"># Here: basic rate of income tax 20% → 21% from 2026.</span>
+<span class="cm"># 01 BUILD — a reform is real statute: a PolicyEngine parameter + a new value.</span>
+<span class="cm">#          Here: basic rate of income tax 20% → 21% from 2026.</span>
 param = uk_latest.get_parameter(<span class="kw">"gov.hmrc.income_tax.rates.uk[0].rate"</span>)
 reform = Policy(name=<span class="kw">"Basic rate 21%"</span>, parameter_values=[
     ParameterValue(parameter=param, value=0.21,
                    start_date=datetime(2026, 1, 1))])
 
-<span class="cm"># SOLVE — two general-equilibrium solves (~5-15 min each).</span>
-<span class="cm"># No policy argument = current law. Same call + policy = the reform world.</span>
+<span class="cm"># 02 SOLVE — two general-equilibrium solves (~5-15 min each).</span>
+<span class="cm">#          No policy argument = current law. Same call + policy = the reform.</span>
 baseline  = solve_steady_state(start_year=2026)
 reform_ss = solve_steady_state(start_year=2026, policy=reform)
 
-<span class="cm"># MAP — model units → current-price £bn, anchored to ONS/OBR data.</span>
+<span class="cm"># 03 MAP  — model units → current-price £bn, anchored to ONS/OBR data.</span>
 impact = map_to_real_world(baseline, reform_ss)
 
-<span class="cm"># READ — level, change, and % change for each aggregate.</span>
+<span class="cm"># 04 READ — level, change, and % change for each aggregate.</span>
 <span class="kw">print</span>(f<span class="kw">"GDP:     {impact.gdp_change:+.1f}bn ({impact.gdp_pct:+.3f}%)"</span>)
 <span class="kw">print</span>(f<span class="kw">"Revenue: {impact.tax_revenue_change:+.1f}bn"</span>)
-<span class="kw">print</span>(f<span class="kw">"Debt:    {impact.debt_change:+.1f}bn"</span>)</code></pre></div>
+<span class="kw">print</span>(f<span class="kw">"Debt:    {impact.debt_change:+.1f}bn"</span>)</code></pre>
+      </div>
+
+      <div class="code-window cw-out">
+        <div class="cw-bar">
+          <span class="cw-dots"><i></i><i></i><i></i></span>
+          <span class="cw-name">output · illustrative</span>
+        </div>
+        <pre><code>GDP:     <span class="out-val">+2.9bn (+0.041%)</span>
+Revenue: <span class="out-val">+6.4bn</span>
+Debt:    <span class="out-val">−3.1bn</span></code></pre>
+      </div>
+
       <p>
-        What's happening under the hood: PolicyEngine runs the reform through
-        the actual UK tax-benefit rules on representative microdata, OG-UK
-        estimates tax functions from that, and the OLG model solves for how 80
-        age cohorts and firms re-optimise — giving you the new equilibrium
-        wages, interest rate, and aggregates.
+        Under the hood: PolicyEngine runs the reform through the actual UK
+        tax-benefit rules on representative microdata, OG-UK estimates tax
+        functions from that, and the OLG model solves for how 80 age cohorts and
+        firms re-optimise — giving you the new equilibrium wages, interest rate,
+        and aggregates.
       </p>
-      <p>Three dials to know about:</p>
-      <ul>
-        <li><strong>mode</strong> — <code>solve_steady_state()</code> for the long-run answer; <code>run_transition_path()</code> for the year-by-year fiscal profile (slower, runs on Dask).</li>
-        <li><strong>age_specific</strong> — <code>"pooled"</code> (default, fastest) → <code>"brackets"</code> → <code>"each"</code> for finer age-specific tax functions.</li>
-        <li><strong>param_overrides</strong> — structural shocks that aren't statute: <code>{"cit_rate": [[0.25]]}</code> for corporation tax, <code>{"Z": [[1.004]]}</code> for TFP.</li>
-      </ul>
+
+      <div class="dials">
+        <div class="dial">
+          <span class="dial-name">mode</span>
+          <p><code>solve_steady_state()</code> for the long-run answer; <code>run_transition_path()</code> for the year-by-year fiscal profile (slower, runs on Dask).</p>
+        </div>
+        <div class="dial">
+          <span class="dial-name">age_specific</span>
+          <p><code>"pooled"</code> (default, fastest) → <code>"brackets"</code> → <code>"each"</code> for finer age-specific tax functions.</p>
+        </div>
+        <div class="dial">
+          <span class="dial-name">param_overrides</span>
+          <p>Structural shocks that aren't statute: <code>{"cit_rate": [[0.25]]}</code> for corporation tax, <code>{"Z": [[1.004]]}</code> for TFP.</p>
+        </div>
+      </div>
+
       <p class="research-link mono">
         <a href="/olg/">Full guide — parameter paths, every option, transition paths, and outputs → the OG-UK model page</a>
       </p>
@@ -378,7 +470,8 @@ impact = map_to_real_world(baseline, reform_ss)
 
   document.addEventListener("click", function (e) {
     var btn = e.target.closest("[data-copy]"); if (!btn) return;
-    var code = btn.parentElement.querySelector("code");
+    var container = btn.closest(".code-window") || btn.parentElement;
+    var code = container.querySelector("code");
     navigator.clipboard.writeText(code.textContent).then(function () {
       btn.textContent = "copied";
       setTimeout(function () { btn.textContent = "copy"; }, 1400);
