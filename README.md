@@ -91,6 +91,29 @@ python3 -m http.server 8000   # then open http://localhost:8000/
 
 Deployed on Vercel (PolicyEngine team). `vercel.json` enables clean URLs.
 
+## Adding a model
+
+A new model touches a fixed set of places. Update all of them so the site
+stays consistent (this is exactly the set the OBR model added):
+
+1. **`<slug>/index.html`** — a new model reference page. Copy `olg/` or `obr/`
+   as the template: `<body class="doc">`, the shared nav, and the section
+   rhythm (what it is → quickstart → how it works → levers → calibration).
+2. **`index.html`** — add a `.strategy-card` in the `#models` grid linking to
+   `/<slug>/`, and append the model to the `.stack-note` line.
+3. **`docs/index.html`** — add a `.doc-index` card, a column in the comparison
+   table, and a when-to-use bullet in `#choose`.
+4. **`connect/index.html`** — add a `<div class="model-pane" data-model="<slug>">`
+   in the `#code` section and a button in `#model-seg` (the model selector JS
+   toggles on `data-model`).
+5. **Nav** — every page's `.nav-links` is identical; no change needed unless you
+   add a top-level section.
+6. **`README.md`** — the models table, the quickstart links, and the site-paths
+   table above.
+
+Keep model copy grounded in the model's own repo/docs, and label any
+non-real numbers as illustrative.
+
 ## Roadmap
 
 - [ ] `macromod` CLI + PyPI publish
