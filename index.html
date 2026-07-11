@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>macromod — macroeconomic simulation, built in the open</title>
+<meta name="description" content="MacroMod is PolicyEngine's open-source suite of macroeconomic simulation models. Overlapping-generations general equilibrium today; more model classes to come — all scoring the same policy reforms, in the open." />
+<meta property="og:title" content="macromod" />
+<meta property="og:description" content="Open-source macroeconomic simulation models for public policy." />
+<meta property="og:type" content="website" />
+<link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
+<meta name="theme-color" content="#FFFFFF" />
+
+<link rel="stylesheet" href="/vendor/fonts/fonts.css" />
+<link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<canvas id="field" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="brand" href="#top">
+    <span class="brand-dot" aria-hidden="true"></span>macromod
+  </a>
+  <nav class="nav-links">
+    <a href="#idea">the idea</a>
+    <a href="#models">the models</a>
+    <a href="#pipeline">the pipeline</a>
+    <a href="#outputs">outputs</a>
+    <a href="/connect/">connect</a>
+    <a class="nav-gh" href="https://github.com/PolicyEngine/MacroMod" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow reveal" style="--d:0">open-source macroeconomic simulation</p>
+      <h1 class="reveal" style="--d:1">
+        A reform moves <em>every</em> price.
+        <br />We model the whole economy's answer.
+      </h1>
+      <p class="lede reveal" style="--d:2">
+        <strong>macromod</strong> is a suite of macroeconomic simulation models
+        for scoring public policy — general-equilibrium dynamics for GDP,
+        investment, consumption, revenue, and debt, driven by the same
+        tax-and-benefit rules and microdata that power PolicyEngine, and
+        improved in the open.
+      </p>
+      <div class="hero-cta reveal" style="--d:3">
+        <a class="btn btn-primary" href="#idea">How it works</a>
+        <a class="btn btn-ghost" href="https://github.com/PolicyEngine/MacroMod">Read the code</a>
+      </div>
+      <p class="hero-foot reveal" style="--d:4">
+        <span class="mono">every point above is a cohort of households · brightness ∝ economic weight</span>
+      </p>
+    </div>
+  </section>
+
+  <section id="idea" class="band">
+    <div class="band-head">
+      <span class="kicker mono">01 — the idea</span>
+      <h2>From static scoring to the full economy.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        Microsimulation tells you who pays what the morning after a reform.
+        But people respond: they work, save, and invest differently, firms
+        adjust capital, wages and interest rates move, and the revenue estimate
+        moves with them. Most published policy scores stop before that second
+        act — or bolt it on with a single hand-picked elasticity.
+      </p>
+      <p>
+        macromod makes the second act <strong>a model, not a fudge factor</strong>.
+        Each model in the suite is a structural, general-equilibrium engine that
+        takes a policy reform — expressed in PolicyEngine's rules engine, at full
+        statutory detail — and solves for the economy's response, from the first
+        year of transition to the new long-run steady state.
+      </p>
+    </div>
+  </section>
+
+  <section id="models" class="band band-stack">
+    <div class="band-head">
+      <span class="kicker mono">02 — the models</span>
+      <h2>One suite, many lenses on the same economy.</h2>
+    </div>
+    <div class="prose" style="margin-bottom: 36px;">
+      <p>
+        Different questions need different macro machinery. Every model in the
+        suite scores the same PolicyEngine reform objects and reports the same
+        real-world quantities, so results are comparable across model classes
+        — and every model gets its own page: a 30-second explainer, the method,
+        and the calibration evidence.
+      </p>
+    </div>
+    <div class="strategy-grid">
+      <a class="strategy-card" href="/olg/">
+        <header><span class="card-id mono">olg</span><span class="tag tag-live">shipped</span></header>
+        <h3>Overlapping generations</h3>
+        <p>
+          A dynamic general-equilibrium model of 80 age cohorts working, saving,
+          and retiring — built on OG-Core, calibrated to national accounts, with
+          tax functions estimated from PolicyEngine microdata. Solves the long-run
+          steady state and the year-by-year transition path for GDP, investment,
+          consumption, revenue, and debt.
+        </p>
+        <span class="strategy-paper-link mono">read the model →</span>
+      </a>
+      <div class="strategy-card strategy-card-static">
+        <header><span class="card-id mono">next</span><span class="tag tag-wip">planned</span></header>
+        <h3>More model classes</h3>
+        <p>
+          The suite is built to grow: additional macroeconomic model classes
+          will slot in beside the OLG engine, each scoring the same reforms
+          and reporting the same comparable outputs. This card is the open
+          seat — watch the repository for what fills it next.
+        </p>
+        <span class="strategy-paper-link mono" style="color: var(--paper-faint);">in design</span>
+      </div>
+    </div>
+    <p class="stack-note">
+      <span class="mono">overlapping generations · more to come</span>
+    </p>
+  </section>
+
+  <section id="pipeline" class="band">
+    <div class="band-head">
+      <span class="kicker mono">03 — the pipeline</span>
+      <h2>Statute in, economy out.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        A reform enters as a <strong>PolicyEngine policy object</strong> — actual
+        parameters of the tax and benefit system, not a stylized wedge. Tax
+        functions are estimated from representative microdata under baseline and
+        reform, so the macro model sees the reform's true shape across the income
+        and age distribution. The model is anchored to national accounts and
+        official forecasts, then solves for the general-equilibrium response.
+      </p>
+      <p>
+        The same interface scores <strong>structural shocks</strong> too —
+        corporation tax, productivity, government spending — so fiscal packages
+        that mix statutory and structural changes score in one run.
+      </p>
+    </div>
+  </section>
+
+  <section id="outputs" class="band band-result">
+    <div class="band-head">
+      <span class="kicker mono">04 — outputs</span>
+      <h2>Real-world quantities, not model units.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        Every run maps back to current-price national-accounts aggregates.
+        A steady-state solve answers the long-run question; a transition path
+        gives the fiscal-year-by-fiscal-year profile a budget process needs.
+      </p>
+    </div>
+    <div class="metrics">
+      <div class="metric">
+        <span class="metric-label mono">aggregates</span>
+        <span class="metric-val">6</span>
+        <span class="metric-note">GDP · consumption · investment · government · revenue · debt</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label mono">age cohorts</span>
+        <span class="metric-val">80</span>
+        <span class="metric-note">in the OLG household block</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label mono">horizon</span>
+        <span class="metric-val">60<span class="metric-vs">years</span></span>
+        <span class="metric-note">transition path to steady state</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-cta">
+    <h2>Built in the open. Read it, run it, contribute.</h2>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="https://github.com/PolicyEngine/MacroMod">github.com/PolicyEngine/MacroMod</a>
+      <a class="btn btn-ghost" href="https://policyengine.org">PolicyEngine</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot-row">
+    <span class="brand"><span class="brand-dot" aria-hidden="true"></span>macromod</span>
+    <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
+  </div>
+  <p class="mono foot-fine">
+    Macroeconomic simulation models for public policy. Open source · a PolicyEngine project.
+  </p>
+  <p class="mono foot-fine foot-links">
+    <a href="https://github.com/PolicyEngine/MacroMod">source</a> ·
+    <a href="https://github.com/PSLmodels/OG-UK">OG-UK</a> ·
+    <a href="https://policyengine.org">policyengine.org</a>
+  </p>
+</footer>
+
+<script src="./field.js" defer></script>
+<script src="./reveal.js" defer></script>
+</body>
+</html>

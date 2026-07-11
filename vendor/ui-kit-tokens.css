@@ -1,0 +1,422 @@
+/* Vendored from @policyengine/ui-kit@0.12.1 src/theme/tokens.css (sha of upstream fetch below).
+ * The upstream '@import "tw-animate-css"' is removed: browsers ORB-block it from the CDN
+ * and this site uses no Tailwind animations. Refresh by re-fetching the same pinned version.
+ * upstream sha256: 2903eaba994e0582738ac9a18ffe7003b62aba33528eb6a80e495a4a78ada396 */
+
+@custom-variant dark (&:is(.dark *));
+
+@source "../../dist/**/*.js";
+
+/* ============================================================
+ * PolicyEngine Design Tokens — GENERATED FILE; DO NOT EDIT.
+ *
+ * Source of truth: src/theme/tokens.ts
+ * Regenerate with:  bun run generate-tokens
+ *
+ * Consumer usage (globals.css):
+ *   @import "tailwindcss";
+ *   @import "@policyengine/ui-kit/theme.css";
+ *
+ * Both imports are required. Tailwind must come first.
+ * The consumer must have @tailwindcss/postcss in their postcss config.
+ * ============================================================ */
+
+/* --- Layer 1: shadcn-style :root tokens (light mode) --- */
+:root {
+  /* Base */
+  --radius: 6px;
+
+  /* Page */
+  --background: #FFFFFF;
+  --foreground: #000000;
+
+  /* Primary (teal brand) */
+  --primary: #2C7A7B;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary */
+  --secondary: #F2F4F7;
+  --secondary-foreground: #101828;
+
+  /* Muted */
+  --muted: #F2F4F7;
+  --muted-foreground: #475569;
+
+  /* Accent */
+  --accent: #F2F4F7;
+  --accent-foreground: #101828;
+
+  /* Destructive (shadcn convention). Background bumped from #EF4444 (red-500, fails 4.5:1 on white) to #DC2626 (red-600, 4.83:1). */
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+
+  /* Chrome */
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #319795;
+
+  /* Card */
+  --card: #FFFFFF;
+  --card-foreground: #000000;
+
+  /* Popover */
+  --popover: #FFFFFF;
+  --popover-foreground: #000000;
+
+  /* Charts (shadcn chart-1 through chart-5) */
+  --chart-1: #319795;
+  --chart-2: #0EA5E9;
+  --chart-3: #285E61;
+  --chart-4: #026AA2;
+  --chart-5: #64748B;
+
+  /* Background variants */
+  --background-secondary: #f5f9ff;
+  --background-tertiary: #f1f5f9;
+
+  /* Border scale */
+  --border-light: #e2e8f0;
+  --border-medium: #CBD5E1;
+  --border-dark: #94A3B8;
+
+  /* Text semantic aliases */
+  --text-primary: #000000;
+  --text-secondary: #5a5a5a;
+  --text-tertiary: #64748B;
+  --text-inverse: #ffffff;
+
+  /* Accessible-on-white text variants. Distinct from --color-warning / --color-error / --color-success fill values, which are tuned for badges and status dots and do not always clear WCAG AA when used as text. */
+  --text-warning: #c2410c;
+  --text-error: #B91C1C;
+  --text-success: #285E61;
+
+  /* Diverging color scales */
+  --diverging-gray-teal-1: #475569;
+  --diverging-gray-teal-2: #94A3B8;
+  --diverging-gray-teal-3: #E2E8F0;
+  --diverging-gray-teal-4: #81E6D9;
+  --diverging-gray-teal-5: #319795;
+  --diverging-gray-blue-1: #475569;
+  --diverging-gray-blue-2: #94A3B8;
+  --diverging-gray-blue-3: #E2E8F0;
+  --diverging-gray-blue-4: #7DD3FC;
+  --diverging-gray-blue-5: #0EA5E9;
+
+  /* Primary alpha variants */
+  --primary-alpha-40: rgba(44, 122, 123, 0.4);
+  --primary-alpha-50: rgba(44, 122, 123, 0.5);
+  --primary-alpha-60: rgba(44, 122, 123, 0.6);
+
+  /* Warm neutral */
+  --warm-neutral: #F9F2EA;
+}
+
+/* --- Layer 1b: dark-mode overrides (activate with `class="dark"` on a parent) --- */
+:root.dark,
+.dark {
+  /* Page */
+  --background: #0B0E14;
+  --foreground: #F5F5F5;
+
+  /* Primary (lifted up the teal scale so it pops on dark) */
+  --primary: #38B2AC;
+  --primary-foreground: #0B0E14;
+
+  /* Secondary */
+  --secondary: #1E293B;
+  --secondary-foreground: #F5F5F5;
+
+  /* Muted */
+  --muted: #1A2030;
+  --muted-foreground: #9CA3AF;
+
+  /* Accent */
+  --accent: #1E293B;
+  --accent-foreground: #F5F5F5;
+
+  /* Destructive */
+  --destructive: #F87171;
+  --destructive-foreground: #0B0E14;
+
+  /* Chrome. --border bumped from #1E293B (1.32:1 on background, 1.22:1 on card — visually invisible) to #334155 (1.87:1 on bg, 1.57:1 on card). */
+  --border: #334155;
+  --input: #334155;
+  --ring: #38B2AC;
+
+  /* Card. Bumped from #131820 (1.08:1 on background — invisible) to #1A2030 (1.19:1 on bg). Together with the bumped --border, the card surface is now clearly distinguishable. */
+  --card: #1A2030;
+  --card-foreground: #F5F5F5;
+
+  /* Popover */
+  --popover: #1A2030;
+  --popover-foreground: #F5F5F5;
+
+  /* Charts (lifted up the brand scale for dark backgrounds) */
+  --chart-1: #4FD1C5;
+  --chart-2: #38BDF8;
+  --chart-3: #81E6D9;
+  --chart-4: #7DD3FC;
+  --chart-5: #94A3B8;
+
+  /* Background variants */
+  --background-secondary: #0B0E14;
+  --background-tertiary: #0F1320;
+
+  /* Border scale */
+  --border-light: #1E293B;
+  --border-medium: #334155;
+  --border-dark: #475569;
+
+  /* Text semantic aliases */
+  --text-primary: #F5F5F5;
+  --text-secondary: #CBD5E1;
+  --text-tertiary: #94A3B8;
+  --text-inverse: #000000;
+
+  /* Accessible-on-dark text variants — picked at AA on #0B0E14 */
+  --text-warning: #FFB066;
+  --text-error: #F87171;
+  --text-success: #4FD1C5;
+
+  /* Primary alpha variants (re-tuned for dark primary) */
+  --primary-alpha-40: rgba(56, 178, 172, 0.4);
+  --primary-alpha-50: rgba(56, 178, 172, 0.5);
+  --primary-alpha-60: rgba(56, 178, 172, 0.6);
+}
+
+/* --- Layer 2: Tailwind @theme inline (bridges :root vars to Tailwind utilities) --- */
+@theme inline {
+  /* Semantic colors → Tailwind classes (bg-primary, text-foreground, etc.) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning-foreground: var(--text-warning);
+  --color-error-foreground: var(--text-error);
+  --color-success-foreground: var(--text-success);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Additional backgrounds */
+  --color-background-secondary: var(--background-secondary);
+  --color-background-tertiary: var(--background-tertiary);
+
+  /* Border scale */
+  --color-border-light: var(--border-light);
+  --color-border-medium: var(--border-medium);
+  --color-border-dark: var(--border-dark);
+
+  /* Diverging color scales */
+  --color-diverging-gray-teal-1: var(--diverging-gray-teal-1);
+  --color-diverging-gray-teal-2: var(--diverging-gray-teal-2);
+  --color-diverging-gray-teal-3: var(--diverging-gray-teal-3);
+  --color-diverging-gray-teal-4: var(--diverging-gray-teal-4);
+  --color-diverging-gray-teal-5: var(--diverging-gray-teal-5);
+  --color-diverging-gray-blue-1: var(--diverging-gray-blue-1);
+  --color-diverging-gray-blue-2: var(--diverging-gray-blue-2);
+  --color-diverging-gray-blue-3: var(--diverging-gray-blue-3);
+  --color-diverging-gray-blue-4: var(--diverging-gray-blue-4);
+  --color-diverging-gray-blue-5: var(--diverging-gray-blue-5);
+
+  /* Primary alpha variants */
+  --color-primary-alpha-40: var(--primary-alpha-40);
+  --color-primary-alpha-50: var(--primary-alpha-50);
+  --color-primary-alpha-60: var(--primary-alpha-60);
+
+  /* Warm neutral */
+  --color-warm-neutral: var(--warm-neutral);
+
+  /* Radius derived from base --radius */
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+}
+
+/* --- Layer 3: brand palette + scales (concrete Tailwind utilities) --- */
+@theme {
+  /* Teal (primary brand) */
+  --color-teal-50: #E6FFFA;
+  --color-teal-100: #B2F5EA;
+  --color-teal-200: #81E6D9;
+  --color-teal-300: #4FD1C5;
+  --color-teal-400: #38B2AC;
+  --color-teal-500: #319795;
+  --color-teal-600: #2C7A7B;
+  --color-teal-700: #285E61;
+  --color-teal-800: #234E52;
+  --color-teal-900: #1D4044;
+
+  /* Gray (slate scale) */
+  --color-gray-50: #F0F9FF;
+  --color-gray-100: #F2F4F7;
+  --color-gray-200: #E2E8F0;
+  --color-gray-300: #CBD5E1;
+  --color-gray-400: #94A3B8;
+  --color-gray-500: #64748B;
+  --color-gray-600: #475569;
+  --color-gray-700: #344054;
+  --color-gray-800: #1E293B;
+  --color-gray-900: #101828;
+
+  /* Blue (accent) */
+  --color-blue-50: #F0F9FF;
+  --color-blue-100: #E0F2FE;
+  --color-blue-200: #BAE6FD;
+  --color-blue-300: #7DD3FC;
+  --color-blue-400: #38BDF8;
+  --color-blue-500: #0EA5E9;
+  --color-blue-600: #0284C7;
+  --color-blue-700: #026AA2;
+  --color-blue-800: #075985;
+  --color-blue-900: #0C4A6E;
+
+  /* Semantic */
+  --color-success: #22C55E;
+  --color-warning: #FEC601;
+  --color-error: #EF4444;
+  --color-info: #1890FF;
+
+  /* Font families */
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: JetBrains Mono, "Fira Code", Consolas, monospace;
+
+  /* Font sizes (overrides Tailwind defaults with PE scale) */
+  --text-*: initial;
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 14px;
+  --text-sm--line-height: 20px;
+  --text-base: 16px;
+  --text-base--line-height: 24px;
+  --text-lg: 18px;
+  --text-lg--line-height: 28px;
+  --text-xl: 20px;
+  --text-xl--line-height: 28px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 32px;
+  --text-3xl: 28px;
+  --text-3xl--line-height: 36px;
+  --text-4xl: 32px;
+  --text-4xl--line-height: 40px;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1;
+  --text-7xl: 4.5rem;
+  --text-7xl--line-height: 1;
+  --text-8xl: 6rem;
+  --text-8xl--line-height: 1;
+  --text-9xl: 8rem;
+  --text-9xl--line-height: 1;
+
+  /* Semantic radius */
+  --radius-chip: 2px;
+  --radius-element: 4px;
+  --radius-container: 8px;
+  --radius-feature: 12px;
+
+  /* Named spacing */
+  --spacing-header: 58px;
+  --spacing-sidebar: 280px;
+  --spacing-sidebar-width: 280px;
+  --spacing-content: 976px;
+
+  /* Breakpoints */
+  --breakpoint-xs: 36rem;
+  --breakpoint-sm: 48rem;
+  --breakpoint-md: 62rem;
+  --breakpoint-lg: 75rem;
+  --breakpoint-xl: 88rem;
+  --breakpoint-2xl: 96rem;
+}
+
+/* --- Base styles --- */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+
+  /* Range input (slider) */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    height: 6px;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    background: var(--border);
+    height: 6px;
+    border-radius: 3px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    margin-top: -6px;
+  }
+  input[type="range"]::-moz-range-track {
+    background: var(--border);
+    height: 6px;
+    border-radius: 3px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Reduced motion: snap animations / transitions to instant. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Visible focus ring on every interactive element. */
+  :where(a, button, [role="button"], input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}

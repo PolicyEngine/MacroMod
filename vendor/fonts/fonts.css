@@ -1,0 +1,50 @@
+/* Vendored from Google Fonts css2 API response for the exact request this site was making:
+ * https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap
+ * (fetched with a current desktop Chrome/Firefox UA, which Google Fonts serves variable-font
+ * files to; each family+subset below is one variable font whose `wght` axis spans the full
+ * 400-700 range this site uses, so a single file backs all four/two declared weights).
+ * Only the latin and latin-ext subsets are vendored -- this site's copy is English-only, and
+ * latin-ext covers the accented Latin characters (e.g. names, French/German loanwords) that
+ * plain latin misses. The other four subsets Google returns (cyrillic, cyrillic-ext, greek,
+ * greek-ext, vietnamese) are dropped as unused.
+ * Refresh by re-fetching the same URL with a modern browser UA and re-extracting the latin /
+ * latin-ext @font-face blocks; swap in the new woff2 files under vendor/fonts/.
+ * sha256 inter-latin.woff2:              c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4
+ * sha256 inter-latin-ext.woff2:           a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2
+ * sha256 jetbrains-mono-latin.woff2:      2c32b9b3ee358c119e210f6f5195f9bd34894d78a785ff2e95d60e718e400af4
+ * sha256 jetbrains-mono-latin-ext.woff2:  9c38cb2d0d2d93c1ee6e21fa78db76f13ea7e15e15cc64214c7ca89b6aaa35c4
+ */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/vendor/fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/vendor/fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('/vendor/fonts/jetbrains-mono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('/vendor/fonts/jetbrains-mono-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}

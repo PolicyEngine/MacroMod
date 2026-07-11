@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>macromod — connect it or code it</title>
+<meta name="description" content="Connect MacroMod to your AI workflow — MCP server, CLI, or agent skill. Score macroeconomic policy reforms directly from your prompts." />
+<link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
+<meta name="theme-color" content="#FFFFFF" />
+
+<link rel="stylesheet" href="/vendor/fonts/fonts.css" />
+<link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
+<link rel="stylesheet" href="/style.css" />
+<style>
+/* ---------- connect page ---------- */
+.connect-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 24px; }
+.connect-panel {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 56px) clamp(80px, 10vw, 130px);
+}
+.panel-card {
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--background, #fff) 72%, transparent);
+  backdrop-filter: blur(6px);
+  padding: clamp(20px, 3vw, 36px);
+}
+.panel-bars { display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; margin-bottom: 30px; }
+.seg { display: inline-flex; gap: 4px; border: 1px solid var(--line-soft); border-radius: 4px; padding: 4px; }
+.seg button {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--paper-faint);
+  cursor: pointer;
+}
+.seg button[aria-selected="true"] { background: var(--text, #111); color: var(--background, #fff); }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: clamp(18px, 3vw, 36px); }
+.step { min-width: 0; }
+.step-n {
+  font-family: var(--mono);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border: 1px solid var(--line-soft);
+  border-radius: 50%;
+  margin-bottom: 14px;
+}
+.step h3 { font-size: 17px; margin: 0 0 10px; }
+.step p { font-size: 14.5px; line-height: 1.6; color: var(--paper-faint); margin: 0 0 14px; }
+.copyblock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  overflow-x: auto;
+  white-space: pre;
+}
+.copyblock code { flex: 1; }
+.copyblock button {
+  border: 0; background: none; cursor: pointer; color: var(--paper-faint);
+  font-family: var(--mono); font-size: 11px; flex-shrink: 0;
+}
+.copyblock button:hover { color: var(--text, #111); }
+.panel-foot { margin-top: 28px; font-size: 13px; }
+.pane[hidden] { display: none; }
+.steps[hidden] { display: none; }
+.status-note {
+  font-family: var(--mono); font-size: 12px; color: var(--amber);
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px;
+}
+.codeblock {
+  position: relative;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--background, #fff) 72%, transparent);
+  padding: 18px 20px;
+  margin: 22px 0 6px;
+  overflow-x: auto;
+}
+.codeblock pre { margin: 0; }
+.codeblock code { font-family: var(--mono); font-size: 13px; line-height: 1.65; white-space: pre; }
+.codeblock .cb-copy {
+  position: absolute; top: 10px; right: 12px;
+  border: 0; background: none; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; color: var(--paper-faint);
+}
+.codeblock .cb-copy:hover { color: var(--text, #111); }
+.cm { color: var(--paper-faint); }
+.kw { color: var(--amber); }
+.prose ul { padding-left: 20px; }
+.prose li { margin: 7px 0; line-height: 1.6; }
+.prose p code, .prose li code { font-family: var(--mono); font-size: 0.92em; }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<canvas id="field" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="brand" href="/">
+    <span class="brand-dot" aria-hidden="true"></span>macromod
+  </a>
+  <nav class="nav-links">
+    <a href="/#idea">the idea</a>
+    <a href="/#models">the models</a>
+    <a href="/#pipeline">the pipeline</a>
+    <a href="/#outputs">outputs</a>
+    <a href="/connect/">connect</a>
+    <a class="nav-gh" href="https://github.com/PolicyEngine/MacroMod" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero connect-hero">
+    <div class="hero-inner" style="text-align:center;">
+      <p class="eyebrow reveal" style="--d:0">macromod for any ai — and any coder</p>
+      <h1 class="reveal" style="--d:1" style="font-size: clamp(34px, 5vw, 56px);">
+        Connect it. Or <em>code</em> it.
+      </h1>
+      <p class="lede reveal" style="--d:2; margin-left:auto; margin-right:auto;">
+        Hook MacroMod up to Claude or ChatGPT and score reforms from your
+        prompts — or skip the middleman and drive the Python API yourself.
+        Free and open source. No account, no sign-in.
+      </p>
+    </div>
+  </section>
+
+  <section class="connect-panel">
+    <div class="panel-card">
+      <div class="panel-bars">
+        <div class="seg" role="tablist" aria-label="Integration" id="seg-integration">
+          <button role="tab" data-pane="mcp" aria-selected="true">MCP</button>
+          <button role="tab" data-pane="cli" aria-selected="false">CLI</button>
+          <button role="tab" data-pane="skill" aria-selected="false">Skill</button>
+        </div>
+        <div class="seg" role="tablist" aria-label="Client" id="seg-client">
+          <button role="tab" data-client="claude" aria-selected="true">Claude</button>
+          <button role="tab" data-client="chatgpt" aria-selected="false">ChatGPT</button>
+        </div>
+      </div>
+
+      <!-- ================= MCP ================= -->
+      <div class="pane" id="pane-mcp">
+        <p class="status-note">preview — server in development</p>
+
+        <div class="steps" data-for="claude">
+          <div class="step">
+            <span class="step-n mono">1</span>
+            <h3>Copy the MacroMod URL</h3>
+            <p>Click the copy button — you'll paste it in the next step.</p>
+            <div class="copyblock"><code>https://mcp.macromod.dev/mcp</code><button data-copy>copy</button></div>
+          </div>
+          <div class="step">
+            <span class="step-n mono">2</span>
+            <h3>Open Settings → Connectors</h3>
+            <p>In Claude, add a <strong>custom connector</strong>, name it MacroMod, and paste the URL.</p>
+          </div>
+          <div class="step">
+            <span class="step-n mono">3</span>
+            <h3>Connect and ask</h3>
+            <p>Click <strong>Add → Connect</strong> — no account, no sign-in, free to use. Then ask Claude to <em>score a 1p basic-rate rise</em>.</p>
+          </div>
+        </div>
+
+        <div class="steps" data-for="chatgpt" hidden>
+          <div class="step">
+            <span class="step-n mono">1</span>
+            <h3>Copy the MacroMod URL</h3>
+            <p>Click the copy button — you'll paste it in the next step.</p>
+            <div class="copyblock"><code>https://mcp.macromod.dev/mcp</code><button data-copy>copy</button></div>
+          </div>
+          <div class="step">
+            <span class="step-n mono">2</span>
+            <h3>Open Settings → Connectors</h3>
+            <p>In ChatGPT, enable <strong>Developer mode</strong> under Connectors, then <strong>Create</strong> a connector named MacroMod and paste the URL.</p>
+          </div>
+          <div class="step">
+            <span class="step-n mono">3</span>
+            <h3>Connect and ask</h3>
+            <p>Save it — no account, no sign-in, free to use. Then ask ChatGPT to <em>score a 1p basic-rate rise</em>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= CLI ================= -->
+      <div class="pane" id="pane-cli" hidden>
+        <p class="status-note">preview — package in development</p>
+
+        <div class="steps" data-for="claude">
+          <div class="step">
+            <span class="step-n mono">1</span>
+            <h3>Install</h3>
+            <p>Python 3.11+. One package pulls the OLG engine and calibration data.</p>
+            <div class="copyblock"><code>pip install macromod</code><button data-copy>copy</button></div>
+          </div>
+          <div class="step">
+            <span class="step-n mono">2</span>
+            <h3>Ask Claude Code</h3>
+            <p>Claude Code runs the CLI from its terminal — just describe the reform, or run it yourself:</p>
+            <div class="copyblock"><code>macromod score \
+  --param gov.hmrc.income_tax.rates.uk[0].rate=0.21 \
+  --from 2026 --mode ss</code><button data-copy>copy</button></div>
+          </div>
+          <div class="step">
+            <span class="step-n mono">3</span>
+            <h3>Read the results</h3>
+            <p>GDP, consumption, investment, revenue, and debt in £bn — printed as a table or exported with <code class="mono">--json</code>.</p>
+          </div>
+        </div>
+
+        <div class="steps" data-for="chatgpt" hidden>
+          <div class="step">
+            <span class="step-n mono">1</span>
+            <h3>Install</h3>
+            <p>Python 3.11+. One package pulls the OLG engine and calibration data.</p>
+            <div class="copyblock"><code>pip install macromod</code><button data-copy>copy</button></div>
+          </div>
+          <div class="step">
+            <span class="step-n mono">2</span>
+            <h3>Ask Codex</h3>
+            <p>Codex runs the CLI from its terminal — just describe the reform, or run it yourself:</p>
+            <div class="copyblock"><code>macromod score \
+  --param gov.hmrc.income_tax.rates.uk[0].rate=0.21 \
+  --from 2026 --mode ss</code><button data-copy>copy</button></div>
+          </div>
+          <div class="step">
+            <span class="step-n mono">3</span>
+            <h3>Read the results</h3>
+            <p>GDP, consumption, investment, revenue, and debt in £bn — printed as a table or exported with <code class="mono">--json</code>.</p>
+          </div>
+        </div>
+
+        <p class="panel-foot mono" style="color: var(--paper-faint);">
+          coding agents with a terminal can use the CLI directly — no MCP needed.
+        </p>
+      </div>
+
+      <!-- ================= Skill ================= -->
+      <div class="pane" id="pane-skill" hidden>
+        <p class="status-note">available now</p>
+
+        <div class="steps" data-for="claude">
+          <div class="step">
+            <span class="step-n mono">1</span>
+            <h3>Get the skill</h3>
+            <p>One command downloads it straight into Claude Code's skills directory — no cloning.</p>
+            <div class="copyblock"><code>mkdir -p ~/.claude/skills/macromod &amp;&amp; \
+  curl -fsSL -o ~/.claude/skills/macromod/SKILL.md \
+  https://raw.githubusercontent.com/PSLmodels/OG-UK/main/SKILL.md</code><button data-copy>copy</button></div>
+          </div>
+          <div class="step">
+            <span class="step-n mono">2</span>
+            <h3>What it teaches</h3>
+            <p>The full API — parameter paths, solver options, and the gotchas — so Claude uses the model correctly on the first try.</p>
+          </div>
+          <div class="step">
+            <span class="step-n mono">3</span>
+            <h3>Ask for a score</h3>
+            <p>Claude writes and runs the Python itself: <code class="mono">solve_steady_state</code>, <code class="mono">run_transition_path</code>, <code class="mono">map_to_real_world</code>.</p>
+          </div>
+        </div>
+
+        <div class="steps" data-for="chatgpt" hidden>
+          <div class="step">
+            <span class="step-n mono">1</span>
+            <h3>Get the skill</h3>
+            <p>One command appends it to your project's <code class="mono">AGENTS.md</code>, which Codex reads on every session — no cloning.</p>
+            <div class="copyblock"><code>curl -fsSL \
+  https://raw.githubusercontent.com/PSLmodels/OG-UK/main/SKILL.md \
+  >> AGENTS.md</code><button data-copy>copy</button></div>
+          </div>
+          <div class="step">
+            <span class="step-n mono">2</span>
+            <h3>What it teaches</h3>
+            <p>The full API — parameter paths, solver options, and the gotchas — so Codex uses the model correctly on the first try.</p>
+          </div>
+          <div class="step">
+            <span class="step-n mono">3</span>
+            <h3>Ask for a score</h3>
+            <p>Codex writes and runs the Python itself: <code class="mono">solve_steady_state</code>, <code class="mono">run_transition_path</code>, <code class="mono">map_to_real_world</code>.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <p class="stack-note" style="text-align:center; margin-top: 26px;">
+      <span class="mono">using a coding agent with a terminal? the CLI or skill is the better fit.</span>
+    </p>
+  </section>
+
+  <section id="code" class="band">
+    <div class="band-head">
+      <span class="kicker mono">or — write the code yourself</span>
+      <h2>The Python API, in one screen.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        No connector, no CLI — just Python (3.11–3.13). Install straight from
+        GitHub (no clone needed), then the whole scoring loop is four moves:
+        <strong>build</strong> a reform, <strong>solve</strong> baseline and
+        reform, <strong>map</strong> to £bn, <strong>read</strong> the results.
+      </p>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pip install git+https://github.com/PSLmodels/OG-UK</code></pre></div>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">from</span> policyengine.core <span class="kw">import</span> ParameterValue, Policy
+<span class="kw">from</span> policyengine.tax_benefit_models.uk <span class="kw">import</span> uk_latest
+<span class="kw">from</span> oguk <span class="kw">import</span> solve_steady_state, map_to_real_world
+
+<span class="cm"># BUILD — a reform is real statute: a PolicyEngine parameter + a new value.</span>
+<span class="cm"># Here: basic rate of income tax 20% → 21% from 2026.</span>
+param = uk_latest.get_parameter(<span class="kw">"gov.hmrc.income_tax.rates.uk[0].rate"</span>)
+reform = Policy(name=<span class="kw">"Basic rate 21%"</span>, parameter_values=[
+    ParameterValue(parameter=param, value=0.21,
+                   start_date=datetime(2026, 1, 1))])
+
+<span class="cm"># SOLVE — two general-equilibrium solves (~5-15 min each).</span>
+<span class="cm"># No policy argument = current law. Same call + policy = the reform world.</span>
+baseline  = solve_steady_state(start_year=2026)
+reform_ss = solve_steady_state(start_year=2026, policy=reform)
+
+<span class="cm"># MAP — model units → current-price £bn, anchored to ONS/OBR data.</span>
+impact = map_to_real_world(baseline, reform_ss)
+
+<span class="cm"># READ — level, change, and % change for each aggregate.</span>
+<span class="kw">print</span>(f<span class="kw">"GDP:     {impact.gdp_change:+.1f}bn ({impact.gdp_pct:+.3f}%)"</span>)
+<span class="kw">print</span>(f<span class="kw">"Revenue: {impact.tax_revenue_change:+.1f}bn"</span>)
+<span class="kw">print</span>(f<span class="kw">"Debt:    {impact.debt_change:+.1f}bn"</span>)</code></pre></div>
+      <p>
+        What's happening under the hood: PolicyEngine runs the reform through
+        the actual UK tax-benefit rules on representative microdata, OG-UK
+        estimates tax functions from that, and the OLG model solves for how 80
+        age cohorts and firms re-optimise — giving you the new equilibrium
+        wages, interest rate, and aggregates.
+      </p>
+      <p>Three dials to know about:</p>
+      <ul>
+        <li><strong>mode</strong> — <code>solve_steady_state()</code> for the long-run answer; <code>run_transition_path()</code> for the year-by-year fiscal profile (slower, runs on Dask).</li>
+        <li><strong>age_specific</strong> — <code>"pooled"</code> (default, fastest) → <code>"brackets"</code> → <code>"each"</code> for finer age-specific tax functions.</li>
+        <li><strong>param_overrides</strong> — structural shocks that aren't statute: <code>{"cit_rate": [[0.25]]}</code> for corporation tax, <code>{"Z": [[1.004]]}</code> for TFP.</li>
+      </ul>
+      <p class="research-link mono">
+        <a href="/olg/">Full guide — parameter paths, every option, transition paths, and outputs → the OG-UK model page</a>
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot-row">
+    <span class="brand"><span class="brand-dot" aria-hidden="true"></span>macromod</span>
+    <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
+  </div>
+  <p class="mono foot-fine">
+    Macroeconomic simulation models for public policy. Open source · a PolicyEngine project.
+  </p>
+</footer>
+
+<script src="/field.js" defer></script>
+<script src="/reveal.js" defer></script>
+<script>
+(function () {
+  "use strict";
+  var integ = document.getElementById("seg-integration");
+  var client = document.getElementById("seg-client");
+
+  function select(seg, btn) {
+    seg.querySelectorAll("button").forEach(function (b) {
+      b.setAttribute("aria-selected", String(b === btn));
+    });
+  }
+
+  function currentClient() {
+    return client.querySelector('[aria-selected="true"]').dataset.client;
+  }
+  function applyClient() {
+    var c = currentClient();
+    document.querySelectorAll(".pane .steps[data-for]").forEach(function (s) {
+      s.hidden = s.dataset.for !== c;
+    });
+  }
+
+  integ.addEventListener("click", function (e) {
+    var btn = e.target.closest("button"); if (!btn) return;
+    select(integ, btn);
+    document.querySelectorAll(".pane").forEach(function (p) {
+      p.hidden = p.id !== "pane-" + btn.dataset.pane;
+    });
+    applyClient();
+  });
+
+  client.addEventListener("click", function (e) {
+    var btn = e.target.closest("button"); if (!btn) return;
+    select(client, btn);
+    applyClient();
+  });
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-copy]"); if (!btn) return;
+    var code = btn.parentElement.querySelector("code");
+    navigator.clipboard.writeText(code.textContent).then(function () {
+      btn.textContent = "copied";
+      setTimeout(function () { btn.textContent = "copy"; }, 1400);
+    });
+  });
+})();
+</script>
+</body>
+</html>

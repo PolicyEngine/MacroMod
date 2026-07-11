@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>macromod — the overlapping-generations model (OG-UK)</title>
+<meta name="description" content="OG-UK: a dynamic overlapping-generations general-equilibrium model of the UK economy, driven by PolicyEngine reforms. How to install it, score a reform, and read the results." />
+<link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
+<meta name="theme-color" content="#FFFFFF" />
+
+<link rel="stylesheet" href="/vendor/fonts/fonts.css" />
+<link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
+<link rel="stylesheet" href="/style.css" />
+<style>
+/* ---------- model page ---------- */
+.model-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 10px; }
+.codeblock {
+  position: relative;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--background, #fff) 72%, transparent);
+  padding: 18px 20px;
+  margin: 22px 0 6px;
+  overflow-x: auto;
+}
+.codeblock pre { margin: 0; }
+.codeblock code {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre;
+}
+.codeblock .cb-copy {
+  position: absolute; top: 10px; right: 12px;
+  border: 0; background: none; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; color: var(--paper-faint);
+}
+.codeblock .cb-copy:hover { color: var(--text, #111); }
+.cm { color: var(--paper-faint); }       /* comment */
+.kw { color: var(--amber); }             /* keyword */
+.prose table { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 14px; }
+.prose th { text-align: left; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--paper-faint); }
+.prose th, .prose td { padding: 9px 14px 9px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+.prose td code, .prose p code, .prose li code { font-family: var(--mono); font-size: 0.92em; }
+.opt-note { font-size: 13.5px; color: var(--paper-faint); }
+.callout {
+  border-left: 2px solid var(--amber);
+  padding: 4px 0 4px 18px;
+  margin: 24px 0;
+  font-size: 14.5px;
+  color: var(--paper-faint);
+}
+.prose ul { padding-left: 20px; }
+.prose li { margin: 7px 0; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<canvas id="field" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="brand" href="/">
+    <span class="brand-dot" aria-hidden="true"></span>macromod
+  </a>
+  <nav class="nav-links">
+    <a href="/#idea">the idea</a>
+    <a href="/#models">the models</a>
+    <a href="/#pipeline">the pipeline</a>
+    <a href="/#outputs">outputs</a>
+    <a href="/connect/">connect</a>
+    <a class="nav-gh" href="https://github.com/PolicyEngine/MacroMod" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero model-hero">
+    <div class="hero-inner">
+      <p class="eyebrow reveal" style="--d:0">model 01 — overlapping generations · OG-UK</p>
+      <h1 class="reveal" style="--d:1" style="font-size: clamp(34px, 5vw, 56px);">
+        Eighty cohorts. <em>One</em> economy.
+      </h1>
+      <p class="lede reveal" style="--d:2">
+        OG-UK is a dynamic general-equilibrium model of the UK: 80 age cohorts
+        working, saving, and retiring, built on <strong>OG-Core</strong>,
+        calibrated to ONS and OBR data, with tax functions estimated from
+        PolicyEngine microdata. It solves the long-run steady state and the
+        year-by-year transition path of any reform.
+      </p>
+      <div class="hero-cta reveal" style="--d:3">
+        <a class="btn btn-primary" href="#quickstart">Quickstart</a>
+        <a class="btn btn-ghost" href="https://github.com/PSLmodels/OG-UK">Read the code</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="band">
+    <div class="band-head">
+      <span class="kicker mono">01 — install</span>
+      <h2>One command, no clone.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        OG-UK is a Python package — pip installs it straight from GitHub.
+        The microdata is fetched on first run (set
+        <code>HUGGING_FACE_TOKEN</code> to run non-interactively, e.g. in CI).
+      </p>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pip install git+https://github.com/PSLmodels/OG-UK</code></pre></div>
+      <p class="opt-note">install into a virtual environment (<code>python3 -m venv .venv</code>) to keep the dependencies isolated. Python 3.11+.</p>
+    </div>
+  </section>
+
+  <section id="quickstart" class="band">
+    <div class="band-head">
+      <span class="kicker mono">02 — quickstart</span>
+      <h2>Score a reform in four steps.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        The whole scoring loop is: build a reform, solve baseline and reform,
+        map to £bn. Here is the complete program for raising the basic rate of
+        income tax from 20% to 21%.
+      </p>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">from</span> policyengine.core <span class="kw">import</span> ParameterValue, Policy
+<span class="kw">from</span> policyengine.tax_benefit_models.uk <span class="kw">import</span> uk_latest
+<span class="kw">from</span> oguk <span class="kw">import</span> solve_steady_state, map_to_real_world
+
+<span class="cm"># 1. build a reform from PolicyEngine parameters</span>
+param = uk_latest.get_parameter(<span class="kw">"gov.hmrc.income_tax.rates.uk[0].rate"</span>)
+reform = Policy(
+    name=<span class="kw">"Basic rate 21%"</span>,
+    parameter_values=[
+        ParameterValue(parameter=param, value=0.21,
+                       start_date=datetime(2026, 1, 1))
+    ],
+)
+
+<span class="cm"># 2. solve baseline and reform steady states (~5-15 min each)</span>
+baseline  = solve_steady_state(start_year=2026)          <span class="cm"># no policy = baseline</span>
+reform_ss = solve_steady_state(start_year=2026, policy=reform)
+
+<span class="cm"># 3. map model units to real-world £bn</span>
+impact = map_to_real_world(baseline, reform_ss)
+
+<span class="cm"># 4. read the results</span>
+<span class="kw">print</span>(f<span class="kw">"GDP change: {impact.gdp_change:+.1f}bn ({impact.gdp_pct:+.3f}%)"</span>)
+<span class="kw">print</span>(f<span class="kw">"Tax revenue change: {impact.tax_revenue_change:+.1f}bn"</span>)
+<span class="kw">print</span>(f<span class="kw">"Interest rate: {impact.r_baseline:.2%} → {impact.r_reform:.2%}"</span>)</code></pre></div>
+    </div>
+  </section>
+
+  <section id="policyengine" class="band">
+    <div class="band-head">
+      <span class="kicker mono">03 — the PolicyEngine connection</span>
+      <h2>Reforms are statute, not stylized wedges.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        A reform is a PolicyEngine <code>Policy</code> object — actual
+        parameters of the UK tax and benefit system. OG-UK runs the reform
+        through PolicyEngine's rules engine on representative microdata,
+        estimates tax functions under baseline and reform, and feeds those to
+        the macro model. So the model sees the reform's true shape across the
+        income and age distribution.
+      </p>
+      <table>
+        <thead><tr><th>parameter path</th><th>what it is</th></tr></thead>
+        <tbody>
+          <tr><td><code>gov.hmrc.income_tax.rates.uk[0].rate</code></td><td>basic rate (20%)</td></tr>
+          <tr><td><code>gov.hmrc.income_tax.rates.uk[1].rate</code></td><td>higher rate (40%)</td></tr>
+          <tr><td><code>gov.hmrc.income_tax.rates.uk[2].rate</code></td><td>additional rate (45%)</td></tr>
+          <tr><td><code>gov.hmrc.income_tax.allowances.personal_allowance.amount</code></td><td>personal allowance (£12,570)</td></tr>
+          <tr><td><code>gov.hmrc.national_insurance.class_1.rates.employee.main</code></td><td>NI main rate</td></tr>
+          <tr><td><code>gov.hmrc.national_insurance.class_1.rates.employee.higher</code></td><td>NI upper rate</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Stack several <code>ParameterValue</code>s in one <code>Policy</code>
+        to score a package — a rate rise plus an allowance change scores as one
+        combined reform.
+      </p>
+      <div class="callout">
+        Corporation tax is <strong>not</strong> a PolicyEngine parameter — it's a
+        structural parameter of the macro model. Shock it with
+        <code>param_overrides={"cit_rate": [[0.26]]}</code> (see section 05).
+      </div>
+    </div>
+  </section>
+
+  <section id="options" class="band">
+    <div class="band-head">
+      <span class="kicker mono">04 — the options</span>
+      <h2>Three dials: mode, tax functions, sectors.</h2>
+    </div>
+    <div class="prose">
+      <table>
+        <thead><tr><th>dial</th><th>choices</th><th>trade-off</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>mode</strong></td>
+            <td><code>solve_steady_state()</code> · <code>run_transition_path()</code></td>
+            <td>long-run answer in ~5–15 min · full year-by-year path in ~60–90 min</td>
+          </tr>
+          <tr>
+            <td><strong>age_specific</strong></td>
+            <td><code>"pooled"</code> · <code>"brackets"</code> · <code>"each"</code></td>
+            <td>one tax function for all ages (fastest, most stable) · one per age group · one per age (80 functions, slowest)</td>
+          </tr>
+          <tr>
+            <td><strong>multi_sector</strong></td>
+            <td><code>False</code> · <code>True</code></td>
+            <td>one production sector · eight SIC-calibrated industries (energy, manufacturing, …); needed for sector-level questions like energy price shocks</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="cm"># first pass: fast and stable</span>
+ss = solve_steady_state(start_year=2026, policy=reform)
+
+<span class="cm"># more accurate tax functions, 8 industries</span>
+ss = solve_steady_state(start_year=2026, policy=reform,
+                        age_specific=<span class="kw">"brackets"</span>, multi_sector=<span class="kw">True</span>)</code></pre></div>
+      <p class="opt-note">
+        start with <code>pooled</code> + 1-sector; scale up only once the fast run
+        answers your question. non-converging solve? raise <code>max_iter</code>
+        (default 250), fall back to <code>pooled</code>, and check whether the
+        reform is extreme — OLG models can diverge on very large shocks.
+      </p>
+    </div>
+  </section>
+
+  <section id="shocks" class="band">
+    <div class="band-head">
+      <span class="kicker mono">05 — structural shocks</span>
+      <h2>Beyond statute: TFP, corporation tax, spending.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        Both solvers accept <code>param_overrides</code> — a dict of OG-Core
+        parameters applied on top of everything else. Use it for shocks that
+        aren't tax-and-benefit statute.
+      </p>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="cm"># corporation tax cut (27% effective → 25%)</span>
+ss = solve_steady_state(param_overrides={<span class="kw">"cit_rate"</span>: [[0.25]]})
+
+<span class="cm"># productivity: +0.4% TFP level shock</span>
+ss = solve_steady_state(param_overrides={<span class="kw">"Z"</span>: [[1.004]]})
+
+<span class="cm"># combine a statutory reform with a structural shock in one run</span>
+ss = solve_steady_state(policy=reform,
+                        param_overrides={<span class="kw">"cit_rate"</span>: [[0.25]]})</code></pre></div>
+      <div class="callout">
+        Use <code>Z</code> (TFP) for productivity shocks — never
+        <code>g_y_annual</code>, which is the balanced-growth normalisation the
+        model detrends by, not a productivity lever.
+      </div>
+    </div>
+  </section>
+
+  <section id="transition" class="band">
+    <div class="band-head">
+      <span class="kicker mono">06 — the transition path</span>
+      <h2>The fiscal-year profile a budget needs.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        The steady state answers "where does the economy settle?" The
+        transition path answers "what happens each year on the way there" —
+        60 years of it, solved for baseline and reform in one call. It runs on
+        Dask workers, so pass a client.
+      </p>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">from</span> dask.distributed <span class="kw">import</span> Client
+<span class="kw">from</span> oguk <span class="kw">import</span> run_transition_path, map_transition_to_real_world
+
+client = Client(n_workers=4, threads_per_worker=1)
+base_tp, reform_tp = run_transition_path(start_year=2026, policy=reform,
+                                         client=client)
+client.close()
+
+impact = map_transition_to_real_world(base_tp, reform_tp)
+<span class="cm"># impact.years            → ["2026-27", "2027-28", ...]</span>
+<span class="cm"># impact.gdp_change[t]    → £bn change from baseline in year t</span>
+<span class="cm"># same arrays for consumption, investment, revenue, debt</span></code></pre></div>
+    </div>
+  </section>
+
+  <section id="outputs" class="band band-result">
+    <div class="band-head">
+      <span class="kicker mono">07 — outputs</span>
+      <h2>Everything maps back to £bn.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        <code>map_to_real_world()</code> returns a <code>MacroImpact</code> with,
+        for each aggregate, the reform level, the change from baseline, and the
+        percent change — all current-price £bn — plus baseline and reform
+        interest rates.
+      </p>
+      <ul>
+        <li><code>.gdp</code> / <code>.gdp_change</code> / <code>.gdp_pct</code></li>
+        <li><code>.consumption</code>, <code>.investment</code>, <code>.government</code> — same triple each</li>
+        <li><code>.tax_revenue</code>, <code>.debt</code> — same triple each</li>
+        <li><code>.r_baseline</code>, <code>.r_reform</code> — steady-state interest rates</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="band band-cta">
+    <h2>Run it yourself, or let your agent run it.</h2>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="https://github.com/PSLmodels/OG-UK">github.com/PSLmodels/OG-UK</a>
+      <a class="btn btn-ghost" href="/connect/">Connect it to your AI</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot-row">
+    <span class="brand"><span class="brand-dot" aria-hidden="true"></span>macromod</span>
+    <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
+  </div>
+  <p class="mono foot-fine">
+    Macroeconomic simulation models for public policy. Open source · a PolicyEngine project.
+  </p>
+</footer>
+
+<script src="/field.js" defer></script>
+<script src="/reveal.js" defer></script>
+<script>
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-copy]"); if (!btn) return;
+  var code = btn.parentElement.querySelector("code");
+  navigator.clipboard.writeText(code.textContent).then(function () {
+    btn.textContent = "copied";
+    setTimeout(function () { btn.textContent = "copy"; }, 1400);
+  });
+});
+</script>
+</body>
+</html>
