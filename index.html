@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>macromod — macroeconomic simulation, built in the open</title>
-<meta name="description" content="MacroMod is PolicyEngine's open-source suite of macroeconomic simulation models: an overlapping-generations model, an OBR model emulator, a UK structural VAR, and PolicyEngine's tax-benefit microsimulation — all reading the same economy, in the open." />
+<meta name="description" content="MacroMod is PolicyEngine's open platform of macroeconomic simulation models: an overlapping-generations model, an OBR model emulator, a UK structural VAR, and PolicyEngine's tax-benefit microsimulation — all reading the same economy, in the open." />
 <meta property="og:title" content="macromod" />
 <meta property="og:description" content="Open-source macroeconomic simulation models for public policy." />
 <meta property="og:type" content="website" />
@@ -36,27 +36,21 @@
 <main id="top">
   <section class="hero">
     <div class="hero-inner">
-      <p class="eyebrow reveal" style="--d:0">open-source macroeconomic simulation</p>
+      <p class="eyebrow reveal" style="--d:0">an open platform for macroeconomic simulation</p>
       <h1 class="reveal" style="--d:1">
-        A reform moves <em>every</em> price.
-        <br />We model the whole economy's answer.
+        Every policy moves the whole economy.
+        <br />We model the answer — from payslip to GDP.
       </h1>
       <p class="lede reveal" style="--d:2">
-        <strong>macromod</strong> is a suite of macroeconomic simulation models
-        for scoring public policy — tracing a reform's effect on GDP,
-        investment, consumption, revenue, and debt — from an overlapping-generations
-        model to an emulator of the OBR's own forecasting model to a replication
-        of the Bank of England's structural VAR, with PolicyEngine's
-        tax-benefit microsimulation as the household-level micro engine beside
-        them — improved in the open.
+        <strong>macromod</strong> is PolicyEngine's open platform of
+        macroeconomic models: score a reform, forecast the economy, and read
+        its shocks — from one household's taxes to the long-run steady state.
+        Four engines, one suite, improved in the open.
       </p>
       <div class="hero-cta reveal" style="--d:3">
         <a class="btn btn-primary" href="#idea">How it works</a>
         <a class="btn btn-ghost" href="https://github.com/PolicyEngine/MacroMod">Read the code</a>
       </div>
-      <p class="hero-foot reveal" style="--d:4">
-        <span class="mono">every point above is a cohort of households · brightness ∝ economic weight</span>
-      </p>
     </div>
   </section>
 
@@ -68,23 +62,18 @@
     <div class="prose">
       <p>
         Microsimulation tells you who pays what the morning after a reform.
-        But people respond: they work, save, and invest differently, firms
-        adjust capital, wages and interest rates move, and the revenue estimate
-        moves with them. Most published policy scores stop before that second
-        act — or bolt it on with a single hand-picked elasticity.
+        But people respond — they work, save, and invest differently; firms
+        adjust; wages, prices, and interest rates move, and the revenue
+        estimate moves with them. Most published scores stop before that
+        second act, or bolt it on with a single hand-picked elasticity.
       </p>
       <p>
-        macromod makes the second act <strong>a model, not a fudge factor</strong>.
-        Each model in the suite is a structural macroeconomic engine that takes a
-        policy change and solves for the economy's response — changes in
-        macroeconomic aggregates (GDP, investment, consumption), wages, interest
-        rates, and tax revenues over time. Different models bring different
-        machinery: a general-equilibrium overlapping-generations engine for the
-        long run, an emulator of the OBR's own equations for near-term fiscal
-        multipliers, and a Bayesian structural VAR that reads the current state
-        of the economy in structural-shock terms — with PolicyEngine's
-        tax-benefit microsimulation supplying the first act at person and
-        household resolution.
+        macromod makes the second act <strong>a model, not a fudge
+        factor</strong>: an overlapping-generations engine for the long run,
+        the OBR's own equations for the near-term fiscal path, a Bayesian
+        structural VAR that reads today's economy in shock terms — with
+        PolicyEngine's microsimulation supplying the first act at household
+        resolution.
       </p>
     </div>
   </section>
@@ -152,20 +141,10 @@
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
       <div class="strategy-card strategy-card-static">
-        <header><span class="card-id mono">next</span><span class="tag tag-wip">planned</span></header>
-        <h3>More model classes</h3>
-        <p>
-          The suite is built to grow: additional macroeconomic model classes
-          will slot in beside these four, each scoring the same reforms and
-          reporting comparable outputs. This card is the open seat — watch the
-          repository for what fills it next.
-        </p>
-        <span class="strategy-paper-link mono" style="color: var(--paper-faint);">in design</span>
+        <header><span class="card-id mono">next</span><span class="tag tag-wip">in design</span></header>
+        <h3>New models</h3>
       </div>
     </div>
-    <p class="stack-note">
-      <span class="mono">obr-macro also runs as a live dashboard — <a href="https://obr-macroeconomic-model.vercel.app/" style="color: var(--amber-soft);">obr-macroeconomic-model.vercel.app</a></span>
-    </p>
   </section>
 
   <section id="pipeline" class="band">
@@ -175,59 +154,20 @@
     </div>
     <div class="prose">
       <p>
-        A reform is a <strong>policy change, not a stylized wedge</strong>. How it
-        enters depends on the model. The overlapping-generations engine takes a
-        PolicyEngine policy object — actual tax-and-benefit parameters — runs it
-        through PolicyEngine's UK microsimulation, and fits tax functions to the
-        resulting effective and marginal rates, so it sees the reform's true shape
-        across the income and age distribution. The OBR emulator takes a shock to
-        one of its exogenous variables — a spending change, a rate change.
+        One question, four entry points. A reform enters as
+        <strong>actual policy parameters</strong> — a tax rate, an allowance, a
+        benefit amount — and each engine answers at its own resolution: the
+        microsimulation computes what it does to a named household, the OLG
+        model solves the long-run general equilibrium, the OBR emulator traces
+        the quarter-by-quarter fiscal path, and the structural VAR reads which
+        shocks are driving the economy you're about to change.
       </p>
       <p>
-        Both then solve for the response and report the <strong>deviation from a
-        baseline</strong> anchored to official data — ONS, OBR, and Bank of
-        England national accounts for the OLG model; the OBR's Economic and Fiscal
-        Outlook for the emulator — so a result is always relative to current
-        forecast, never a raw level to misread. The structural VAR plays a
-        different role: it doesn't score reforms (yet) but reads the state the
-        economy is in — which structural shocks are driving GDP and inflation
-        right now — before you simulate changing it.
+        Every result is a <strong>deviation from an official baseline</strong>
+        — ONS, OBR, and Bank of England data — in real-world units: £ per year
+        for a household, £bn and % of GDP for the economy. One connector, one
+        CLI, one Python API drive all four.
       </p>
-    </div>
-  </section>
-
-  <section id="outputs" class="band band-result">
-    <div class="band-head">
-      <span class="kicker mono">04 — outputs</span>
-      <h2>Real-world quantities, not model units.</h2>
-    </div>
-    <div class="prose">
-      <p>
-        Every run maps back to real-world quantities: national-accounts
-        aggregates from the macro models, pounds-per-year for a named
-        household from the microsimulation. The OLG model answers the
-        long-run question with a steady state and a year-by-year transition
-        path; the OBR emulator gives the quarter-by-quarter fiscal profile a
-        budget process needs; the Bank of England SVAR reads the latest data
-        in structural-shock terms and forecasts with credible bands.
-      </p>
-    </div>
-    <div class="metrics">
-      <div class="metric">
-        <span class="metric-label mono">aggregates</span>
-        <span class="metric-val">6</span>
-        <span class="metric-note">GDP · consumption · investment · government · revenue · debt</span>
-      </div>
-      <div class="metric">
-        <span class="metric-label mono">equations</span>
-        <span class="metric-val">372</span>
-        <span class="metric-note">solved simultaneously in the OBR emulator</span>
-      </div>
-      <div class="metric">
-        <span class="metric-label mono">identified shocks</span>
-        <span class="metric-val">6</span>
-        <span class="metric-note">in the Bank of England SVAR</span>
-      </div>
     </div>
   </section>
 
@@ -241,18 +181,28 @@
 </main>
 
 <footer class="foot">
-  <div class="foot-row">
-    <span class="brand"><span class="brand-dot" aria-hidden="true"></span>macromod</span>
-    <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
+  <div class="foot-grid">
+    <div class="foot-col foot-col-brand">
+      <span class="brand"><span class="brand-dot" aria-hidden="true"></span>macromod</span>
+      <p class="mono foot-fine">an open platform for macroeconomic simulation — a PolicyEngine project, improved in the open.</p>
+      <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
+    </div>
+    <div class="foot-col">
+      <span class="foot-head">models</span>
+      <a href="/olg/">PSL overlapping generations</a>
+      <a href="/obr/">OBR macroeconometric</a>
+      <a href="/svar/">Bank of England SVAR</a>
+      <a href="/pe/">PolicyEngine microsimulation</a>
+    </div>
+    <div class="foot-col">
+      <span class="foot-head">use it</span>
+      <a href="/docs/">documentation</a>
+      <a href="/connect/">connect — MCP · CLI · Python</a>
+      <a href="https://github.com/PolicyEngine/MacroMod">source on GitHub</a>
+      <a href="https://policyengine.org">policyengine.org</a>
+    </div>
   </div>
-  <p class="mono foot-fine">
-    Macroeconomic simulation models for public policy. Open source · a PolicyEngine project.
-  </p>
-  <p class="mono foot-fine foot-links">
-    <a href="https://github.com/PolicyEngine/MacroMod">source</a> ·
-    <a href="https://github.com/PSLmodels/OG-UK">OG-UK</a> ·
-    <a href="https://policyengine.org">policyengine.org</a>
-  </p>
+  <p class="mono foot-fine">open source · built in the open</p>
 </footer>
 
 <script src="./field.js" defer></script>

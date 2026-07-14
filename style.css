@@ -843,3 +843,14 @@ h2 {
   padding: 6px 0 6px 20px; margin: 26px 0;
   font-size: 0.95rem; line-height: 1.6; color: var(--paper-dim); max-width: 80ch;
 }
+
+/* ---------- section divider after hero + grid footer ---------- */
+.hero + .band { border-top: 1px solid var(--line-soft); }
+.foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 32px; margin-bottom: 26px; }
+@media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr; } }
+.foot-head { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--paper-faint); margin-bottom: 12px; }
+.foot-col a { display: block; font-family: var(--mono); font-size: 13px; color: var(--paper-dim); text-decoration: none; margin-bottom: 8px; }
+.foot-col a:hover { color: var(--amber-soft); }
+.foot-col-brand .brand { margin-bottom: 10px; }
+.foot-col-brand .foot-fine { max-width: 34ch; }
+.foot-col-brand .foot-pe { margin-top: 14px; }
