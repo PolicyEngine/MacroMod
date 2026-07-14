@@ -3,8 +3,9 @@
     modal deploy integration/modal_app.py
 
 Serves the FastMCP instance from `macromod.mcp_server` (tools: score_reform,
-list_reform_variables, forecast_uk, latest_shocks, model_summary) as an ASGI
-app at  https://policyengine--macromod-mcp-serve.modal.run/mcp
+list_reform_variables, forecast_uk, latest_shocks, model_summary,
+calculate_household, household_reform_impact, list_reform_parameters) as an
+ASGI app at  https://policyengine--macromod-mcp-serve.modal.run/mcp
 
 Both model repos resolve their data files relative to their own repo root
 (`Path(__file__)`-relative), and `macromod.core` hardcodes
@@ -60,6 +61,12 @@ image = (
         "requests",
         "click",
         "mcp[cli]>=1.9",  # needs FastMCP.streamable_http_app()
+        # PolicyEngine microsimulation (household calculator tools). Importing
+        # it loads the full UK+US country models (~20s), so macromod.core
+        # imports it lazily inside the pe_* adapters — module import at
+        # container start stays fast; only the first policyengine tool call
+        # in a fresh container pays the load.
+        "policyengine>=4,<5",
     )
 )
 

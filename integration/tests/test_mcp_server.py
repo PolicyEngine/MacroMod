@@ -16,6 +16,9 @@ EXPECTED_TOOLS = {
     "forecast_uk",
     "latest_shocks",
     "model_summary",
+    "calculate_household",
+    "household_reform_impact",
+    "list_reform_parameters",
 }
 
 
@@ -44,6 +47,30 @@ async def test_mcp_tools_and_calls():
             score = _payload(res)
             assert score["var"] == "CGG"
             assert score["results"][0]["delta_gdp_bn"] > 0
+
+            res = await session.call_tool("list_reform_parameters", {})
+            assert not res.isError, res.content
+            if res.structuredContent:  # mcp >= 1.9 wraps lists as {"result": [...]}
+                params = res.structuredContent.get("result", res.structuredContent)
+            else:
+                params = [json.loads(c.text) for c in res.content]
+            assert any(
+                p["path"] == "gov.hmrc.income_tax.rates.uk[0].rate" for p in params
+            )
+
+            # First policyengine call in the server pays the lazy import
+            # (~20s) plus the calculation.
+            res = await session.call_tool(
+                "calculate_household",
+                {
+                    "country": "uk",
+                    "people": [{"age": 35, "employment_income": 50_000}],
+                },
+            )
+            hh = _payload(res)
+            assert hh["country"] == "uk"
+            assert 6_500 < hh["summary"]["income_tax_by_person"][0] < 8_500
+            json.dumps(hh)
 
 
 @pytest.fixture

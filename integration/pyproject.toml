@@ -15,7 +15,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-models = []  # obr-macro-model and boe_var are installed from local checkouts
+# obr-macro-model and boe_var are installed from local checkouts;
+# policyengine comes from PyPI (heavy: full UK+US country models).
+models = ["policyengine>=4,<5"]
 
 [project.scripts]
 macromod = "macromod.cli:main"

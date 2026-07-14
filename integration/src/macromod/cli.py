@@ -129,5 +129,103 @@ def summary(as_json):
         click.echo(f"  {ln}")
 
 
+def _json_opt(value, name):
+    if value is None:
+        return None
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError as e:
+        raise click.BadParameter(f"--{name} must be valid JSON: {e}") from e
+
+
+_PEOPLE_HELP = 'JSON list of person dicts, e.g. \'[{"age":35,"employment_income":50000}]\'.'
+_REFORM_HELP = 'JSON reform dict, e.g. \'{"gov.hmrc.income_tax.rates.uk[0].rate":0.25}\'.'
+
+
+def _pe_common_options(fn):
+    for opt in reversed([
+        click.option("--country", type=click.Choice(["uk", "us"]), required=True),
+        click.option("--people", required=True, help=_PEOPLE_HELP),
+        click.option("--year", default=2026, show_default=True),
+        click.option("--benunit", default=None, help="UK only: JSON benunit dict."),
+        click.option("--tax-unit", "tax_unit", default=None,
+                     help='US only: JSON tax unit dict, e.g. \'{"filing_status":"SINGLE"}\'.'),
+        click.option("--household", default=None,
+                     help='JSON household dict, e.g. \'{"state_code_str":"CA"}\' (US).'),
+        click.option("--json", "as_json", is_flag=True, help="Emit JSON."),
+    ]):
+        fn = opt(fn)
+    return fn
+
+
+def _echo_summary(label: str, summary: dict, sym: str) -> None:
+    click.echo(label)
+    for k, v in summary.items():
+        if isinstance(v, list):
+            v = ", ".join(f"{sym}{x:,.0f}" for x in v)
+        elif isinstance(v, (int, float)):
+            v = f"{sym}{v:,.0f}"
+        click.echo(f"  {k:32} {v}")
+
+
+@main.command()
+@_pe_common_options
+@click.option("--reform", default=None, help=_REFORM_HELP)
+def household(country, people, year, benunit, tax_unit, household, as_json, reform):
+    """Calculate taxes and benefits for a household (PolicyEngine)."""
+    res = core.pe_household(
+        country=country,
+        people=_json_opt(people, "people"),
+        year=year,
+        reform=_json_opt(reform, "reform"),
+        benunit=_json_opt(benunit, "benunit"),
+        tax_unit=_json_opt(tax_unit, "tax-unit"),
+        household=_json_opt(household, "household"),
+    )
+    if as_json:
+        _emit_json(res)
+        return
+    sym = "£" if res["country"] == "uk" else "$"
+    click.echo(f"PolicyEngine {res['country'].upper()} household, {res['year']}"
+               + (f" (reform: {res['reform']})" if res["reform"] else ""))
+    _echo_summary("Summary:", res["summary"], sym)
+
+
+@main.command("household-impact")
+@_pe_common_options
+@click.option("--reform", required=True, help=_REFORM_HELP)
+def household_impact(country, people, year, benunit, tax_unit, household, as_json, reform):
+    """Baseline-vs-reform impact of a reform on one household (PolicyEngine)."""
+    res = core.pe_household_impact(
+        country=country,
+        people=_json_opt(people, "people"),
+        reform=_json_opt(reform, "reform"),
+        year=year,
+        benunit=_json_opt(benunit, "benunit"),
+        tax_unit=_json_opt(tax_unit, "tax-unit"),
+        household=_json_opt(household, "household"),
+    )
+    if as_json:
+        _emit_json(res)
+        return
+    sym = "£" if res["country"] == "uk" else "$"
+    click.echo(f"PolicyEngine {res['country'].upper()} reform impact, {res['year']}")
+    click.echo(f"Reform: {res['reform']}\n")
+    _echo_summary("Baseline:", res["baseline"], sym)
+    _echo_summary("\nWith reform:", res["with_reform"], sym)
+    _echo_summary("\nChange:", {k: v for k, v in res["change"].items() if v is not None}, sym)
+
+
+@main.command()
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+def parameters(as_json):
+    """List curated PolicyEngine reform parameters (verified paths)."""
+    res = core.pe_list_common_parameters()
+    if as_json:
+        _emit_json(res)
+        return
+    click.echo(_table(res, ["country", "path", "description", "unit"]))
+
+
 if __name__ == "__main__":
     main()

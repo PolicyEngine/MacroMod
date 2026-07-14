@@ -107,5 +107,88 @@ def model_summary() -> dict:
     return core.svar_summary()
 
 
+@mcp.tool()
+def calculate_household(
+    country: str,
+    people: list[dict],
+    year: int = 2026,
+    reform: dict | None = None,
+    benunit: dict | None = None,
+    tax_unit: dict | None = None,
+    household: dict | None = None,
+) -> dict:
+    """Calculate taxes and benefits for a custom household with the
+    PolicyEngine microsimulation model (full UK/US tax-benefit rules).
+
+    Args:
+        country: 'uk' or 'us'.
+        people: List of person dicts. All money amounts are ANNUAL and in the
+            country's currency (GBP for uk, USD for us), as plain numbers.
+            Example: [{"age": 35, "employment_income": 50000}, {"age": 5}].
+        year: Tax year (default 2026).
+        reform: Optional parametric reform as {parameter_path: value}, e.g.
+            {"gov.hmrc.income_tax.rates.uk[0].rate": 0.25} (UK basic rate to
+            25%, a decimal) or {"gov.irs.credits.ctc.amount.base[0].amount":
+            3000} (US CTC to $3,000). Call list_reform_parameters for verified
+            paths and units.
+        benunit: UK only, optional benefit-unit dict, e.g.
+            {"would_claim_uc": true, "would_claim_child_benefit": true}.
+        tax_unit: US only, optional, e.g. {"filing_status": "SINGLE"} or "JOINT".
+        household: Optional household dict. US: {"state_code_str": "CA"}.
+            UK: {"rent": 12000, "region": "NORTH_WEST"}.
+
+    Returns a dict with a headline `summary` (UK: per-person income tax and
+    National Insurance in £, household net income, tax, benefits, Universal
+    Credit, Child Benefit; US: federal income tax, payroll tax, state income
+    tax, CTC, EITC, household net income in $) plus full per-entity variable
+    dicts. Takes a few seconds per call.
+    """
+    return core.pe_household(
+        country=country, people=people, year=year, reform=reform,
+        benunit=benunit, tax_unit=tax_unit, household=household,
+    )
+
+
+@mcp.tool()
+def household_reform_impact(
+    country: str,
+    people: list[dict],
+    reform: dict,
+    year: int = 2026,
+    benunit: dict | None = None,
+    tax_unit: dict | None = None,
+    household: dict | None = None,
+) -> dict:
+    """What does a tax/benefit reform do to a specific family? Runs the
+    PolicyEngine household calculation twice (baseline and reform) and
+    returns both summaries plus the change in each headline number.
+
+    Args are as in calculate_household, but `reform` is REQUIRED:
+    {parameter_path: value}, e.g. {"gov.hmrc.income_tax.allowances.
+    personal_allowance.amount": 15000} raises the UK personal allowance to
+    £15,000/year. Rates are decimals (0.25 = 25%); amounts are annual £/$
+    unless list_reform_parameters says otherwise (e.g. Child Benefit is
+    £/week). The `change` dict and `net_income_change` are reform minus
+    baseline, so a positive net_income_change means the family gains.
+    """
+    return core.pe_household_impact(
+        country=country, people=people, reform=reform, year=year,
+        benunit=benunit, tax_unit=tax_unit, household=household,
+    )
+
+
+@mcp.tool()
+def list_reform_parameters() -> list[dict]:
+    """List curated, verified PolicyEngine reform parameters for use in the
+    `reform` argument of calculate_household / household_reform_impact.
+
+    Returns ~10 well-known UK and US parameters with their exact path,
+    description, and units (decimal rates vs annual £/$ amounts). Every path
+    has been verified to resolve. Instant. Other parameter paths from the
+    policyengine-uk/-us parameter trees also work, but are not verified here.
+    """
+    return core.pe_list_common_parameters()
+
+
 if __name__ == "__main__":
     mcp.run(transport="stdio")

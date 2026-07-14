@@ -1,12 +1,19 @@
 # MacroMod integration layer
 
-A single Python package (`macromod`) exposing two local UK macro models behind
+A single Python package (`macromod`) exposing three models behind
 one CLI and one MCP server:
 
 - **OBR emulator** (`obr_macro`, at `~/obr-macroeconomic-model`): runs the
   OBR's published model equations to score policy reforms (spending, tax).
 - **UK SVAR** (`boe_var`, at `~/boe-var-model`): sign-identified Bayesian VAR
   for UK GDP/CPI forecasts and structural shock readings.
+- **PolicyEngine microsimulation** (`policyengine` from PyPI, v4): full
+  UK/US tax-benefit rules for custom households — a household calculator
+  plus baseline-vs-reform impact analysis. Population-level scoring (via
+  `pe.uk.ensure_datasets` + `Simulation`) is planned, not yet wired in: the
+  UK dataset lives in a private Hugging Face repo (needs
+  `HUGGING_FACE_TOKEN`) and the downloads are large, so it doesn't fit the
+  zero-auth, scale-to-zero deployment yet.
 
 `src/macromod/core.py` holds the model adapters (single source of truth);
 `cli.py` and `mcp_server.py` are thin wrappers over the same functions.
@@ -33,6 +40,25 @@ macromod shocks --draws 500                          # P(sign) of latest-quarter
 macromod summary                                     # instant, parses committed results
 ```
 
+PolicyEngine household calculator:
+
+```bash
+macromod parameters                                  # curated, verified reform parameters
+macromod household --country uk \
+    --people '[{"age":35,"employment_income":50000}]'
+macromod household --country us \
+    --people '[{"age":35,"employment_income":60000}]' \
+    --tax-unit '{"filing_status":"SINGLE"}' --household '{"state_code_str":"CA"}'
+macromod household-impact --country uk \
+    --people '[{"age":35,"employment_income":50000}]' \
+    --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.25}'
+```
+
+`--people`/`--benunit`/`--tax-unit`/`--household`/`--reform` take JSON.
+Money amounts are annual GBP (uk) or USD (us); reform rates are decimals
+(0.25 = 25%). The first PolicyEngine call in a process pays a ~20 s model
+import (it is loaded lazily).
+
 Add `--json` to any command for machine-readable output. Units: CGG/CGIPS
 shocks are £m per quarter; TCPRO is a decimal rate change. SVAR estimation
 results are cached in-process by draw count, so repeat calls are instant
@@ -43,7 +69,8 @@ benefits the MCP server).
 
 Runs over stdio via `python -m macromod.mcp_server`, exposing tools
 `score_reform`, `list_reform_variables`, `forecast_uk`, `latest_shocks`,
-`model_summary`.
+`model_summary`, plus the PolicyEngine tools `calculate_household`,
+`household_reform_impact`, and `list_reform_parameters`.
 
 Test locally with Claude Code:
 
@@ -67,7 +94,10 @@ https://policyengine--macromod-mcp-serve.modal.run/mcp
 Defined in `modal_app.py`: both model repos are baked into the image at the
 same absolute paths as on the laptop and installed with `pip install -e`, so
 all `Path(__file__)`-relative data/results lookups (obr `data/`, boe_var
-`data/boe_var_data.csv` and `results/*.md`) resolve unchanged.
+`data/boe_var_data.csv` and `results/*.md`) resolve unchanged. `policyengine`
+is installed from PyPI in the image; because it is imported lazily inside the
+adapters, cold starts stay fast and only the first household tool call in a
+fresh container pays the ~20 s model load.
 
 **Add it as a connector**
 
