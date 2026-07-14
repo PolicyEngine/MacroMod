@@ -1,1 +1,6 @@
 .vercel
+integration/build/
+integration/src/*.egg-info/
+__pycache__/
+*.pyc
+.DS_Store

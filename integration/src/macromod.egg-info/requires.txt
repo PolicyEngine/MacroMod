@@ -1,9 +1,0 @@
-click>=8
-numpy
-pandas
-mcp[cli]>=1.0
-
-[models]
-obr-macro-model @ git+https://github.com/PolicyEngine/obr-macroeconomic-model
-boe_var @ git+https://github.com/PolicyEngine/boe-var-model
-policyengine[models]<5,>=4
