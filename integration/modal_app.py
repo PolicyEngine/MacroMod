@@ -4,7 +4,8 @@
 
 Serves the FastMCP instance from `macromod.mcp_server` (tools: score_reform,
 list_reform_variables, forecast_uk, latest_shocks, model_summary,
-calculate_household, household_reform_impact, list_reform_parameters) as an
+calculate_household, household_reform_impact, list_reform_parameters,
+population_reform_impact) as an
 ASGI app at  https://policyengine--macromod-mcp-serve.modal.run/mcp
 
 Both model repos resolve their data files relative to their own repo root
@@ -20,11 +21,26 @@ COST PROFILE
 - min_containers=0  -> scales to zero: $0/hr while idle (no keep_warm).
 - scaledown_window=300 -> container stays warm 5 min after the last request,
   so a chat session doesn't pay a cold start on every tool call, then sleeps.
-- cpu=2, memory=2048 MiB -> ~$0.000053/s while running. A default forecast
-  (draws=500, ~20-60s CPU) costs on the order of $0.001-0.003; summary/list
-  calls are sub-cent noise. Idle cost is exactly $0.
+- cpu=4, memory=8192 MiB -> ~$0.00023/s while running (4 physical cores +
+  8GiB). Raised from 2/2048 for population_reform_impact: a UK population
+  run measured ~1.8GB peak RSS on a laptop, so 8GiB gives 2 concurrent
+  population runs headroom; 4 CPUs also cut OBR/SVAR latency. A population
+  score (~10-40s warm) costs order $0.002-0.01; a default forecast
+  (draws=500) similar; summary/list calls are sub-cent noise. Idle cost is
+  exactly $0.
 - max_containers=3 -> hard spend cap against abuse/fan-out.
-- timeout=600 -> allows high-draw forecasts (e.g. draws=6000) to finish.
+- timeout=600 -> allows high-draw forecasts (e.g. draws=6000) and the
+  first-ever population data download (~125MB + dataset build) to finish.
+
+POPULATION DATA (population_reform_impact)
+------------------------------------------
+- Secret "huggingface-token" provides HUGGING_FACE_TOKEN for the private UK
+  enhanced-FRS microdata on HuggingFace.
+- A modal.Volume ("macromod-pe-data") is mounted at /root/.cache/macromod;
+  HF_HOME points the HuggingFace download cache inside it and
+  MACROMOD_PE_DATA_DIR puts the derived per-year .h5 files (~92MB/year)
+  there too, so the ~125MB download + dataset build happens once and
+  persists across containers.
 
 OG-UK (oguk) IS DELIBERATELY NOT IN THIS IMAGE
 ----------------------------------------------
@@ -115,15 +131,27 @@ image = (
 
 app = modal.App("macromod-mcp")
 
+# Persistent cache for PolicyEngine population microdata: the HuggingFace
+# download cache (HF_HOME) and the derived per-year .h5 datasets both live
+# on this volume, so the first population_reform_impact call pays the
+# download/build once and every later container reuses it.
+CACHE_DIR = "/root/.cache/macromod"
+pe_data_volume = modal.Volume.from_name("macromod-pe-data", create_if_missing=True)
+
 
 @app.function(
-    image=image,
-    cpu=2,
-    memory=2048,
+    image=image.env({
+        "HF_HOME": f"{CACHE_DIR}/huggingface",
+        "MACROMOD_PE_DATA_DIR": f"{CACHE_DIR}/policyengine-data",
+    }),
+    cpu=4,
+    memory=8192,            # UK population run peaks ~1.8GB; headroom for 2+
     timeout=600,
     min_containers=0,       # scale to zero: no idle cost
     scaledown_window=300,   # stay warm 5 min between calls, then sleep
     max_containers=3,       # spend cap
+    secrets=[modal.Secret.from_name("huggingface-token")],
+    volumes={CACHE_DIR: pe_data_volume},
 )
 @modal.concurrent(max_inputs=20)
 @modal.asgi_app()

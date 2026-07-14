@@ -19,6 +19,7 @@ EXPECTED_TOOLS = {
     "calculate_household",
     "household_reform_impact",
     "list_reform_parameters",
+    "population_reform_impact",
     "og_score_reform_steady_state",
 }
 

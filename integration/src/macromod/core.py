@@ -30,7 +30,7 @@ def _import_obr():
     except ImportError as e:
         raise ImportError(
             "The OBR emulator package `obr_macro` is not importable. "
-            "Install it with: pip install -e /Users/janansadeqian/obr-macroeconomic-model"
+            "Install it with: pip install git+https://github.com/PolicyEngine/obr-macroeconomic-model"
         ) from e
     return run_reform
 
@@ -45,7 +45,7 @@ def _import_boe_var():
     except ImportError as e:
         raise ImportError(
             "The UK SVAR package `boe_var` is not importable. "
-            "Install it with: pip install -e /Users/janansadeqian/boe-var-model"
+            "Install it with: pip install git+https://github.com/PolicyEngine/boe-var-model"
         ) from e
     return analysis, forecast, BVAR, load_data, identify, ess
 
@@ -309,9 +309,8 @@ def svar_latest_shocks(draws: int = 500) -> dict:
 #
 # policyengine imports its full UK+US country models on first import (~20s),
 # so it is imported lazily inside the adapters, never at module level.
-# Population-level scoring (pe.uk.ensure_datasets + Simulation) needs large
-# dataset downloads (UK data requires a HUGGING_FACE_TOKEN); it is documented
-# as planned, not implemented.
+# Population-level scoring lives in pe_population_impact below; UK data
+# requires a HUGGING_FACE_TOKEN for the first download.
 
 def _import_pe():
     try:
@@ -368,21 +367,21 @@ PE_PARAMETERS = [
         "path": "gov.hmrc.cgt.basic_rate",
         "description": "Capital gains tax rate for basic-rate taxpayers",
         "unit": "decimal rate",
-        "note": "valid reform path, but calculate_household does not compute CGT: household results will not move. Use for population-level scoring (planned).",
+        "note": "valid reform path, but calculate_household does not compute CGT: household results will not move. Use with population_reform_impact / pe_population_impact.",
     },
     {
         "country": "uk",
         "path": "gov.hmrc.cgt.higher_rate",
         "description": "Capital gains tax rate for higher/additional-rate taxpayers",
         "unit": "decimal rate",
-        "note": "valid reform path, but calculate_household does not compute CGT: household results will not move. Use for population-level scoring (planned).",
+        "note": "valid reform path, but calculate_household does not compute CGT: household results will not move. Use with population_reform_impact / pe_population_impact.",
     },
     {
         "country": "uk",
         "path": "gov.hmrc.cgt.annual_exempt_amount",
         "description": "Capital gains tax annual exempt amount",
         "unit": "GBP per year",
-        "note": "valid reform path, but calculate_household does not compute CGT: household results will not move. Use for population-level scoring (planned).",
+        "note": "valid reform path, but calculate_household does not compute CGT: household results will not move. Use with population_reform_impact / pe_population_impact.",
     },
     {
         "country": "us",
@@ -546,6 +545,220 @@ def pe_household_impact(
         "with_reform": ref,
         "change": deltas,
         "net_income_change": deltas.get("household_net_income"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# PolicyEngine population-level reform scoring
+# ---------------------------------------------------------------------------
+#
+# Runs the reform against the full representative household microdata
+# (UK: enhanced FRS, ~125MB download from a private HuggingFace repo the
+# first time — set HUGGING_FACE_TOKEN; US: CPS-based, public). Measured on
+# the UK 2026 enhanced FRS (53,508 households): ~6s per simulation run,
+# ~1.8GB peak RSS, ~92MB derived per-year .h5 on disk. The baseline
+# simulation is cached in-process per (country, year, dataset), so repeat
+# reform scores only pay one ~6s reform run.
+
+PE_POP_DEFAULT_DATASET = {"uk": "enhanced_frs_2023_24", "us": None}
+
+# (country, year, dataset_name) -> (dataset_obj, baseline_simulation)
+_PE_POP_BASELINE_CACHE: dict[tuple[str, int, str | None], tuple] = {}
+
+
+def _pe_pop_data_folder() -> str:
+    import os
+
+    return os.environ.get(
+        "MACROMOD_PE_DATA_DIR",
+        os.path.expanduser("~/.cache/macromod/policyengine-data"),
+    )
+
+
+def _pe_pop_extra_variables(country: str) -> dict:
+    # gov_balance (tax minus spending, includes CGT and employer NI) is the
+    # UK budget headline; it is not in the model's default output set.
+    return {"household": ["gov_balance", "gov_tax"]} if country == "uk" else {}
+
+
+def _pe_pop_dataset(pe, country: str, year: int, dataset: str | None):
+    """Download/build (first call) and load the population dataset."""
+    module = getattr(pe, country)
+    name = dataset or PE_POP_DEFAULT_DATASET[country]
+    kwargs = {"years": [int(year)], "data_folder": _pe_pop_data_folder()}
+    if name is not None:
+        kwargs["datasets"] = [name]
+    try:
+        datasets = module.ensure_datasets(**kwargs)
+    except Exception as e:
+        import os
+
+        hint = ""
+        if country == "uk" and not (
+            os.environ.get("HUGGING_FACE_TOKEN") or os.environ.get("HF_TOKEN")
+        ):
+            hint = (
+                " The UK population microdata lives in a private HuggingFace"
+                " repo: set HUGGING_FACE_TOKEN to a token from an account"
+                " with access to policyengine/policyengine-uk-data-private."
+            )
+        raise RuntimeError(
+            f"Could not obtain the {country.upper()} population dataset "
+            f"{name!r} for {year} ({type(e).__name__}: {e}).{hint}"
+        ) from e
+    for ds in datasets.values():
+        if int(ds.year) == int(year):
+            return ds
+    raise RuntimeError(
+        f"ensure_datasets returned no dataset for year {year}: "
+        f"{sorted(datasets)}"
+    )
+
+
+def _pe_pop_baseline(country: str, year: int, dataset: str | None):
+    """Dataset + baseline simulation, cached in-process."""
+    key = (country, int(year), dataset)
+    if key in _PE_POP_BASELINE_CACHE:
+        return _PE_POP_BASELINE_CACHE[key]
+    pe = _import_pe()
+    from policyengine.core import Simulation
+
+    ds = _pe_pop_dataset(pe, country, year, dataset)
+    sim = Simulation(
+        dataset=ds,
+        tax_benefit_model_version=getattr(pe, country).model,
+        extra_variables=_pe_pop_extra_variables(country),
+    )
+    sim.run()
+    _PE_POP_BASELINE_CACHE[key] = (ds, sim)
+    return ds, sim
+
+
+def _pe_pop_sum(sim, variable: str) -> float:
+    from policyengine.outputs.aggregate import Aggregate, AggregateType
+
+    agg = Aggregate(
+        simulation=sim, variable=variable,
+        aggregate_type=AggregateType.SUM, entity="household",
+    )
+    agg.run()
+    return float(agg.result)
+
+
+def pe_population_impact(
+    country: str = "uk",
+    reform: dict | None = None,
+    year: int = 2026,
+    dataset: str | None = None,
+) -> dict:
+    """Score a reform against the whole population with PolicyEngine.
+
+    Runs baseline and reform microsimulations over representative household
+    microdata (UK: enhanced FRS; US: CPS-based) and returns the budgetary
+    impact — the change in government revenue net of spending, in £bn/$bn
+    per year (positive = the reform raises revenue) — plus income-decile
+    impacts and winner/loser counts.
+
+    reform is a flat {parameter_path: value} dict, e.g. equalising CGT with
+    income tax rates: {"gov.hmrc.cgt.basic_rate": 0.20,
+    "gov.hmrc.cgt.higher_rate": 0.40, "gov.hmrc.cgt.additional_rate": 0.45}.
+
+    The baseline simulation is cached in-process per (country, year,
+    dataset). UK data needs HUGGING_FACE_TOKEN on first download.
+    """
+    if not reform:
+        raise ValueError("reform must be a non-empty {parameter_path: value} dict")
+    country = country.lower()
+    if country not in ("uk", "us"):
+        raise ValueError(f"country must be 'uk' or 'us', got {country!r}")
+
+    ds, base = _pe_pop_baseline(country, year, dataset)
+    pe = _import_pe()
+    from policyengine.core import Simulation
+    from policyengine.outputs.decile_impact import calculate_decile_impacts
+
+    ref = Simulation(
+        dataset=ds,
+        tax_benefit_model_version=getattr(pe, country).model,
+        policy=dict(reform),
+        extra_variables=_pe_pop_extra_variables(country),
+    )
+    ref.run()
+
+    if country == "uk":
+        budget_bn = (
+            _pe_pop_sum(ref, "gov_balance") - _pe_pop_sum(base, "gov_balance")
+        ) / 1e9
+        budget_basis = (
+            "change in gov_balance (all modelled taxes incl. CGT and "
+            "employer NI, minus benefit spending)"
+        )
+    else:
+        d_tax = _pe_pop_sum(ref, "household_tax") - _pe_pop_sum(base, "household_tax")
+        d_ben = (
+            _pe_pop_sum(ref, "household_benefits")
+            - _pe_pop_sum(base, "household_benefits")
+        )
+        budget_bn = (d_tax - d_ben) / 1e9
+        budget_basis = "change in household_tax minus change in household_benefits"
+
+    net_income_change_bn = (
+        _pe_pop_sum(ref, "household_net_income")
+        - _pe_pop_sum(base, "household_net_income")
+    ) / 1e9
+
+    # Measure the change in household_net_income (which, unlike the UK's
+    # HBAI income concept, moves under e.g. CGT reforms), grouped by the
+    # baseline income decile.
+    decile_kwargs = {
+        "income_variable": "household_net_income",
+        "entity": "household",
+    }
+    if country == "uk":
+        decile_kwargs["decile_variable"] = "household_income_decile"
+    deciles = calculate_decile_impacts(
+        baseline_simulation=base, reform_simulation=ref, **decile_kwargs
+    )
+    decile_rows, winners, losers = [], 0.0, 0.0
+    for d in deciles.outputs:
+        avg_change = float(d.reform_mean - d.baseline_mean)
+        decile_rows.append(
+            {
+                "decile": int(d.decile),
+                "avg_income_change": round(avg_change, 2),
+                # Change in the decile's mean income, in percent. (The
+                # library's DecileImpact.relative_change is the mean of
+                # per-household percent changes, which tiny-income outliers
+                # dominate.)
+                "relative_change_pct": round(
+                    100 * avg_change / d.baseline_mean, 3
+                ) if d.baseline_mean else None,
+                "count_better_off": int(d.count_better_off),
+                "count_worse_off": int(d.count_worse_off),
+            }
+        )
+        winners += d.count_better_off
+        losers += d.count_worse_off
+
+    sym = "£" if country == "uk" else "$"
+    return {
+        "model": "PolicyEngine population microsimulation",
+        "country": country,
+        "year": int(year),
+        "dataset": ds.name,
+        "n_households": int(len(ds.data.household)),
+        "currency": "GBP" if country == "uk" else "USD",
+        "reform": dict(reform),
+        "budgetary_impact_bn": round(budget_bn, 3),
+        "budgetary_impact_basis": budget_basis,
+        "headline": (
+            f"The reform {'raises' if budget_bn >= 0 else 'costs'} "
+            f"{sym}{abs(budget_bn):.1f}bn/year in {year}."
+        ),
+        "household_net_income_change_bn": round(net_income_change_bn, 3),
+        "decile_impacts": decile_rows,
+        "winners": int(winners),
+        "losers": int(losers),
     }
 
 

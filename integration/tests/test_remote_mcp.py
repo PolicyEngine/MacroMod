@@ -87,6 +87,20 @@ async def test_forecast_uk_small():
     assert len(out["cpi_inflation_yoy"]) == 4
 
 
+@pytest.mark.anyio
+async def test_calculate_household_uk_50k():
+    """Smoke test of the PolicyEngine engine on the hosted server: a single
+    UK earner on £50k should net ~£39,519 in 2026. Catches engine/package
+    breakage in the deployed image (issue #2 hardening)."""
+    out = await _call(
+        "calculate_household",
+        {"country": "uk", "people": [{"age": 35, "employment_income": 50_000}]},
+    )
+    ni = out["summary"]["household_net_income"]
+    assert 38_500 < ni < 40_500, ni
+    assert out["summary"]["income_tax_by_person"][0] > 6_000
+
+
 @pytest.fixture
 def anyio_backend():
     return "asyncio"

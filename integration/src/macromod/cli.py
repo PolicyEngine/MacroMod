@@ -216,6 +216,44 @@ def household_impact(country, people, year, benunit, tax_unit, household, as_jso
     _echo_summary("\nChange:", {k: v for k, v in res["change"].items() if v is not None}, sym)
 
 
+@main.command("population-impact")
+@click.option("--country", type=click.Choice(["uk", "us"]), default="uk",
+              show_default=True)
+@click.option("--reform", required=True, help=_REFORM_HELP)
+@click.option("--year", default=2026, show_default=True)
+@click.option("--dataset", default=None,
+              help="Dataset name (default: enhanced_frs_2023_24 for UK).")
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+def population_impact(country, reform, year, dataset, as_json):
+    """Population-level reform score (PolicyEngine microsimulation).
+
+    Budgetary impact in £bn/$bn per year plus decile impacts. First UK run
+    downloads private microdata (set HUGGING_FACE_TOKEN); afterwards a score
+    takes tens of seconds.
+    """
+    res = core.pe_population_impact(
+        country=country, reform=_json_opt(reform, "reform"),
+        year=year, dataset=dataset,
+    )
+    if as_json:
+        _emit_json(res)
+        return
+    sym = "£" if res["country"] == "uk" else "$"
+    click.echo(f"PolicyEngine {res['country'].upper()} population impact, "
+               f"{res['year']} ({res['dataset']}, "
+               f"{res['n_households']:,} households)")
+    click.echo(f"Reform: {res['reform']}\n")
+    click.echo(res["headline"])
+    click.echo(f"Budgetary impact: {sym}{res['budgetary_impact_bn']}bn/year "
+               f"({res['budgetary_impact_basis']})")
+    click.echo(f"Household net income change: "
+               f"{sym}{res['household_net_income_change_bn']}bn/year")
+    click.echo(f"Winners: {res['winners']:,}   Losers: {res['losers']:,}\n")
+    click.echo(_table(res["decile_impacts"],
+                      ["decile", "avg_income_change", "relative_change_pct",
+                       "count_better_off", "count_worse_off"]))
+
+
 @main.command()
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
 def parameters(as_json):

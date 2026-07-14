@@ -191,6 +191,48 @@ def list_reform_parameters() -> list[dict]:
 
 
 @mcp.tool()
+def population_reform_impact(
+    country: str = "uk",
+    reform: dict | None = None,
+    year: int = 2026,
+    dataset: str | None = None,
+) -> dict:
+    """Score a tax/benefit reform for the WHOLE population with the
+    PolicyEngine microsimulation — the tool for questions like "what would
+    equalising capital gains tax rates with income tax rates raise?".
+
+    Runs baseline and reform simulations over representative household
+    microdata (UK: enhanced FRS, ~54k households; US: CPS-based) and returns:
+    - budgetary_impact_bn: change in government revenue net of spending, in
+      £bn (UK) or $bn (US) PER YEAR; positive = the reform raises revenue.
+    - household_net_income_change_bn, winner/loser counts, and per-income-
+      decile average income changes.
+
+    Args:
+        country: 'uk' (default) or 'us'.
+        reform: REQUIRED flat {parameter_path: value} dict, same shape as
+            household_reform_impact. Example — equalise CGT with income tax
+            rates: {"gov.hmrc.cgt.basic_rate": 0.20,
+            "gov.hmrc.cgt.higher_rate": 0.40,
+            "gov.hmrc.cgt.additional_rate": 0.45}. Rates are decimals.
+        year: Simulation year (default 2026).
+        dataset: Optional dataset name override (UK default:
+            enhanced_frs_2023_24).
+
+    Runtime (measured): ~6 seconds per simulation run plus ~20s of model
+    import on the first call in a fresh process — expect ~30-40s for the
+    first reform scored, then ~10s per further reform (the baseline is
+    cached in-process). The VERY FIRST call ever in an environment also
+    downloads the microdata (~125MB; UK data is private and needs
+    HUGGING_FACE_TOKEN) and builds a ~92MB per-year dataset file — allow a
+    few extra minutes for that one call. Peak memory ~2GB.
+    """
+    return core.pe_population_impact(
+        country=country, reform=reform, year=year, dataset=dataset,
+    )
+
+
+@mcp.tool()
 def og_score_reform_steady_state(
     parameter: str,
     value: float,
