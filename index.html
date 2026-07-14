@@ -200,9 +200,13 @@
     </div>
     <div class="prose">
       <p>
-        Every run maps back to current-price national-accounts aggregates.
-        A steady-state solve answers the long-run question; a transition path
-        gives the fiscal-year-by-fiscal-year profile a budget process needs.
+        Every run maps back to real-world quantities: national-accounts
+        aggregates from the macro models, pounds-per-year for a named
+        household from the microsimulation. The OLG model answers the
+        long-run question with a steady state and a year-by-year transition
+        path; the OBR emulator gives the quarter-by-quarter fiscal profile a
+        budget process needs; the Bank of England SVAR reads the latest data
+        in structural-shock terms and forecasts with credible bands.
       </p>
     </div>
     <div class="metrics">
@@ -212,14 +216,14 @@
         <span class="metric-note">GDP · consumption · investment · government · revenue · debt</span>
       </div>
       <div class="metric">
-        <span class="metric-label mono">age cohorts</span>
-        <span class="metric-val">80</span>
-        <span class="metric-note">in the OLG household block</span>
+        <span class="metric-label mono">equations</span>
+        <span class="metric-val">372</span>
+        <span class="metric-note">solved simultaneously in the OBR emulator</span>
       </div>
       <div class="metric">
-        <span class="metric-label mono">horizon</span>
-        <span class="metric-val">60<span class="metric-vs">years</span></span>
-        <span class="metric-note">transition path to steady state</span>
+        <span class="metric-label mono">identified shocks</span>
+        <span class="metric-val">6</span>
+        <span class="metric-note">in the Bank of England SVAR</span>
       </div>
     </div>
   </section>
