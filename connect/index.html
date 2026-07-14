@@ -256,6 +256,14 @@
             <p>Save it, then ask ChatGPT to <em>score a £5bn government spending rise</em> or <em>forecast UK GDP and inflation</em>.</p>
           </div>
         </div>
+
+        <div class="steps" data-for="chatgpt" hidden style="margin-top: 26px;">
+          <div class="step" style="grid-column: 1 / -1;">
+            <h3>Using Codex?</h3>
+            <p>One command adds the same server to OpenAI's Codex CLI:</p>
+            <div class="copyblock"><code>codex mcp add macromod --url https://policyengine--macromod-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
+          </div>
+        </div>
       </div>
 
       <!-- ================= CLI ================= -->
@@ -304,13 +312,13 @@
         </div>
 
         <p class="panel-foot mono" style="color: var(--paper-faint);">
-          coding agents with a terminal can use the CLI directly — no MCP needed.
+          coding agents with a terminal — Claude Code, Codex — can run the CLI directly, no MCP needed; or add the MCP server with one command (see the MCP tab).
         </p>
       </div>
 
     </div>
     <p class="stack-note" style="text-align:center; margin-top: 26px;">
-      <span class="mono">using a coding agent with a terminal? the CLI or the code below is the better fit.</span>
+      <span class="mono">using Claude Code or Codex? connect via MCP (one command, MCP tab) or drive the CLI and the code below directly.</span>
     </p>
   </section>
 
