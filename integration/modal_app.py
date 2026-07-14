@@ -79,7 +79,7 @@ image = (
         # imports it lazily inside the pe_* adapters — module import at
         # container start stays fast; only the first policyengine tool call
         # in a fresh container pays the load.
-        "policyengine>=4,<5",
+        "policyengine[models]>=4,<5",  # [models] extra REQUIRED: base install leaves pe.uk/pe.us as None
     )
 )
 
