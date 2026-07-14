@@ -97,7 +97,8 @@
   background: var(--amber); margin-left: 7px; vertical-align: middle;
 }
 .steps.dimmed { opacity: 0.55; }
-.model-seg { margin: 6px 0 22px; flex-wrap: wrap; border: 0; padding: 0; gap: 8px; }
+.model-seg { margin: 6px 0 22px; flex-wrap: nowrap; overflow-x: auto; border: 0; padding: 0 0 4px; gap: 8px; }
+.model-seg button { white-space: nowrap; flex-shrink: 0; font-size: 12.5px; padding: 8px 14px; }
 .model-seg button { border: 1px solid var(--line-soft); border-radius: 999px; padding: 9px 18px; transition: all 0.15s ease; }
 .model-seg button:hover { color: var(--text, #111); border-color: var(--text, #111); }
 .model-seg button[aria-selected="true"] { background: var(--text, #111); color: var(--background, #fff); border-color: var(--text, #111); }
@@ -278,7 +279,6 @@
       <!-- ================= CLI ================= -->
       <div class="pane" id="pane-cli" hidden>
         <p class="status-note">live</p>
-        <p class="soon-hint">The <code class="mono">macromod</code> CLI installs straight from GitHub — one <code class="mono">pip install</code> pulls the CLI plus all three models with their data, no cloning required. It lives in this repo's <a href="https://github.com/PolicyEngine/MacroMod/tree/main/integration"><code class="mono">integration/</code></a> directory; a shorter <code class="mono">pip install macromod</code> will come with PyPI publication.</p>
 
         <div class="steps" data-for="claude">
           <div class="step">
@@ -320,6 +320,8 @@
           </div>
         </div>
 
+        <hr class="panel-divider" />
+        <p class="soon-hint" style="max-width: none;">The <code class="mono">macromod</code> CLI installs straight from GitHub — one <code class="mono">pip install</code> pulls the CLI plus all three models with their data, no cloning required. It lives in this repo's <a href="https://github.com/PolicyEngine/MacroMod/tree/main/integration"><code class="mono">integration/</code></a> directory; a shorter <code class="mono">pip install macromod</code> will come with PyPI publication.</p>
         <p class="panel-foot mono" style="color: var(--paper-faint);">
           coding agents with a terminal — Claude Code, Codex — can run the CLI directly, no MCP needed; or add the MCP server with one command (see the MCP tab).
         </p>
