@@ -100,9 +100,14 @@ image = (
 )
 
 if GITHUB_SOURCE:
+    # force_build=True: the clone command string never changes, so without it
+    # Modal caches this layer and every redeploy reuses a STALE checkout —
+    # model fixes merged to OBR/BoE main would never reach production. Forcing a
+    # rebuild re-clones the current main on each github-source deploy (~10s).
     image = image.apt_install("git").run_commands(
         f"git clone --depth 1 {OBR_URL} {OBR_REPO}",
         f"git clone --depth 1 {BOE_URL} {BOE_REPO}",
+        force_build=True,
     )
 else:
     image = (

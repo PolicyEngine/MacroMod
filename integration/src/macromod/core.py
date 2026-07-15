@@ -429,8 +429,13 @@ def _pe_entity_dict(mapping) -> dict:
 
 
 def _pe_run(country, people, year, reform, benunit, tax_unit, household):
-    pe = _import_pe()
+    # Validate country before importing PolicyEngine so bad input fails fast
+    # with a clear ValueError even where PE is not installed (matches
+    # pe_population_impact and lets the wiring tests run without the heavy dep).
     country = country.lower()
+    if country not in ("uk", "us"):
+        raise ValueError(f"country must be 'uk' or 'us', got {country!r}")
+    pe = _import_pe()
     if country == "uk":
         return pe.uk.calculate_household(
             people=people, benunit=benunit, household=household,
