@@ -37,13 +37,23 @@ pip install "macromod[models] @ git+https://github.com/PolicyEngine/macro#subdir
 A shorter `pip install macromod` will come with PyPI publication.
 
 For development, install with the full model set (policyengine included via
-the `[models]` extra), overriding the two model packages with local editable
-checkouts; OG-UK is optional and local-only:
+the `[models]` extra), then override the two model packages with local
+editable checkouts in a second step (`--no-deps`: mixing the extra's Git URLs
+and editable paths in one resolution is a conflict):
 
 ```bash
-uv venv && uv pip install -e "./integration[models]" pytest \
-    -e ../obr-macroeconomic-model -e ../boe-var-model
-uv pip install "oguk @ git+https://github.com/PSLmodels/OG-UK"  # optional, for --model og
+uv venv && uv pip install -e "./integration[models]" pytest
+uv pip install --no-deps -e ../obr-macroeconomic-model -e ../boe-var-model
+```
+
+OG-UK (optional, for `--model og`) pins `policyengine-uk==2.88.0`, which
+conflicts with the household/population stack — give it its own environment
+until [PSLmodels/OG-UK#68](https://github.com/PSLmodels/OG-UK/issues/68)
+lands:
+
+```bash
+uv venv .venv-og && uv pip install -p .venv-og/bin/python \
+    "oguk @ git+https://github.com/PSLmodels/OG-UK"
 ```
 
 ## CLI
