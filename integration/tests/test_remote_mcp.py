@@ -25,7 +25,7 @@ URL = os.environ.get(
 )
 
 EXPECTED_TOOLS = {
-    "score_reform", "list_reform_variables", "forecast_uk",
+    "score_reform", "obr_shock", "list_reform_variables", "forecast_uk",
     "latest_shocks", "model_summary",
 }
 
@@ -91,9 +91,9 @@ async def test_model_summary_returns_fevd():
 
 
 @pytest.mark.anyio
-async def test_score_reform_cgg():
+async def test_obr_shock_cgg():
     out = await _call(
-        "score_reform", {"var": "CGG", "shock": 1250, "periods": 4}
+        "obr_shock", {"var": "CGG", "shock": 1250, "periods": 4}
     )
     assert len(out["results"]) >= 4
     # £1.25bn/quarter of extra spending should raise GDP by ~£1.25bn/quarter
@@ -122,7 +122,7 @@ async def test_score_reform_investment_closure_bounded_and_signed():
     try:
         out = await asyncio.wait_for(
             _call(
-                "score_reform",
+                "obr_shock",
                 {"var": "TCPRO", "shock": -0.05, "periods": 4,
                  "investment_closure": True},
             ),
@@ -139,6 +139,25 @@ async def test_score_reform_investment_closure_bounded_and_signed():
     peak = max(abs(x) for x in ifs)
     assert peak < 50_000, f"investment response £{peak:,.0f}m — closure diverging again"
     assert ifs[-1] > 0, f"corp-tax CUT should raise investment, got {ifs[-1]:+,.0f}"
+
+
+@pytest.mark.anyio
+async def test_score_reform_obr_errors_actionably():
+    """The unified score_reform tool is live; its OBR arm (pending the
+    static-costing bridge, #9) must fail with a pointer to obr_shock,
+    not silently or cryptically."""
+    from mcp import ClientSession
+    from mcp.client.streamable_http import streamablehttp_client
+
+    async with streamablehttp_client(URL, timeout=60) as (read, write, _):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            res = await session.call_tool(
+                "score_reform",
+                {"country": "uk", "reform": {"x": 1}, "model": "obr"},
+            )
+    assert res.isError
+    assert "obr_shock" in json.dumps([c.text for c in res.content])
 
 
 @pytest.mark.anyio

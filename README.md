@@ -15,18 +15,20 @@ general-equilibrium engine.
 
 Every model in the suite scores the same PolicyEngine reform objects and reports
 the same real-world quantities (GDP, consumption, investment, government,
-revenue, debt in £bn), so results are comparable across model classes. The
-structural VAR is the empirical exception: a Python replication of the Bank of
-England's Bayesian SVAR for the UK, it reads the current state of the economy
-in structural-shock terms and forecasts it, but does not score PolicyEngine
-reform objects yet.
+revenue, debt in £bn), so results are comparable across model classes. Two
+current exceptions, stated plainly: the OBR emulator does not take PolicyEngine
+reform objects yet (the microsim static-costing bridge is
+[#9](https://github.com/PolicyEngine/MacroMod/issues/9); raw variable shocks go
+through `obr_shock`), and the structural VAR — a Python replication of the Bank
+of England's Bayesian SVAR for the UK — reads the current state of the economy
+in structural-shock terms and forecasts it, but does not score reforms.
 
 | model | status | repo |
 |-------|--------|------|
 | **Overlapping generations (OG-UK)** | shipped | [PSLmodels/OG-UK](https://github.com/PSLmodels/OG-UK) |
 | **OBR macroeconometric model** | shipped | [PolicyEngine/obr-macroeconomic-model](https://github.com/PolicyEngine/obr-macroeconomic-model) |
 | **Bank of England structural VAR (boe-svar)** | shipped (analysis & forecasting; reform scoring: planned) | [PolicyEngine/boe-var-model](https://github.com/PolicyEngine/boe-var-model) |
-| **PolicyEngine tax-benefit microsimulation** | shipped (household calculator & household reform impacts; population-level scoring: planned) | [PolicyEngine/policyengine.py](https://github.com/PolicyEngine/policyengine.py) |
+| **PolicyEngine tax-benefit microsimulation** | shipped (household calculator, household reform impacts, and population-level scoring) | [PolicyEngine/policyengine.py](https://github.com/PolicyEngine/policyengine.py) |
 | More model classes | planned | — |
 
 PolicyEngine is the *micro* member: person/household-resolution taxes and
@@ -93,16 +95,22 @@ models:
   claude mcp add --transport http macromod https://policyengine--macromod-mcp-serve.modal.run/mcp
   ```
 
-  Nine tools: `score_reform`, `list_reform_variables`, `forecast_uk`,
-  `latest_shocks`, `model_summary`, the PolicyEngine household tools
-  (`calculate_household`, `household_reform_impact`, `list_reform_parameters`),
-  and `og_score_reform_steady_state` — the last works locally only: OG-UK is
-  deliberately excluded from the hosted image (a score takes tens of minutes),
-  so the tool errors on the hosted server; use `macromod og-score` instead.
+  Ten tools: `score_reform` (a PolicyEngine reform — the same
+  `{parameter_path: value}` dict as the microsimulation tools — through a
+  chosen macro model), `obr_shock` and `list_reform_variables` (raw OBR
+  variable shocks in model units), `forecast_uk`, `latest_shocks`,
+  `model_summary` (SVAR), and the PolicyEngine microsimulation tools
+  (`calculate_household`, `household_reform_impact`, `list_reform_parameters`,
+  `population_reform_impact`). `score_reform` with `model='og'` works locally
+  only: OG-UK is deliberately excluded from the hosted image (a score takes
+  tens of minutes) — use `macromod score --model og` instead; `model='obr'`
+  awaits the microsim static-costing bridge (#9), so raw shocks go through
+  `obr_shock`.
   The server runs serverless and scales to zero — the first call after idle
   may take ~10 s to wake.
-- **CLI** — the `macromod` CLI (`score`, `variables`, `forecast`, `shocks`,
-  `summary`, `household`, `household-impact`, `parameters`, `og-score`) lives
+- **CLI** — the `macromod` CLI (`score`, `obr-shock`, `variables`, `forecast`,
+  `shocks`, `summary`, `household`, `household-impact`, `population-impact`,
+  `parameters`, `og-score`) lives
   in [`integration/`](integration/); PyPI publish is planned. Install it —
   with all three hosted-model packages and their data, no clone — via:
 
@@ -160,7 +168,7 @@ non-real numbers as illustrative.
 - [x] `macromod` CLI (in `integration/`; PyPI publish still to come)
 - [x] Local MCP server (`python -m macromod.mcp_server`)
 - [x] Hosted MCP server (`https://policyengine--macromod-mcp-serve.modal.run/mcp`, auto-deployed by CI)
-- [x] OG-UK steady-state scoring (`macromod og-score` / `og_score_reform_steady_state`, local only)
+- [x] OG-UK steady-state scoring (`macromod score --model og` / `macromod og-score`, local only)
 - [ ] Population-level PolicyEngine reform scoring
 - [ ] Additional macroeconomic model classes
 - See [#1](https://github.com/PolicyEngine/MacroMod/issues/1) — Rust port of the solver core

@@ -274,7 +274,7 @@
 
         <hr class="panel-divider" />
         <p class="mono foot-head" style="margin-bottom:10px;">on the server</p>
-        <p class="soon-hint" style="max-width: none;">Nine tools across the four engines: <code class="mono">score_reform</code> and <code class="mono">list_reform_variables</code> (OBR); <code class="mono">forecast_uk</code>, <code class="mono">latest_shocks</code>, <code class="mono">model_summary</code> (SVAR); <code class="mono">calculate_household</code>, <code class="mono">household_reform_impact</code>, <code class="mono">list_reform_parameters</code> (PolicyEngine — household-level); and <code class="mono">og_score_reform_steady_state</code> (OG-UK — local CLI only: a solve takes tens of minutes, so the hosted server excludes it). Two things stay local-only and are never on the hosted server: OG-UK scoring, and PolicyEngine <em>population-level</em> reform scoring (it needs large private microdata) — the PolicyEngine tools above are household-level only. The server is serverless and scales to zero — the first call after a quiet spell takes ~10 seconds to wake.</p>
+        <p class="soon-hint" style="max-width: none;">Ten tools across the four engines: <code class="mono">score_reform</code> (a PolicyEngine reform — the same reform dict as the microsimulation tools — through a chosen macro model; OG-UK runs locally only, and the OBR bridge is in progress); <code class="mono">obr_shock</code> and <code class="mono">list_reform_variables</code> (OBR — raw variable shocks in model units); <code class="mono">forecast_uk</code>, <code class="mono">latest_shocks</code>, <code class="mono">model_summary</code> (SVAR); and <code class="mono">calculate_household</code>, <code class="mono">household_reform_impact</code>, <code class="mono">list_reform_parameters</code>, <code class="mono">population_reform_impact</code> (PolicyEngine). Two things stay local-only and are never on the hosted server: OG-UK scoring, and PolicyEngine <em>population-level</em> reform scoring (it needs large private microdata) — the PolicyEngine tools above are household-level only. The server is serverless and scales to zero — the first call after a quiet spell takes ~10 seconds to wake.</p>
       </div>
 
       <!-- ================= CLI ================= -->
@@ -292,12 +292,12 @@
             <span class="step-n mono">2</span>
             <h3>Ask Claude Code</h3>
             <p>Claude Code runs the CLI from its terminal — just describe the reform, or run it yourself:</p>
-            <div class="copyblock"><code>macromod score --var CGG --shock 1250 --periods 4</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>macromod obr-shock --var CGG --shock 1250 --periods 4</code><button data-copy>copy</button></div>
           </div>
           <div class="step">
             <span class="step-n mono">3</span>
             <h3>Read the results</h3>
-            <p>Per-quarter GDP deltas in £bn and the cumulative effect — printed as a table or exported with <code class="mono">--json</code>. Other commands: <code class="mono">variables</code>, <code class="mono">forecast</code>, <code class="mono">shocks</code>, <code class="mono">summary</code>, <code class="mono">household</code>, <code class="mono">household-impact</code>, <code class="mono">parameters</code>, and <code class="mono">og-score</code> (needs OG-UK installed; slow).</p>
+            <p>Per-quarter GDP deltas in £bn and the cumulative effect — printed as a table or exported with <code class="mono">--json</code>. Other commands: <code class="mono">score</code> (a PolicyEngine reform through a macro model), <code class="mono">variables</code>, <code class="mono">forecast</code>, <code class="mono">shocks</code>, <code class="mono">summary</code>, <code class="mono">household</code>, <code class="mono">household-impact</code>, <code class="mono">population-impact</code>, <code class="mono">parameters</code>, and <code class="mono">og-score</code> (needs OG-UK installed; slow).</p>
           </div>
         </div>
 
@@ -312,12 +312,12 @@
             <span class="step-n mono">2</span>
             <h3>Ask Codex</h3>
             <p>Codex runs the CLI from its terminal — just describe the reform, or run it yourself:</p>
-            <div class="copyblock"><code>macromod score --var CGG --shock 1250 --periods 4</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>macromod obr-shock --var CGG --shock 1250 --periods 4</code><button data-copy>copy</button></div>
           </div>
           <div class="step">
             <span class="step-n mono">3</span>
             <h3>Read the results</h3>
-            <p>Per-quarter GDP deltas in £bn and the cumulative effect — printed as a table or exported with <code class="mono">--json</code>. Other commands: <code class="mono">variables</code>, <code class="mono">forecast</code>, <code class="mono">shocks</code>, <code class="mono">summary</code>, <code class="mono">household</code>, <code class="mono">household-impact</code>, <code class="mono">parameters</code>, and <code class="mono">og-score</code> (needs OG-UK installed; slow).</p>
+            <p>Per-quarter GDP deltas in £bn and the cumulative effect — printed as a table or exported with <code class="mono">--json</code>. Other commands: <code class="mono">score</code> (a PolicyEngine reform through a macro model), <code class="mono">variables</code>, <code class="mono">forecast</code>, <code class="mono">shocks</code>, <code class="mono">summary</code>, <code class="mono">household</code>, <code class="mono">household-impact</code>, <code class="mono">population-impact</code>, <code class="mono">parameters</code>, and <code class="mono">og-score</code> (needs OG-UK installed; slow).</p>
           </div>
         </div>
 

@@ -20,7 +20,7 @@ EXPECTED_TOOLS = {
     "household_reform_impact",
     "list_reform_parameters",
     "population_reform_impact",
-    "og_score_reform_steady_state",
+    "obr_shock",
 }
 
 
@@ -45,7 +45,7 @@ async def test_mcp_tools_and_calls():
             assert "replication" in summary
 
             res = await session.call_tool(
-                "score_reform", {"var": "CGG", "shock": 1250, "periods": 4}
+                "obr_shock", {"var": "CGG", "shock": 1250, "periods": 4}
             )
             score = _payload(res)
             assert score["var"] == "CGG"

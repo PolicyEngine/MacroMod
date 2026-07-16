@@ -86,17 +86,19 @@ def obr_list_variables() -> list[dict]:
     return [dict(v) for v in OBR_VARIABLES]
 
 
-def obr_score_reform(
+def obr_shock(
     var: str,
     shock: float,
     periods: int = 12,
     name: str | None = None,
     investment_closure: bool | None = None,
 ) -> dict:
-    """Score a policy reform with the OBR model emulator.
+    """Shock one OBR exogenous variable directly, in model units.
 
-    Runs baseline vs shocked solves and returns per-period GDP deltas plus a
-    headline cumulative GDP effect over the shocked periods.
+    The escape hatch under score_reform: no PolicyEngine reform translation,
+    just a raw additive shock (£m per quarter for CGG/CGIPS, decimal rate
+    change for TCPRO). Runs baseline vs shocked solves and returns per-period
+    GDP deltas plus a headline cumulative GDP effect over the shocked periods.
 
     ``investment_closure`` defaults per variable from the curated list
     (e.g. True for TCPRO): a corporation-tax shock without the investment
@@ -874,22 +876,23 @@ def _import_oguk():
     return solve_steady_state, map_to_real_world
 
 
-def _og_build_policy(parameter: str, value: float, start_year: int):
-    """Build a PolicyEngine Policy from a parameter path and value."""
+def _og_build_policy(reform: dict, start_year: int):
+    """Build a PolicyEngine Policy from a {parameter_path: value} reform."""
     from datetime import datetime
 
     from policyengine.core import ParameterValue, Policy
     from policyengine.tax_benefit_models.uk import uk_latest
 
-    param = uk_latest.get_parameter(parameter)
+    start = datetime(int(start_year), 1, 1)
     return Policy(
-        name=f"{parameter} = {value}",
+        name=", ".join(f"{p} = {v}" for p, v in reform.items()),
         parameter_values=[
             ParameterValue(
-                parameter=param,
+                parameter=uk_latest.get_parameter(path),
                 value=value,
-                start_date=datetime(int(start_year), 1, 1),
+                start_date=start,
             )
+            for path, value in reform.items()
         ],
     )
 
@@ -957,20 +960,22 @@ def og_baseline(start_year: int = 2026, max_iter: int = OG_DEFAULT_MAX_ITER) -> 
 
 
 def og_score_reform(
-    parameter: str,
-    value: float,
+    reform: dict,
     start_year: int = 2026,
     max_iter: int = OG_DEFAULT_MAX_ITER,
     baseline_cache: bool = True,
 ) -> dict:
     """Score a PolicyEngine parametric reform with the OG-UK OLG model.
 
-    Builds a Policy from a PolicyEngine UK parameter path + value, solves
-    baseline (module-level cached) and reform steady states, and maps the
-    long-run changes to real-world £bn via oguk.map_to_real_world.
+    ``reform`` is the suite's shared reform shape — a flat
+    {parameter_path: value} dict, the same one pe_population_impact and the
+    household tools take. Solves baseline (module-level cached) and reform
+    steady states, and maps the long-run changes to real-world £bn via
+    oguk.map_to_real_world.
     """
+    _validate_reform(reform)
     solve_steady_state, map_to_real_world = _import_oguk()
-    policy = _og_build_policy(parameter, float(value), int(start_year))
+    policy = _og_build_policy(dict(reform), int(start_year))
     baseline_ss = _og_solve_baseline(start_year, max_iter, use_cache=baseline_cache)
     reform_ss = _og_solve(
         solve_steady_state, start_year=int(start_year), policy=policy,
@@ -983,8 +988,8 @@ def og_score_reform(
         "assumptions": "pooled ages, single representative sector, "
                        "long-run steady-state comparison (not a budget-window "
                        "costing)",
-        "reform": {"parameter": parameter, "value": float(value),
-                   "start_year": int(start_year)},
+        "reform": dict(reform),
+        "start_year": int(start_year),
         "impact": {
             "levels_bn": {k: imp[k] for k in
                           ("gdp", "consumption", "investment", "government",
@@ -997,6 +1002,63 @@ def og_score_reform(
         "baseline_steady_state_model_units": _og_ss_dict(baseline_ss),
         "reform_steady_state_model_units": _og_ss_dict(reform_ss),
     }
+
+
+# ---------------------------------------------------------------------------
+# Unified reform scoring across the suite
+# ---------------------------------------------------------------------------
+
+SCORE_MODELS = ("og", "obr")
+
+
+def _validate_reform(reform) -> None:
+    if not reform or not isinstance(reform, dict):
+        raise ValueError(
+            "reform must be a non-empty {parameter_path: value} dict, e.g. "
+            '{"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}'
+        )
+
+
+def score_reform(
+    country: str,
+    reform: dict,
+    model: str,
+    start_year: int = 2026,
+    **model_kwargs,
+) -> dict:
+    """Score a PolicyEngine reform with one of the suite's macro models.
+
+    One reform vocabulary across the suite: ``reform`` is the same flat
+    {parameter_path: value} dict the microsimulation tools take
+    (pe_population_impact, pe_household_impact). Each model consumes it
+    through its declared contract:
+
+    - "og": the reform enters through PolicyEngine-estimated tax functions
+      (long-run steady-state general-equilibrium comparison; UK only).
+    - "obr": pending the microsim static-costing bridge
+      (https://github.com/PolicyEngine/MacroMod/issues/9). Raw
+      exogenous-variable shocks in model units remain available via
+      obr_shock.
+    """
+    country = country.lower()
+    _validate_reform(reform)
+    if model == "og":
+        if country != "uk":
+            raise ValueError(
+                "the OG member is UK-only (OG-UK); country must be 'uk'"
+            )
+        return og_score_reform(
+            reform=reform, start_year=start_year, **model_kwargs
+        )
+    if model == "obr":
+        raise NotImplementedError(
+            "The OBR member does not take PolicyEngine reforms yet — the "
+            "microsim static-costing bridge is tracked at "
+            "https://github.com/PolicyEngine/MacroMod/issues/9. For a raw "
+            "exogenous-variable shock in model units use obr_shock (MCP) or "
+            "`macromod obr-shock` (CLI)."
+        )
+    raise ValueError(f"model must be one of {SCORE_MODELS}, got {model!r}")
 
 
 # ---------------------------------------------------------------------------

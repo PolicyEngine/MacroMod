@@ -90,8 +90,11 @@ def fake_oguk(monkeypatch):
         return _FakeImpact()
 
     monkeypatch.setattr(core, "_import_oguk", lambda: (fake_solve, fake_map))
-    monkeypatch.setattr(core, "_og_build_policy",
-                        lambda parameter, value, start_year: object())
+    def fake_build_policy(reform, start_year):
+        calls.setdefault("policy_reforms", []).append(dict(reform))
+        return object()
+
+    monkeypatch.setattr(core, "_og_build_policy", fake_build_policy)
     monkeypatch.setattr(core, "_OG_BASELINE_CACHE", {})
     return calls
 
@@ -107,16 +110,14 @@ def test_og_baseline_shape(fake_oguk):
 
 
 def test_og_score_reform_shape_and_mapping(fake_oguk):
-    res = core.og_score_reform("gov.hmrc.income_tax.rates.uk[0].rate", 0.21)
+    res = core.og_score_reform({"gov.hmrc.income_tax.rates.uk[0].rate": 0.21})
     imp = res["impact"]
     assert imp["levels_bn"]["gdp"] == 100.0
     assert imp["changes_bn"]["gdp_change"] == 1.5
     assert imp["changes_pct"]["tax_revenue_pct"] == 0.05
     assert imp["interest_rate"] == {"baseline": 0.05, "reform": 0.051}
-    assert res["reform"] == {
-        "parameter": "gov.hmrc.income_tax.rates.uk[0].rate",
-        "value": 0.21, "start_year": 2026,
-    }
+    assert res["reform"] == {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}
+    assert res["start_year"] == 2026
     # Baseline solved without a policy, reform with one.
     solves = fake_oguk["solve"]
     assert len(solves) == 2
@@ -126,8 +127,8 @@ def test_og_score_reform_shape_and_mapping(fake_oguk):
 
 
 def test_og_baseline_cache_reused(fake_oguk):
-    core.og_score_reform("gov.hmrc.income_tax.rates.uk[0].rate", 0.21)
-    core.og_score_reform("gov.hmrc.income_tax.rates.uk[0].rate", 0.22)
+    core.og_score_reform({"gov.hmrc.income_tax.rates.uk[0].rate": 0.21})
+    core.og_score_reform({"gov.hmrc.income_tax.rates.uk[0].rate": 0.22})
     # 2 reform solves + only 1 baseline solve (cached).
     baselines = [c for c in fake_oguk["solve"] if c["policy"] is None]
     assert len(baselines) == 1
@@ -135,8 +136,8 @@ def test_og_baseline_cache_reused(fake_oguk):
 
 
 def test_og_baseline_cache_bypass(fake_oguk):
-    core.og_score_reform("x", 0.21, baseline_cache=False)
-    core.og_score_reform("x", 0.21, baseline_cache=False)
+    core.og_score_reform({"x": 0.21}, baseline_cache=False)
+    core.og_score_reform({"x": 0.21}, baseline_cache=False)
     baselines = [c for c in fake_oguk["solve"] if c["policy"] is None]
     assert len(baselines) == 2
 
@@ -162,8 +163,13 @@ def test_og_dataset_keyerror_translated(monkeypatch):
 def test_og_build_policy_real():
     """Real PolicyEngine Policy construction (imports policyengine, ~20s)."""
     policy = core._og_build_policy(
-        "gov.hmrc.income_tax.rates.uk[0].rate", 0.21, 2026
+        {
+            "gov.hmrc.income_tax.rates.uk[0].rate": 0.21,
+            "gov.hmrc.income_tax.allowances.personal_allowance.amount": 15000,
+        },
+        2026,
     )
+    assert len(policy.parameter_values) == 2
     pv = policy.parameter_values[0]
     assert pv.value == 0.21
     assert pv.start_date.year == 2026
@@ -174,9 +180,55 @@ def test_og_build_policy_real():
 @pytest.mark.skipif(_OGUK_SKIP is not None, reason=_OGUK_SKIP or "")
 def test_og_score_reform_end_to_end():
     """Full baseline + reform steady-state solves (~10+ minutes)."""
-    res = core.og_score_reform("gov.hmrc.income_tax.rates.uk[0].rate", 0.21)
+    res = core.og_score_reform({"gov.hmrc.income_tax.rates.uk[0].rate": 0.21})
     imp = res["impact"]
     # A basic-rate rise should raise long-run tax revenue.
     assert imp["changes_bn"]["tax_revenue_change"] > 0
     assert res["baseline_steady_state_model_units"]["Y"] > 0
     json.dumps(res)
+
+
+# ---------------------------------------------------------------------------
+# Unified score_reform dispatcher (one reform vocabulary across the suite)
+# ---------------------------------------------------------------------------
+
+def test_og_multi_parameter_reform_passes_through(fake_oguk):
+    """The full multi-parameter dict reaches policy construction (fast guard
+    for the PR's central behavior; real Policy construction is slow-marked)."""
+    reform = {
+        "gov.hmrc.income_tax.rates.uk[0].rate": 0.21,
+        "gov.hmrc.income_tax.allowances.personal_allowance.amount": 15000,
+    }
+    core.og_score_reform(reform)
+    assert fake_oguk["policy_reforms"] == [reform]
+
+
+def test_score_reform_routes_og(fake_oguk):
+    res = core.score_reform(
+        "uk", {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}, model="og"
+    )
+    assert res["model"].startswith("OG-UK")
+    assert res["reform"] == {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}
+    assert len(fake_oguk["solve"]) == 2
+
+
+def test_score_reform_og_is_uk_only(fake_oguk):
+    with pytest.raises(ValueError, match="UK-only"):
+        core.score_reform("us", {"x": 1}, model="og")
+
+
+def test_score_reform_obr_pending_points_to_escape_hatch():
+    with pytest.raises(NotImplementedError) as exc:
+        core.score_reform("uk", {"x": 1}, model="obr")
+    msg = str(exc.value)
+    assert "obr_shock" in msg
+    assert "issues/9" in msg
+
+
+def test_score_reform_validates_reform_and_model():
+    with pytest.raises(ValueError, match="non-empty"):
+        core.score_reform("uk", {}, model="og")
+    with pytest.raises(ValueError, match="non-empty"):
+        core.score_reform("uk", "not-a-dict", model="og")
+    with pytest.raises(ValueError, match="model must be one of"):
+        core.score_reform("uk", {"x": 1}, model="svar")

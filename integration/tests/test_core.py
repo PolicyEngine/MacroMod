@@ -25,8 +25,8 @@ def test_summary_parses():
 
 
 @pytest.mark.slow
-def test_score_reform_cgg():
-    res = core.obr_score_reform(var="CGG", shock=1250, periods=4)
+def test_obr_shock_cgg():
+    res = core.obr_shock(var="CGG", shock=1250, periods=4)
     assert res["periods"] == 4
     assert len(res["results"]) >= 4
     # A spending increase should raise GDP in the first shocked quarter.

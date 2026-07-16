@@ -16,13 +16,53 @@ mcp = FastMCP("macromod")
 
 @mcp.tool()
 def score_reform(
+    country: str,
+    reform: dict,
+    model: str,
+    start_year: int = 2026,
+    max_iter: int = 250,
+) -> dict:
+    """Score a tax/benefit reform with one of the suite's macro models, using
+    the SAME PolicyEngine reform dict as the microsimulation tools.
+
+    Args:
+        country: 'uk' (the macro members are UK models for now).
+        reform: Flat {parameter_path: value} dict — the same shape as
+            population_reform_impact / household_reform_impact, e.g.
+            {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}. Call
+            list_reform_parameters for verified paths and units.
+        model: Which macro model consumes the reform, via its contract:
+            'og'  — OG-UK overlapping-generations model: long-run steady-state
+                    general-equilibrium comparison; the reform enters through
+                    PolicyEngine-estimated tax functions. VERY SLOW (tens of
+                    minutes) and excluded from the hosted server — run it
+                    locally via `macromod score --model og`; calling it here
+                    returns install/CLI instructions.
+            'obr' — OBR macroeconometric emulator: NOT WIRED YET. The
+                    microsim-static-costing bridge is tracked in MacroMod#9;
+                    until it lands, use obr_shock for raw variable shocks.
+        start_year: Reform start year (default 2026).
+        max_iter: OG steady-state solver iteration cap (default 250).
+
+    For population-level budget/distributional impacts WITHOUT macro feedback,
+    use population_reform_impact (fast).
+    """
+    return core.score_reform(
+        country=country, reform=reform, model=model, start_year=start_year,
+        max_iter=max_iter,
+    )
+
+
+@mcp.tool()
+def obr_shock(
     var: str,
     shock: float,
     periods: int = 12,
     name: str | None = None,
-    investment_closure: bool = False,
+    investment_closure: bool | None = None,
 ) -> dict:
-    """Score a UK fiscal policy reform with the OBR macroeconomic model emulator.
+    """Shock one OBR model variable directly, in model units (the escape
+    hatch under score_reform — no PolicyEngine reform translation).
 
     Runs a baseline and a shocked solve of the OBR model and returns per-quarter
     GDP deltas plus a headline cumulative GDP effect.
@@ -36,15 +76,16 @@ def score_reform(
             TCPRO is a rate change in decimal (e.g. -0.05 = 5 percentage point cut).
         periods: Number of quarters the shock is applied (default 12 = 3 years).
         name: Optional label for the reform.
-        investment_closure: Set True for corporation tax (TCPRO) shocks — it
-            activates the cost-of-capital investment channel; without it TCPRO
-            shocks have no effect on business investment.
+        investment_closure: Omit to use the safe per-variable default (True
+            for TCPRO, False otherwise). It activates the cost-of-capital
+            investment channel; a TCPRO shock without it solves to misleading
+            all-zero deltas, which is why the default is per-variable.
 
     Returns per-period rows (period, delta_gdp_bn, pct_gdp, delta_cons_m,
     delta_if_m), the cumulative GDP effect in £bn over the shocked periods, and
     the peak percent-of-GDP effect. Takes roughly 10-60 seconds.
     """
-    return core.obr_score_reform(
+    return core.obr_shock(
         var=var, shock=shock, periods=periods, name=name,
         investment_closure=investment_closure,
     )
@@ -52,11 +93,12 @@ def score_reform(
 
 @mcp.tool()
 def list_reform_variables() -> list[dict]:
-    """List the OBR policy variables commonly shocked with score_reform.
+    """List the OBR policy variables commonly shocked with obr_shock.
 
     Returns each variable's code, description, shock units (£m per quarter vs
-    decimal rate change), and whether it needs investment_closure=True.
-    Instant; call this before score_reform if unsure of units.
+    decimal rate change), and whether it defaults investment_closure=True.
+    Instant; call this before obr_shock if unsure of units. (score_reform
+    takes PolicyEngine reform dicts, not these raw variables.)
     """
     return core.obr_list_variables()
 
@@ -232,51 +274,6 @@ def population_reform_impact(
     """
     return core.pe_population_impact(
         country=country, reform=reform, year=year, dataset=dataset,
-    )
-
-
-@mcp.tool()
-def og_score_reform_steady_state(
-    parameter: str,
-    value: float,
-    start_year: int = 2026,
-    max_iter: int = 250,
-) -> dict:
-    """Score a UK tax/benefit reform with the OG-UK overlapping-generations
-    model: a long-run STEADY-STATE comparison, not a budget-window costing.
-
-    Solves the baseline and reform steady states of the OG-Core general
-    equilibrium model calibrated to the UK (PolicyEngine microdata tax
-    functions, ONS/UN demographics) and returns the long-run change in GDP,
-    consumption, investment, government, tax revenue, and debt, in £bn and
-    percent, plus baseline/reform interest rates.
-
-    Simplest assumptions: pooled ages (one tax function for all ages) and a
-    single representative firm/sector — no heterogeneous firms, no transition
-    path. Results are long-run equilibrium effects after all adjustment.
-
-    Args:
-        parameter: PolicyEngine UK parameter path, e.g.
-            "gov.hmrc.income_tax.rates.uk[0].rate" (basic rate). Use
-            list_reform_parameters for verified UK paths (US paths do not
-            apply to this UK model).
-        value: New parameter value. Rates are decimals (0.21 = 21%); amounts
-            are annual GBP unless list_reform_parameters says otherwise.
-        start_year: Reform start year (default 2026).
-        max_iter: Max solver iterations per steady-state solve (default 250).
-
-    VERY SLOW: a single solve (PolicyEngine microdata calibration + OG-Core
-    steady state) measured >17 minutes on a laptop, and the first call needs
-    two solves (baseline is cached in-process afterwards). Runtime is tens of
-    minutes — suited to the CLI (`macromod og-score`) or a long-timeout API
-    client, not interactive chat; it is excluded from the hosted Modal server.
-    Requires PolicyEngine enhanced-FRS microdata access (HUGGING_FACE_TOKEN)
-    and an oguk-compatible policyengine-uk (oguk 0.3.0 pins
-    policyengine-uk==2.88.0); otherwise it fails fast with instructions.
-    """
-    return core.og_score_reform(
-        parameter=parameter, value=value, start_year=start_year,
-        max_iter=max_iter,
     )
 
 

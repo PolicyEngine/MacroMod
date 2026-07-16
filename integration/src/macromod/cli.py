@@ -29,17 +29,50 @@ def main() -> None:
 
 
 @main.command()
+@click.option("--country", type=click.Choice(["uk"]), default="uk", show_default=True)
+@click.option("--reform", required=True,
+              help='PolicyEngine reform JSON, e.g. \'{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}\' '
+                   "(same shape as `macromod population-impact`).")
+@click.option("--model", required=True, type=click.Choice(["og", "obr"]),
+              help="Macro model: og (OG-UK steady state; slow) or obr (pending the "
+                   "static-costing bridge, MacroMod#9).")
+@click.option("--year", default=2026, show_default=True, help="Reform start year.")
+@click.option("--max-iter", default=250, show_default=True,
+              help="OG solver iteration cap per steady-state solve.")
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+def score(country, reform, model, year, max_iter, as_json):
+    """Score a PolicyEngine reform with a macro model of the suite.
+
+    One reform vocabulary: the same {parameter_path: value} dict as
+    `macromod population-impact`. For raw OBR variable shocks in model
+    units, use `macromod obr-shock`.
+    """
+    try:
+        res = core.score_reform(
+            country=country, reform=_json_opt(reform, "reform"), model=model,
+            start_year=year, max_iter=max_iter,
+        )
+    except (NotImplementedError, ValueError) as e:
+        raise click.ClickException(str(e)) from e
+    if as_json:
+        _emit_json(res)
+        return
+    _echo_og_impact(res)
+
+
+@main.command("obr-shock")
 @click.option("--var", required=True, help="Policy variable to shock (see `macromod variables`).")
 @click.option("--shock", required=True, type=float,
               help="Shock size; units depend on the variable (£m/quarter for CGG, decimal for TCPRO).")
 @click.option("--periods", default=12, show_default=True, help="Quarters the shock is applied.")
 @click.option("--name", default=None, help="Label for the reform.")
-@click.option("--investment-closure", is_flag=True,
-              help="Activate the cost-of-capital investment channel (needed for TCPRO shocks).")
+@click.option("--investment-closure/--no-investment-closure", default=None,
+              help="Cost-of-capital investment channel; omit for the safe "
+                   "per-variable default (on for TCPRO, off otherwise).")
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
-def score(var, shock, periods, name, investment_closure, as_json):
-    """Score a policy reform with the OBR model emulator."""
-    res = core.obr_score_reform(
+def obr_shock(var, shock, periods, name, investment_closure, as_json):
+    """Shock one OBR variable directly, in model units (escape hatch)."""
+    res = core.obr_shock(
         var=var, shock=shock, periods=periods, name=name,
         investment_closure=investment_closure,
     )
@@ -281,8 +314,7 @@ def parameters(as_json):
 
 def _echo_og_impact(res: dict) -> None:
     click.echo(f"OG-UK steady-state reform score")
-    r = res["reform"]
-    click.echo(f"Reform: {r['parameter']} = {r['value']} (from {r['start_year']})")
+    click.echo(f"Reform: {res['reform']} (from {res['start_year']})")
     click.echo(f"Assumptions: {res['assumptions']}\n")
     imp = res["impact"]
     rows = []
@@ -300,20 +332,20 @@ def _echo_og_impact(res: dict) -> None:
 
 
 @main.command("og-score")
-@click.option("--parameter", required=True,
-              help="PolicyEngine UK parameter path, e.g. "
-                   "gov.hmrc.income_tax.rates.uk[0].rate (see `macromod parameters`).")
-@click.option("--value", required=True, type=float,
-              help="New parameter value (rates are decimals, e.g. 0.21).")
+@click.option("--reform", required=True, help=_REFORM_HELP)
 @click.option("--year", default=2026, show_default=True, help="Reform start year.")
 @click.option("--max-iter", default=250, show_default=True,
               help="Max solver iterations for each steady-state solve.")
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
-def og_score(parameter, value, year, max_iter, as_json):
-    """Score a reform with the OG-UK overlapping-generations model (slow: ~10 min)."""
-    res = core.og_score_reform(
-        parameter=parameter, value=value, start_year=year, max_iter=max_iter,
-    )
+def og_score(reform, year, max_iter, as_json):
+    """Score a reform with the OG-UK model (alias for `score --model og`; slow: ~10 min)."""
+    try:
+        res = core.og_score_reform(
+            reform=_json_opt(reform, "reform"), start_year=year,
+            max_iter=max_iter,
+        )
+    except ValueError as e:
+        raise click.ClickException(str(e)) from e
     if as_json:
         _emit_json(res)
         return

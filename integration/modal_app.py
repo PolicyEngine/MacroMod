@@ -3,7 +3,7 @@
     modal deploy integration/modal_app.py
 
 Serves the FastMCP instance from `macromod.mcp_server` (tools: score_reform,
-list_reform_variables, forecast_uk, latest_shocks, model_summary,
+obr_shock, list_reform_variables, forecast_uk, latest_shocks, model_summary,
 calculate_household, household_reform_impact, list_reform_parameters,
 population_reform_impact) as an
 ASGI app at  https://policyengine--macromod-mcp-serve.modal.run/mcp
@@ -44,13 +44,13 @@ POPULATION DATA (population_reform_impact)
 
 OG-UK (oguk) IS DELIBERATELY NOT IN THIS IMAGE
 ----------------------------------------------
-The OG-UK steady-state adapters (og_score_reform / og-score CLI) need a
+The OG-UK steady-state adapters (score_reform model='og' / og-score CLI) need a
 PolicyEngine microdata calibration plus an OG-Core steady-state solve per
 scenario: measured >17 minutes for ONE baseline solve at defaults on a laptop,
 and a reform score needs two solves. That cannot fit the 600s Modal timeout
-with any headroom, so oguk is excluded here; the og_score_reform_steady_state
-MCP tool will return an ImportError on the hosted server. Use the local CLI
-(`macromod og-score`) or a local MCP server instead. If it is ever added,
+with any headroom, so oguk is excluded here; the score_reform MCP tool with
+model='og' will return an ImportError on the hosted server. Use the local CLI
+(`macromod score --model og`) or a local MCP server instead. If it is ever added,
 `pip install git+https://github.com/PSLmodels/OG-UK` works (hatchling build;
 heavy deps: ogcore, policyengine-uk==2.88.0), but calibration also downloads
 the enhanced FRS dataset (HUGGING_FACE_TOKEN) and UN demographics at runtime.

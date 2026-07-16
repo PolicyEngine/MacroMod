@@ -1,0 +1,324 @@
+diff --git a/integration/src/macromod/cli.py b/integration/src/macromod/cli.py
+index b484b60..eb74dbf 100644
+--- a/integration/src/macromod/cli.py
++++ b/integration/src/macromod/cli.py
+@@ -262,7 +262,10 @@ def parameters(as_json):
+     if as_json:
+         _emit_json(res)
+         return
+-    click.echo(_table(res, ["country", "path", "description", "unit"]))
++    cols = ["country", "path", "description", "unit"]
++    if any("baseline_value" in r for r in res):
++        cols.append("baseline_value")
++    click.echo(_table(res, cols))
+ 
+ 
+ def _echo_og_impact(res: dict) -> None:
+diff --git a/integration/src/macromod/core.py b/integration/src/macromod/core.py
+index d73aed3..6c26fe2 100644
+--- a/integration/src/macromod/core.py
++++ b/integration/src/macromod/core.py
+@@ -13,10 +13,10 @@
+ 
+ BOE_VAR_REPO = Path("/Users/janansadeqian/boe-var-model")
+ 
+-# Column indices in the boe_var 8-variable dataset.
+-_I_CPI, _I_GDP = 5, 7
+-# The 6 identified shocks (indices into SHOCK_NAMES; 3 and 7 are unidentified).
+-_IDENTIFIED = [0, 1, 2, 4, 5, 6]
++# boe_var column names for the two headline series. Resolved to indices by
++# name against the loaded dataset's own columns, so an upstream reorder can
++# never silently mislabel a series.
++_COL_CPI, _COL_GDP = "cpisa", "uk_gdp"
+ 
+ 
+ # ---------------------------------------------------------------------------
+@@ -248,8 +248,8 @@ def _series(idx: int) -> list[dict]:
+         "accepted_draws": est["n_accepted"],
+         "ess": round(est["ess"], 1),
+         "units": "YoY percent (4-quarter log difference of 100*log levels)",
+-        "gdp_growth_yoy": _series(_I_GDP),
+-        "cpi_inflation_yoy": _series(_I_CPI),
++        "gdp_growth_yoy": _series(list(est["df_full"].columns).index(_COL_GDP)),
++        "cpi_inflation_yoy": _series(list(est["df_full"].columns).index(_COL_CPI)),
+     }
+     _FORECAST_CACHE[key] = out
+     return out
+@@ -277,8 +277,12 @@ def resid_fn(draw):
+     dist = forecast.shock_distribution_T(est["pairs"], resid_fn, weights=est["weights"])
+     last_q = str(est["df_full"].index[-1])
+ 
++    # Identified shocks, derived from upstream's own names (the rest are
++    # explicitly "Unident." in SHOCK_NAMES).
++    identified = [j for j, n in enumerate(SHOCK_NAMES) if not n.startswith("Unident")]
++
+     shocks = []
+-    for j in _IDENTIFIED:
++    for j in identified:
+         p = float(dist["p_pos"][j])
+         p_dom = max(p, 1 - p)
+         sign = "positive" if p >= 0.5 else "negative"
+@@ -330,31 +334,31 @@ def _import_pe():
+         "country": "uk",
+         "path": "gov.hmrc.income_tax.rates.uk[0].rate",
+         "description": "Income tax basic rate (England/Wales/NI)",
+-        "unit": "decimal rate (baseline 0.20)",
++        "unit": "decimal rate",
+     },
+     {
+         "country": "uk",
+         "path": "gov.hmrc.income_tax.rates.uk[1].rate",
+         "description": "Income tax higher rate",
+-        "unit": "decimal rate (baseline 0.40)",
++        "unit": "decimal rate",
+     },
+     {
+         "country": "uk",
+         "path": "gov.hmrc.income_tax.allowances.personal_allowance.amount",
+         "description": "Income tax personal allowance",
+-        "unit": "GBP per year (baseline 12,570)",
++        "unit": "GBP per year",
+     },
+     {
+         "country": "uk",
+         "path": "gov.dwp.universal_credit.means_test.reduction_rate",
+         "description": "Universal Credit taper (earnings reduction) rate",
+-        "unit": "decimal rate (baseline 0.55)",
++        "unit": "decimal rate",
+     },
+     {
+         "country": "uk",
+         "path": "gov.hmrc.national_insurance.class_1.rates.employee.main",
+         "description": "Employee National Insurance main rate",
+-        "unit": "decimal rate (baseline 0.08)",
++        "unit": "decimal rate",
+     },
+     {
+         "country": "uk",
+@@ -387,19 +391,19 @@ def _import_pe():
+         "country": "us",
+         "path": "gov.irs.credits.ctc.amount.base[0].amount",
+         "description": "Child Tax Credit base amount per child",
+-        "unit": "USD per year (baseline 2,000)",
++        "unit": "USD per year",
+     },
+     {
+         "country": "us",
+         "path": "gov.irs.credits.ctc.amount.adult_dependent",
+         "description": "CTC amount for adult dependents (credit for other dependents)",
+-        "unit": "USD per year (baseline 500)",
++        "unit": "USD per year",
+     },
+     {
+         "country": "us",
+         "path": "gov.irs.income.bracket.rates.2",
+-        "description": "Federal income tax rate in the third bracket",
+-        "unit": "decimal rate (baseline 0.22)",
++        "description": "Federal income tax rate (bracket 2 — the 12% bracket)",
++        "unit": "decimal rate",
+     },
+     {
+         "country": "us",
+@@ -410,9 +414,67 @@ def _import_pe():
+ ]
+ 
+ 
+-def pe_list_common_parameters() -> list[dict]:
+-    """Curated, verified PolicyEngine reform parameters with paths and units."""
+-    return [dict(p) for p in PE_PARAMETERS]
++def _pe_current_value(param):
++    """The parameter value in force today, from upstream's own value history.
++
++    The value with the latest start_date that is <= today. end_date is
++    deliberately ignored: upstream builds parameter_values from a
++    newest-first values_list, so each entry's end_date is the chronologically
++    *previous* instant, not a validity end.
++    """
++    from datetime import date
++
++    def _d(v):
++        return v.date() if hasattr(v, "date") else v
++
++    today = date.today()
++    best_start, current = None, None
++    for pv in param.parameter_values:
++        start = _d(pv.start_date) if pv.start_date else None
++        if start is not None and start <= today and (
++            best_start is None or start > best_start
++        ):
++            best_start, current = start, pv.value
++    return current
++
++
++def pe_list_common_parameters(resolve: bool = True) -> list[dict]:
++    """Curated PolicyEngine reform parameters, enriched from the live model.
++
++    The path list is curated here, but baseline values, labels, and units are
++    resolved from the policyengine package's own parameter tree at call time,
++    so they can never go stale. A path that no longer resolves upstream is
++    returned with ``"live": False`` and an explicit ``"live_error"`` instead
++    of a silently wrong entry. ``resolve=False`` skips the (heavy) policyengine
++    import and returns just the static catalogue.
++    """
++    out = [dict(p) for p in PE_PARAMETERS]
++    if not resolve:
++        return out
++    try:
++        pe = _import_pe()
++    except Exception as e:
++        # policyengine missing or its import broken: return the static
++        # catalogue rather than failing the whole listing, but say so.
++        for p in out:
++            p["live"] = False
++            p["live_error"] = f"{type(e).__name__}: {e}"
++        return out
++    for p in out:
++        model = getattr(pe, p["country"]).model
++        try:
++            param = model.get_parameter(p["path"])
++        except ValueError as e:
++            p["live"] = False
++            p["live_error"] = str(e)
++            continue
++        p["live"] = True
++        if param.label:
++            p["label"] = param.label
++        if param.unit:
++            p["upstream_unit"] = param.unit
++        p["baseline_value"] = _pe_jsonify(_pe_current_value(param))
++    return out
+ 
+ 
+ def _pe_jsonify(value):
+diff --git a/integration/src/macromod/mcp_server.py b/integration/src/macromod/mcp_server.py
+index d9c472b..5cb5f27 100644
+--- a/integration/src/macromod/mcp_server.py
++++ b/integration/src/macromod/mcp_server.py
+@@ -183,9 +183,12 @@ def list_reform_parameters() -> list[dict]:
+     `reform` argument of calculate_household / household_reform_impact.
+ 
+     Returns ~10 well-known UK and US parameters with their exact path,
+-    description, and units (decimal rates vs annual £/$ amounts). Every path
+-    has been verified to resolve. Instant. Other parameter paths from the
+-    policyengine-uk/-us parameter trees also work, but are not verified here.
++    description, units (decimal rates vs annual £/$ amounts), and the current
++    baseline_value resolved live from the policyengine parameter tree (so it
++    is never stale). An entry with "live": false failed to resolve upstream —
++    trust its live_error over its static description. Other parameter paths
++    from the policyengine-uk/-us parameter trees also work, but are not
++    listed here.
+     """
+     return core.pe_list_common_parameters()
+ 
+diff --git a/integration/tests/test_contract.py b/integration/tests/test_contract.py
+new file mode 100644
+index 0000000..de86a21
+--- /dev/null
++++ b/integration/tests/test_contract.py
+@@ -0,0 +1,106 @@
++"""Upstream contract tests: every name this package hardcodes must still
++exist upstream.
++
++The adapters compose upstream packages but necessarily hardcode a few names —
++curated parameter paths, headline output-variable names, SVAR column names.
++These tests fail loudly when an upstream rename would otherwise surface as a
++silent drift (stale baseline, mislabeled series) or a runtime AttributeError.
++
++The boe_var checks are fast and run by default. The PolicyEngine checks need
++the full country models (~20s import) and are marked `slow`
++(`pytest --runslow`); they also run implicitly wherever PE is installed,
++e.g. the Modal image.
++"""
++
++import pytest
++
++from macromod import core
++
++
++# ---------------------------------------------------------------------------
++# boe_var (fast)
++# ---------------------------------------------------------------------------
++
++def test_svar_headline_columns_exist_upstream():
++    data = pytest.importorskip("boe_var.data")
++    for col in (core._COL_CPI, core._COL_GDP):
++        assert col in data.COLUMNS, (
++            f"boe_var.data.COLUMNS no longer contains {col!r}; "
++            "the SVAR headline series lookup would fail"
++        )
++
++
++def test_svar_shock_names_mark_unidentified():
++    analysis = pytest.importorskip("boe_var.analysis")
++    identified = [n for n in analysis.SHOCK_NAMES if not n.startswith("Unident")]
++    assert len(identified) == 6, (
++        "expected 6 identified shocks in boe_var.analysis.SHOCK_NAMES, "
++        f"got {identified}"
++    )
++
++
++# ---------------------------------------------------------------------------
++# PolicyEngine (slow: full country-model import)
++# ---------------------------------------------------------------------------
++
++# Every variable name _pe_summary and pe_population_impact read off results.
++PE_VARIABLE_CONTRACT = {
++    "uk": [
++        "income_tax", "national_insurance", "hbai_household_net_income",
++        "household_tax", "household_benefits", "universal_credit",
++        "child_benefit",
++        # population scoring
++        "gov_balance", "gov_tax", "household_net_income",
++        "household_income_decile",
++    ],
++    "us": [
++        "income_tax", "employee_payroll_tax", "state_income_tax", "ctc",
++        "eitc", "household_net_income", "household_tax",
++        "household_benefits",
++    ],
++}
++
++
++def _pe_model(country):
++    # importorskip only catches ImportError; a broken policyengine install
++    # (e.g. a pydantic version mismatch) raises other exceptions at import
++    # time and should also skip, not error.
++    try:
++        import policyengine as pe
++    except Exception as e:
++        pytest.skip(f"policyengine not importable: {type(e).__name__}: {e}")
++    return getattr(pe, country).model
++
++
++@pytest.mark.slow
++@pytest.mark.parametrize("entry", core.PE_PARAMETERS,
++                         ids=lambda e: f"{e['country']}:{e['path']}")
++def test_curated_parameter_paths_resolve(entry):
++    model = _pe_model(entry["country"])
++    model.get_parameter(entry["path"])  # raises ValueError if renamed away
++
++
++@pytest.mark.slow
++@pytest.mark.parametrize("country", sorted(PE_VARIABLE_CONTRACT))
++def test_hardcoded_variable_names_exist(country):
++    model = _pe_model(country)
++    missing = []
++    for name in PE_VARIABLE_CONTRACT[country]:
++        try:
++            model.get_variable(name)
++        except ValueError:
++            missing.append(name)
++    assert not missing, (
++        f"{country} model no longer defines {missing}; "
++        "_pe_summary/pe_population_impact would break or silently change"
++    )
++
++
++@pytest.mark.slow
++def test_parameters_resolve_live_with_baselines():
++    _pe_model("uk")  # skip cleanly when policyengine is not importable
++    out = core.pe_list_common_parameters()
++    broken = [(p["path"], p.get("live_error")) for p in out if not p.get("live")]
++    assert not broken, f"parameter paths failed live resolution: {broken}"
++    no_baseline = [p["path"] for p in out if p.get("baseline_value") is None]
++    assert not no_baseline, f"no current baseline value for: {no_baseline}"

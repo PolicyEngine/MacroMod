@@ -33,7 +33,7 @@ EXPECTED_TOOLS = {
     "household_reform_impact",
     "list_reform_parameters",
     "population_reform_impact",
-    "og_score_reform_steady_state",
+    "obr_shock",
 }
 
 
@@ -60,13 +60,13 @@ def test_mcp_tools_have_descriptions_and_object_schemas():
 @pytest.mark.parametrize(
     "tool, params",
     [
-        ("score_reform", {"var", "shock", "periods"}),
+        ("score_reform", {"country", "reform", "model"}),
+        ("obr_shock", {"var", "shock", "periods"}),
         ("forecast_uk", {"horizons", "draws"}),
         ("latest_shocks", {"draws"}),
         ("calculate_household", {"country", "people"}),
         ("household_reform_impact", {"country", "people", "reform"}),
         ("population_reform_impact", {"country", "reform"}),
-        ("og_score_reform_steady_state", {"parameter", "value"}),
     ],
 )
 def test_mcp_tool_schema_exposes_expected_params(tool, params):
@@ -121,8 +121,8 @@ def _json_ok(result):
 def test_cli_help_lists_all_commands(runner):
     out = runner.invoke(main, ["--help"]).output
     for cmd in [
-        "score", "variables", "forecast", "shocks", "summary", "parameters",
-        "household", "household-impact", "population-impact",
+        "score", "obr-shock", "variables", "forecast", "shocks", "summary",
+        "parameters", "household", "household-impact", "population-impact",
         "og-score", "og-baseline",
     ]:
         assert cmd in out, f"CLI help missing subcommand {cmd!r}"
@@ -165,8 +165,23 @@ def test_cli_household_requires_people(runner):
     assert "people" in res.output.lower()
 
 
-def test_cli_score_requires_var(runner):
-    res = runner.invoke(main, ["score", "--shock", "1000"])
+def test_cli_score_requires_reform_and_model(runner):
+    res = runner.invoke(main, ["score", "--model", "og"])
+    assert res.exit_code != 0
+    assert "reform" in res.output.lower()
+    res = runner.invoke(main, ["score", "--reform", '{"x": 1}'])
+    assert res.exit_code != 0
+    assert "model" in res.output.lower()
+
+
+def test_cli_score_obr_pending_is_clear_error(runner):
+    res = runner.invoke(main, ["score", "--reform", '{"x": 1}', "--model", "obr"])
+    assert res.exit_code != 0
+    assert "obr-shock" in res.output
+
+
+def test_cli_obr_shock_requires_var(runner):
+    res = runner.invoke(main, ["obr-shock", "--shock", "1000"])
     assert res.exit_code != 0
     assert "var" in res.output.lower()
 
@@ -205,9 +220,9 @@ def test_core_population_impact_validation():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.slow
-def test_cli_score_json_end_to_end(runner):
+def test_cli_obr_shock_json_end_to_end(runner):
     data = _json_ok(runner.invoke(
-        main, ["score", "--var", "CGG", "--shock", "1250", "--periods", "4", "--json"]
+        main, ["obr-shock", "--var", "CGG", "--shock", "1250", "--periods", "4", "--json"]
     ))
     assert data["var"] == "CGG"
     assert len(data["results"]) >= 4
@@ -236,6 +251,6 @@ def test_cli_household_json_end_to_end(runner):
 @pytest.mark.slow
 def test_core_obr_extreme_shock_is_wellformed():
     # An out-of-range shock should still solve to well-formed output, not crash.
-    res = core.obr_score_reform(var="CGG", shock=1_000_000, periods=2)
+    res = core.obr_shock(var="CGG", shock=1_000_000, periods=2)
     assert res["periods"] == 2 and len(res["results"]) >= 2
     json.dumps(res)

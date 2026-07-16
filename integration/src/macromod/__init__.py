@@ -1,8 +1,11 @@
 """MacroMod integration layer.
 
-Wraps two local model repos behind one API:
+Wraps the suite's models behind one API:
 
-- OBR macroeconomic model emulator (``obr_macro``): policy reform scoring.
+- ``score_reform``: a PolicyEngine reform (the shared ``{parameter_path:
+  value}`` dict) through a chosen macro model.
+- OBR macroeconomic model emulator (``obr_macro``): raw variable shocks via
+  ``obr_shock``.
 - UK SVAR / BVAR model (``boe_var``): forecasts and structural shock readings.
 
 Same functions are exposed via a CLI (``macromod``) and an MCP server
@@ -10,16 +13,20 @@ Same functions are exposed via a CLI (``macromod``) and an MCP server
 """
 
 from macromod.core import (
-    obr_score_reform,
+    score_reform,
+    obr_shock,
     obr_list_variables,
+    og_score_reform,
     svar_forecast,
     svar_latest_shocks,
     svar_summary,
 )
 
 __all__ = [
-    "obr_score_reform",
+    "score_reform",
+    "obr_shock",
     "obr_list_variables",
+    "og_score_reform",
     "svar_forecast",
     "svar_latest_shocks",
     "svar_summary",
