@@ -4,3 +4,9 @@ integration/src/*.egg-info/
 __pycache__/
 *.pyc
 .DS_Store
+
+# Local env and deployment link files — never commit (a Vercel OIDC token
+# was nearly published this way)
+.env*.local
+.env.local
+.vercel/

@@ -141,11 +141,19 @@ def summary(as_json):
     res = core.svar_summary()
     if set(res) == {"error"}:
         raise click.ClickException(res["error"])
+    rep = res.get("replication", {})
+    fr_check = res.get("forecast_revision", {})
+    if "error" in rep and "error" in fr_check:
+        raise click.ClickException(
+            "no parseable SVAR results — replication: "
+            f"{rep['error']}; forecast revision: {fr_check['error']}"
+        )
     if as_json:
         _emit_json(res)
         return
-    rep = res.get("replication", {})
     click.echo("Replication (results/summary.md)")
+    if "error" in rep:
+        click.echo(f"  error: {rep['error']}", err=True)
     for ln in rep.get("metadata", []):
         click.echo(f"  {ln}")
     fevd = rep.get("fevd_1yr_headline", [])
@@ -154,6 +162,8 @@ def summary(as_json):
         click.echo(_table(fevd, list(fevd[0].keys())))
     fr = res.get("forecast_revision", {})
     click.echo("\nForecast-revision exercise (results/forecast_summary.md)")
+    if "error" in fr:
+        click.echo(f"  error: {fr['error']}", err=True)
     for ln in fr.get("metadata", []):
         click.echo(f"  {ln}")
     signs = fr.get("latest_shock_signs", [])

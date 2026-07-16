@@ -254,3 +254,39 @@ def test_core_obr_extreme_shock_is_wellformed():
     res = core.obr_shock(var="CGG", shock=1_000_000, periods=2)
     assert res["periods"] == 2 and len(res["results"]) >= 2
     json.dumps(res)
+
+
+def test_cli_obr_shock_closure_tristate(runner, monkeypatch):
+    """Omitted --investment-closure must reach core as None (per-variable
+    default), not False — the TCPRO zero-effects footgun (review #15.1)."""
+    seen = []
+
+    def fake_obr_shock(**kwargs):
+        seen.append(kwargs["investment_closure"])
+        return {"name": "x", "var": "TCPRO", "shock": -0.05, "periods": 1,
+                "investment_closure": True, "results": [],
+                "cumulative_delta_gdp_bn_over_shock_periods": 0.0,
+                "peak_pct_gdp": 0.0, "peak_period": "2025Q1"}
+
+    monkeypatch.setattr(core, "obr_shock", fake_obr_shock)
+    for args, expected in [
+        (["obr-shock", "--var", "TCPRO", "--shock", "-0.05", "--json"], None),
+        (["obr-shock", "--var", "TCPRO", "--shock", "-0.05",
+          "--investment-closure", "--json"], True),
+        (["obr-shock", "--var", "TCPRO", "--shock", "-0.05",
+          "--no-investment-closure", "--json"], False),
+    ]:
+        res = runner.invoke(main, args)
+        assert res.exit_code == 0, res.output
+        assert seen[-1] is expected
+
+
+def test_cli_wrong_shaped_reform_is_clean_error(runner):
+    """Valid JSON of the wrong shape ('[]', '{}') must be a Click error,
+    never a traceback (review #15.4)."""
+    for cmd in (["score", "--model", "og"], ["og-score"]):
+        for bad in ("[]", "{}"):
+            res = runner.invoke(main, cmd + ["--reform", bad])
+            assert res.exit_code != 0
+            assert "Traceback" not in res.output
+            assert "non-empty" in res.output

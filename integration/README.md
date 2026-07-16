@@ -13,7 +13,7 @@ one CLI and one MCP server:
   microdata (UK data is private: set `HUGGING_FACE_TOKEN`; the hosted
   deployment provisions it server-side).
 - **OG-UK** (`oguk`, optional/local-only): overlapping-generations
-  steady-state scoring through `score_reform --model og`.
+  steady-state scoring through `macromod score --model og`.
 
 `score_reform` is the one reform vocabulary across the suite: the same flat
 `{parameter_path: value}` dict as the microsimulation tools, dispatched to a
@@ -36,11 +36,14 @@ pip install "macromod[models] @ git+https://github.com/PolicyEngine/macro#subdir
 
 A shorter `pip install macromod` will come with PyPI publication.
 
-For development, install local checkouts editable into a fresh env:
+For development, install with the full model set (policyengine included via
+the `[models]` extra), overriding the two model packages with local editable
+checkouts; OG-UK is optional and local-only:
 
 ```bash
-uv venv && uv pip install -e ./integration \
-    -e ../obr-macroeconomic-model -e ../boe-var-model pytest
+uv venv && uv pip install -e "./integration[models]" pytest \
+    -e ../obr-macroeconomic-model -e ../boe-var-model
+uv pip install "oguk @ git+https://github.com/PSLmodels/OG-UK"  # optional, for --model og
 ```
 
 ## CLI

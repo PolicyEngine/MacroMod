@@ -50,7 +50,7 @@ def test_svar_forecast_and_cache():
 # ---------------------------------------------------------------------------
 
 def test_pe_list_common_parameters():
-    params = core.pe_list_common_parameters()
+    params = core.pe_list_common_parameters(resolve=False)
     assert len(params) >= 8
     for p in params:
         assert {"country", "path", "description", "unit"} <= set(p)
@@ -165,3 +165,17 @@ def test_cli_summary_without_boe_var_errors_actionably(monkeypatch):
     res = CliRunner().invoke(main, ["summary"])
     assert res.exit_code != 0
     assert "MACROMOD_BOE_VAR_REPO" in res.output
+
+
+def test_cli_summary_env_checkout_missing_files_errors(monkeypatch, tmp_path):
+    """A configured fallback whose files are missing must error, not print
+    empty headings and exit 0 (round-2 review, new finding 1)."""
+    from click.testing import CliRunner
+
+    from macromod.cli import main
+
+    _block_boe_var(monkeypatch)
+    monkeypatch.setenv("MACROMOD_BOE_VAR_REPO", str(tmp_path))
+    res = CliRunner().invoke(main, ["summary"])
+    assert res.exit_code != 0
+    assert "no parseable SVAR results" in res.output

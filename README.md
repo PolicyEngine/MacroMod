@@ -169,7 +169,7 @@ non-real numbers as illustrative.
 - [x] Local MCP server (`python -m macromod.mcp_server`)
 - [x] Hosted MCP server (`https://policyengine--macromod-mcp-serve.modal.run/mcp`, auto-deployed by CI)
 - [x] OG-UK steady-state scoring (`macromod score --model og` / `macromod og-score`, local only)
-- [ ] Population-level PolicyEngine reform scoring
+- [x] Population-level PolicyEngine reform scoring (`population_reform_impact`, hosted and local)
 - [ ] Additional macroeconomic model classes
 - See [#1](https://github.com/PolicyEngine/macro/issues/1) — Rust port of the solver core
 

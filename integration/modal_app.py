@@ -9,8 +9,9 @@ population_reform_impact) as an
 ASGI app at  https://policyengine--macromod-mcp-serve.modal.run/mcp
 
 Both model repos resolve their data files relative to their own repo root
-(`Path(__file__)`-relative), and `macromod.core` hardcodes
-/Users/janansadeqian/boe-var-model. We therefore bake the repos into the
+(`Path(__file__)`-relative); `macromod.core`'s svar_summary falls back to a
+checkout via MACROMOD_BOE_VAR_REPO only when boe_var is absent (it is
+installed here, so the fallback never fires). We bake the repos into the
 image at the SAME absolute paths and `pip install -e` them, so every path
 resolves in the container with zero patching:
   - obr_macro:  /Users/janansadeqian/obr-macroeconomic-model  (+ data/)

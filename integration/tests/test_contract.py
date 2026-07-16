@@ -12,6 +12,7 @@ the full country models (~20s import) and are marked `slow`
 e.g. the Modal image.
 """
 
+import importlib
 import os
 
 import pytest
@@ -19,12 +20,24 @@ import pytest
 from macromod import core
 
 
+def _import_or_require(modname: str):
+    """Import an upstream module; in the dedicated contract job
+    (MACROMOD_REQUIRE_PE=1) a missing/broken install FAILS instead of
+    skipping — a contract run that silently skips is vacuous."""
+    require = os.environ.get("MACROMOD_REQUIRE_PE") == "1"
+    try:
+        return importlib.import_module(modname)
+    except Exception as e:
+        msg = f"{modname} not importable: {type(e).__name__}: {e}"
+        pytest.fail(msg) if require else pytest.skip(msg)
+
+
 # ---------------------------------------------------------------------------
 # boe_var (fast)
 # ---------------------------------------------------------------------------
 
 def test_svar_headline_columns_exist_upstream():
-    data = pytest.importorskip("boe_var.data")
+    data = _import_or_require("boe_var.data")
     for col in (core._COL_CPI, core._COL_GDP):
         assert col in data.COLUMNS, (
             f"boe_var.data.COLUMNS no longer contains {col!r}; "
@@ -36,7 +49,7 @@ def test_svar_identified_schema_aligned():
     """WORLD_SHOCKS + UK_SHOCKS is the canonical schema the adapter uses;
     SHOCK_NAMES must stay positionally aligned with it (an upstream reorder
     must fail here, not silently shift UK shock probabilities)."""
-    analysis = pytest.importorskip("boe_var.analysis")
+    analysis = _import_or_require("boe_var.analysis")
     identified = sorted(analysis.WORLD_SHOCKS + analysis.UK_SHOCKS)
     assert len(identified) == 6 and len(set(identified)) == 6
     assert all(0 <= j < len(analysis.SHOCK_NAMES) for j in identified)
@@ -49,6 +62,14 @@ def test_svar_identified_schema_aligned():
         if j not in identified
     ]
     assert all(n.startswith("Unident") for n in unidentified), unidentified
+    # Semantic alignment, not just structure: a swap of e.g. UK demand/supply
+    # labels would silently relabel probabilities — pin the exact names.
+    assert tuple(
+        analysis.SHOCK_NAMES[j] for j in analysis.WORLD_SHOCKS
+    ) == ("World demand", "World energy", "World supply")
+    assert tuple(
+        analysis.SHOCK_NAMES[j] for j in analysis.UK_SHOCKS
+    ) == ("UK demand", "UK supply", "UK mon. pol.")
 
 
 # ---------------------------------------------------------------------------

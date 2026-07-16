@@ -26,7 +26,9 @@ URL = os.environ.get(
 
 EXPECTED_TOOLS = {
     "score_reform", "obr_shock", "list_reform_variables", "forecast_uk",
-    "latest_shocks", "model_summary",
+    "latest_shocks", "model_summary", "calculate_household",
+    "household_reform_impact", "list_reform_parameters",
+    "population_reform_impact",
 }
 
 

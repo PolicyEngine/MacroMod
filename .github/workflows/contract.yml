@@ -23,6 +23,6 @@ jobs:
       - name: Install with full models
         run: uv pip install --system -e ".[models]" pytest
       - name: Contract tests (failures fail, never skip)
-        run: pytest tests/test_contract.py --runslow -q
+        run: pytest tests/test_contract.py tests/test_og.py::test_og_build_policy_real --runslow -q
         env:
           MACROMOD_REQUIRE_PE: "1"
