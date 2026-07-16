@@ -106,6 +106,8 @@ def shocks(draws, as_json):
 def summary(as_json):
     """Headline SVAR results parsed from the repo's committed summaries (instant)."""
     res = core.svar_summary()
+    if set(res) == {"error"}:
+        raise click.ClickException(res["error"])
     if as_json:
         _emit_json(res)
         return

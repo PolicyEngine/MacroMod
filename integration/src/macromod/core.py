@@ -6,12 +6,15 @@ serialisable.
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
 import numpy as np
 
-BOE_VAR_REPO = Path("/Users/janansadeqian/boe-var-model")
+# Fallback checkout of boe-var-model for svar_summary when the boe_var
+# package is not installed; unset means no fallback.
+BOE_VAR_REPO_ENV = "MACROMOD_BOE_VAR_REPO"
 
 # boe_var column names for the two headline series. Resolved to indices by
 # name against the loaded dataset's own columns, so an upstream reorder can
@@ -1039,7 +1042,17 @@ def svar_summary() -> dict:
         from boe_var.data import results_dir
         rdir = results_dir()
     except ImportError:
-        rdir = BOE_VAR_REPO / "results"
+        env = os.environ.get(BOE_VAR_REPO_ENV)
+        if not env:
+            return {
+                "error": (
+                    "boe_var is not installed and MACROMOD_BOE_VAR_REPO is "
+                    "not set; install the SVAR package (pip install git+"
+                    "https://github.com/PolicyEngine/boe-var-model) or point "
+                    "MACROMOD_BOE_VAR_REPO at a boe-var-model checkout"
+                )
+            }
+        rdir = Path(env) / "results"
     summary_path = rdir / "summary.md"
     fsummary_path = rdir / "forecast_summary.md"
     out: dict = {"source": str(rdir)}

@@ -115,3 +115,53 @@ def test_svar_latest_shocks():
     for s in res["shocks"]:
         assert abs(s["p_positive"] + s["p_negative"] - 1.0) < 1e-6
     json.dumps(res)
+
+
+def _block_boe_var(monkeypatch):
+    import sys
+
+    monkeypatch.setitem(sys.modules, "boe_var", None)
+    monkeypatch.setitem(sys.modules, "boe_var.data", None)
+
+
+def test_summary_without_boe_var_and_env_is_actionable(monkeypatch):
+    _block_boe_var(monkeypatch)
+    monkeypatch.delenv("MACROMOD_BOE_VAR_REPO", raising=False)
+    out = core.svar_summary()
+    assert set(out) == {"error"}
+    assert "MACROMOD_BOE_VAR_REPO" in out["error"]
+    json.dumps(out)
+
+
+def test_summary_without_boe_var_uses_env_checkout(monkeypatch, tmp_path):
+    _block_boe_var(monkeypatch)
+    results = tmp_path / "results"
+    results.mkdir()
+    (results / "summary.md").write_text(
+        "- draws: 100\n\n## FEVD at 1-year horizon\n"
+        "| Variable | Global |\n|---|---|\n| UK GDP | 0.5 |\n"
+    )
+    (results / "forecast_summary.md").write_text(
+        "- origin: 2026Q1\n\n## P(sign)\n"
+        "| Shock | P |\n|---|---|\n| UK demand | 0.8 |\n"
+        "Composite impulse response\n- flat\n"
+    )
+    monkeypatch.setenv("MACROMOD_BOE_VAR_REPO", str(tmp_path))
+    out = core.svar_summary()
+    assert out["source"] == str(results)
+    fevd = out["replication"]["fevd_1yr_headline"]
+    assert any("UK GDP" in row.get("Variable", "") for row in fevd)
+    assert out["forecast_revision"]["latest_shock_signs"]
+    json.dumps(out)
+
+
+def test_cli_summary_without_boe_var_errors_actionably(monkeypatch):
+    from click.testing import CliRunner
+
+    from macromod.cli import main
+
+    _block_boe_var(monkeypatch)
+    monkeypatch.delenv("MACROMOD_BOE_VAR_REPO", raising=False)
+    res = CliRunner().invoke(main, ["summary"])
+    assert res.exit_code != 0
+    assert "MACROMOD_BOE_VAR_REPO" in res.output
