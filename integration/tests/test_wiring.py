@@ -85,7 +85,12 @@ def test_mcp_list_reform_variables_wired():
     json.dumps(out)
 
 
-def test_mcp_list_reform_parameters_wired():
+def _no_pe():
+    raise ImportError("fast suite: static catalogue only")
+
+
+def test_mcp_list_reform_parameters_wired(monkeypatch):
+    monkeypatch.setattr(core, "_import_pe", _no_pe)
     out = mcp_server.list_reform_parameters()
     assert isinstance(out, list) and len(out) >= 8
     assert all({"country", "path", "description", "unit"} <= set(p) for p in out)
@@ -131,7 +136,8 @@ def test_cli_variables_json(runner):
         assert {"var", "description", "units", "investment_closure"} <= set(v)
 
 
-def test_cli_parameters_json(runner):
+def test_cli_parameters_json(runner, monkeypatch):
+    monkeypatch.setattr(core, "_import_pe", _no_pe)
     data = _json_ok(runner.invoke(main, ["parameters", "--json"]))
     assert isinstance(data, list) and len(data) >= 8
     assert all({"country", "path", "description", "unit"} <= set(p) for p in data)

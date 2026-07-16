@@ -1,0 +1,28 @@
+name: Upstream contract tests
+
+# The composition contracts (curated PolicyEngine parameter paths, output
+# variable names, boe_var schema) are slow-marked and skipped on PR CI.
+# This job runs them for real — nightly and on demand — with a full
+# policyengine install, and MACROMOD_REQUIRE_PE=1 turns install/model
+# failures into hard failures instead of green skips.
+on:
+  schedule:
+    - cron: "30 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  contracts:
+    name: PolicyEngine + boe_var contracts (slow, full install)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integration
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install with full models
+        run: uv pip install --system -e ".[models]" pytest
+      - name: Contract tests (failures fail, never skip)
+        run: pytest tests/test_contract.py --runslow -q
+        env:
+          MACROMOD_REQUIRE_PE: "1"

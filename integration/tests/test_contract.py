@@ -12,6 +12,8 @@ the full country models (~20s import) and are marked `slow`
 e.g. the Modal image.
 """
 
+import os
+
 import pytest
 
 from macromod import core
@@ -30,13 +32,23 @@ def test_svar_headline_columns_exist_upstream():
         )
 
 
-def test_svar_shock_names_mark_unidentified():
+def test_svar_identified_schema_aligned():
+    """WORLD_SHOCKS + UK_SHOCKS is the canonical schema the adapter uses;
+    SHOCK_NAMES must stay positionally aligned with it (an upstream reorder
+    must fail here, not silently shift UK shock probabilities)."""
     analysis = pytest.importorskip("boe_var.analysis")
-    identified = [n for n in analysis.SHOCK_NAMES if not n.startswith("Unident")]
-    assert len(identified) == 6, (
-        "expected 6 identified shocks in boe_var.analysis.SHOCK_NAMES, "
-        f"got {identified}"
-    )
+    identified = sorted(analysis.WORLD_SHOCKS + analysis.UK_SHOCKS)
+    assert len(identified) == 6 and len(set(identified)) == 6
+    assert all(0 <= j < len(analysis.SHOCK_NAMES) for j in identified)
+    assert all(
+        not analysis.SHOCK_NAMES[j].startswith("Unident") for j in identified
+    ), [analysis.SHOCK_NAMES[j] for j in identified]
+    unidentified = [
+        analysis.SHOCK_NAMES[j]
+        for j in range(len(analysis.SHOCK_NAMES))
+        if j not in identified
+    ]
+    assert all(n.startswith("Unident") for n in unidentified), unidentified
 
 
 # ---------------------------------------------------------------------------
@@ -64,12 +76,20 @@ PE_VARIABLE_CONTRACT = {
 def _pe_model(country):
     # importorskip only catches ImportError; a broken policyengine install
     # (e.g. a pydantic version mismatch) raises other exceptions at import
-    # time and should also skip, not error.
+    # time and should also skip, not error. In the dedicated contract job
+    # (MACROMOD_REQUIRE_PE=1) a missing/broken install FAILS instead: a
+    # contract run that silently skips every contract is vacuous.
+    require = os.environ.get("MACROMOD_REQUIRE_PE") == "1"
     try:
         import policyengine as pe
     except Exception as e:
-        pytest.skip(f"policyengine not importable: {type(e).__name__}: {e}")
-    return getattr(pe, country).model
+        msg = f"policyengine not importable: {type(e).__name__}: {e}"
+        pytest.fail(msg) if require else pytest.skip(msg)
+    country_mod = getattr(pe, country, None)
+    if country_mod is None:
+        msg = f"policyengine has no {country} country model (base-only install)"
+        pytest.fail(msg) if require else pytest.skip(msg)
+    return country_mod.model
 
 
 @pytest.mark.slow

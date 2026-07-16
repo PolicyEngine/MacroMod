@@ -277,9 +277,11 @@ def svar_latest_shocks(draws: int = 500) -> dict:
     dist = forecast.shock_distribution_T(est["pairs"], resid_fn, weights=est["weights"])
     last_q = str(est["df_full"].index[-1])
 
-    # Identified shocks, derived from upstream's own names (the rest are
-    # explicitly "Unident." in SHOCK_NAMES).
-    identified = [j for j, n in enumerate(SHOCK_NAMES) if not n.startswith("Unident")]
+    # Canonical upstream schema (boe_var's own index lists), not a label
+    # heuristic; the contract test asserts SHOCK_NAMES stays aligned with it.
+    from boe_var.analysis import UK_SHOCKS, WORLD_SHOCKS
+
+    identified = sorted(WORLD_SHOCKS + UK_SHOCKS)
 
     shocks = []
     for j in identified:
@@ -420,7 +422,9 @@ def _pe_current_value(param):
     The value with the latest start_date that is <= today. end_date is
     deliberately ignored: upstream builds parameter_values from a
     newest-first values_list, so each entry's end_date is the chronologically
-    *previous* instant, not a validity end.
+    *previous* instant, not a validity end. "Today" is the server's local
+    date (date.today()): around midnight a UK/US effective-date boundary can
+    differ by a few hours — acceptable for listing metadata.
     """
     from datetime import date
 
@@ -461,20 +465,31 @@ def pe_list_common_parameters(resolve: bool = True) -> list[dict]:
             p["live_error"] = f"{type(e).__name__}: {e}"
         return out
     for p in out:
-        model = getattr(pe, p["country"]).model
         try:
+            # getattr can return None on a base-only policyengine install
+            # (no country models), so the whole lookup is guarded, not just
+            # the parameter resolution.
+            model = getattr(pe, p["country"]).model
             param = model.get_parameter(p["path"])
-        except ValueError as e:
+        except Exception as e:
             p["live"] = False
-            p["live_error"] = str(e)
+            p["live_error"] = f"{type(e).__name__}: {e}"
             continue
         p["live"] = True
         if param.label:
             p["label"] = param.label
         if param.unit:
             p["upstream_unit"] = param.unit
-        p["baseline_value"] = _pe_jsonify(_pe_current_value(param))
+        p["baseline_value"] = _pe_jsonify_exact(_pe_current_value(param))
     return out
+
+
+def _pe_jsonify_exact(value):
+    """numpy scalar -> python scalar, NO rounding: policy values are exact
+    (the display-rounding _pe_jsonify below would turn NI 0.1325 into 0.13)."""
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
 
 
 def _pe_jsonify(value):
