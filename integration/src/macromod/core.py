@@ -1036,7 +1036,7 @@ def score_reform(
     - "og": the reform enters through PolicyEngine-estimated tax functions
       (long-run steady-state general-equilibrium comparison; UK only).
     - "obr": pending the microsim static-costing bridge
-      (https://github.com/PolicyEngine/MacroMod/issues/9). Raw
+      (https://github.com/PolicyEngine/macro/issues/9). Raw
       exogenous-variable shocks in model units remain available via
       obr_shock.
     """
@@ -1054,7 +1054,7 @@ def score_reform(
         raise NotImplementedError(
             "The OBR member does not take PolicyEngine reforms yet — the "
             "microsim static-costing bridge is tracked at "
-            "https://github.com/PolicyEngine/MacroMod/issues/9. For a raw "
+            "https://github.com/PolicyEngine/macro/issues/9. For a raw "
             "exogenous-variable shock in model units use obr_shock (MCP) or "
             "`macromod obr-shock` (CLI)."
         )

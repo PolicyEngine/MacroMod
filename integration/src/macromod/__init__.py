@@ -1,4 +1,4 @@
-"""MacroMod integration layer.
+"""PolicyEngine Macro integration layer.
 
 Wraps the suite's models behind one API:
 

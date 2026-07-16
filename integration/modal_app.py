@@ -1,4 +1,4 @@
-"""Deploy the MacroMod MCP server to Modal over streamable HTTP.
+"""Deploy the PolicyEngine Macro MCP server to Modal over streamable HTTP.
 
     modal deploy integration/modal_app.py
 
@@ -124,13 +124,13 @@ else:
 
 image = (
     image
-    .add_local_dir(INTEGRATION, remote_path=f"{HOME}/MacroMod/integration",
+    .add_local_dir(INTEGRATION, remote_path=f"{HOME}/macro/integration",
                    copy=True, ignore=_IGNORE + ["modal_app.py"])
     # Editable installs keep each package's __file__ inside its repo, so the
     # repos' data/ and results/ directories resolve exactly as on the laptop.
     .run_commands(
         f"pip install -e {OBR_REPO} -e {BOE_REPO} "
-        f"-e {HOME}/MacroMod/integration"
+        f"-e {HOME}/macro/integration"
     )
 )
 

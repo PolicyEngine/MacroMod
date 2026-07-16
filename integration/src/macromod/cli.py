@@ -1,4 +1,4 @@
-"""MacroMod CLI. Human-readable tables by default; --json for machine output."""
+"""PolicyEngine Macro CLI. Human-readable tables by default; --json for machine output."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ def _table(rows: list[dict], columns: list[str]) -> str:
 
 @click.group()
 def main() -> None:
-    """MacroMod: unified CLI over the OBR emulator and the UK SVAR model."""
+    """PolicyEngine Macro: unified CLI over the OBR emulator and the UK SVAR model."""
 
 
 @main.command()
@@ -35,7 +35,7 @@ def main() -> None:
                    "(same shape as `macromod population-impact`).")
 @click.option("--model", required=True, type=click.Choice(["og", "obr"]),
               help="Macro model: og (OG-UK steady state; slow) or obr (pending the "
-                   "static-costing bridge, MacroMod#9).")
+                   "static-costing bridge, PolicyEngine Macro#9).")
 @click.option("--year", default=2026, show_default=True, help="Reform start year.")
 @click.option("--max-iter", default=250, show_default=True,
               help="OG solver iteration cap per steady-state solve.")

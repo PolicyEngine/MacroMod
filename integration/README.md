@@ -1,4 +1,4 @@
-# MacroMod integration layer
+# PolicyEngine Macro integration layer
 
 A single Python package (`macromod`) exposing the suite's models behind
 one CLI and one MCP server:
@@ -19,7 +19,7 @@ one CLI and one MCP server:
 `{parameter_path: value}` dict as the microsimulation tools, dispatched to a
 macro model by its declared contract (OG via PolicyEngine-estimated tax
 functions; the OBR static-costing bridge is
-[#9](https://github.com/PolicyEngine/MacroMod/issues/9) — until it lands the
+[#9](https://github.com/PolicyEngine/macro/issues/9) — until it lands the
 OBR arm errors with a pointer to `obr_shock`).
 
 `src/macromod/core.py` holds the model adapters (single source of truth);
@@ -31,7 +31,7 @@ No clone needed — one pip install pulls the CLI plus the hosted-model
 packages (the OBR emulator and the SVAR ship their data as package data):
 
 ```bash
-pip install "macromod[models] @ git+https://github.com/PolicyEngine/MacroMod#subdirectory=integration"
+pip install "macromod[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
 ```
 
 A shorter `pip install macromod` will come with PyPI publication.

@@ -1,4 +1,4 @@
-"""End-to-end test of the deployed MacroMod MCP server on Modal.
+"""End-to-end test of the deployed PolicyEngine Macro MCP server on Modal.
 
 Talks to the live deployment over streamable HTTP, so it needs network and a
 deployed app. Skipped unless MACROMOD_REMOTE_TESTS=1 (CI without Modal auth

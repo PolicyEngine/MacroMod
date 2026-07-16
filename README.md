@@ -1,8 +1,8 @@
-# MacroMod
+# PolicyEngine Macro
 
-**MacroMod** is PolicyEngine's suite of open-source **macroeconomic simulation
+**PolicyEngine Macro** is PolicyEngine's suite of open-source **macroeconomic simulation
 models** for scoring public policy. Where microsimulation tells you who pays
-what the morning after a reform, MacroMod traces the second act — how people
+what the morning after a reform, PolicyEngine Macro traces the second act — how people
 work, save, and invest differently, how firms adjust capital, and how wages,
 interest rates, and the revenue estimate move with them — in a structural,
 general-equilibrium engine.
@@ -18,7 +18,7 @@ the same real-world quantities (GDP, consumption, investment, government,
 revenue, debt in £bn), so results are comparable across model classes. Two
 current exceptions, stated plainly: the OBR emulator does not take PolicyEngine
 reform objects yet (the microsim static-costing bridge is
-[#9](https://github.com/PolicyEngine/MacroMod/issues/9); raw variable shocks go
+[#9](https://github.com/PolicyEngine/macro/issues/9); raw variable shocks go
 through `obr_shock`), and the structural VAR — a Python replication of the Bank
 of England's Bayesian SVAR for the UK — reads the current state of the economy
 in structural-shock terms and forecasts it, but does not score reforms.
@@ -35,7 +35,7 @@ PolicyEngine is the *micro* member: person/household-resolution taxes and
 benefits for the UK and US — the same engine that powers
 [policyengine.org](https://policyengine.org) — complementing the macro models.
 
-The models live in their own repositories. This repo hosts the **MacroMod
+The models live in their own repositories. This repo hosts the **PolicyEngine Macro
 website** and the **integration layer** (`integration/`) — a `macromod` CLI
 and MCP server over the models, with CI auto-deploying the hosted MCP server
 to Modal on every merge — merges to the model repos
@@ -115,7 +115,7 @@ models:
   with all three hosted-model packages and their data, no clone — via:
 
   ```bash
-  pip install "macromod[models] @ git+https://github.com/PolicyEngine/MacroMod#subdirectory=integration"
+  pip install "macromod[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
   ```
 - **Code** — drive each model's Python API yourself.
 
@@ -171,7 +171,7 @@ non-real numbers as illustrative.
 - [x] OG-UK steady-state scoring (`macromod score --model og` / `macromod og-score`, local only)
 - [ ] Population-level PolicyEngine reform scoring
 - [ ] Additional macroeconomic model classes
-- See [#1](https://github.com/PolicyEngine/MacroMod/issues/1) — Rust port of the solver core
+- See [#1](https://github.com/PolicyEngine/macro/issues/1) — Rust port of the solver core
 
 ---
 
