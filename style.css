@@ -285,6 +285,7 @@ h2 {
 .tag-planned { background: var(--ink-2); color: var(--paper-dim); }
 .tag-experimental { background: color-mix(in srgb, var(--chart-2) 14%, transparent); color: var(--chart-2); }
 .tag-replication { background: color-mix(in srgb, var(--chart-2) 10%, transparent); color: var(--chart-2); }
+.tag-country { background: transparent; color: var(--paper-dim); border: 1px solid var(--ink-2); }
 /* two badges sit side by side in a card header */
 .tag-row { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 
