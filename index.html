@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — open models for the economy</title>
-<meta name="description" content="PolicyEngine Macro is PolicyEngine's suite of open macroeconomic models. Today's macro models are UK-focused — an OBR macroeconometric emulator, a Bank of England structural VAR, and an overlapping-generations model — with US models (OG-USA, FRB/US) planned; the PolicyEngine tax-benefit microsimulation already covers both the UK and the US. Each answers a different class of economic question — analyse reforms, simulate shocks, forecast GDP and inflation, and study long-run structural change." />
+<meta name="description" content="PolicyEngine Macro is PolicyEngine's suite of open macroeconomic models. The suite spans the UK — an OBR macroeconometric emulator, a Bank of England structural VAR, and an overlapping-generations model — and the US, with a validated Python implementation of the Fed's FRB/US model (OG-USA planned); the PolicyEngine tax-benefit microsimulation already covers both the UK and the US. Each answers a different class of economic question — analyse reforms, simulate shocks, forecast GDP and inflation, and study long-run structural change." />
 <meta property="og:title" content="PolicyEngine Macro" />
 <meta property="og:description" content="Open macroeconomic models — reforms, shocks, forecasts, and long-run structural analysis. UK models today, US models planned; microsimulation for both." />
 <meta property="og:type" content="website" />
@@ -45,10 +45,10 @@
         developers answer economic and public-policy questions with transparent,
         reproducible models — analyse reforms, simulate shocks, forecast GDP and
         inflation, investigate what's driving the economy, and study long-run
-        structural change. Today's macro models are UK-focused — an OBR
-        emulator, a Bank of England structural VAR, and OG-UK — with US models
-        (OG-USA, FRB/US) planned; the PolicyEngine microsimulation already
-        covers both the UK and the US. One suite, under the PolicyEngine
+        structural change. The suite spans the UK — an OBR emulator, a Bank of
+        England structural VAR, and OG-UK — and the US, with a validated
+        Python implementation of the Fed's FRB/US model (OG-USA planned); the
+        PolicyEngine microsimulation already covers both the UK and the US. One suite, under the PolicyEngine
         umbrella. Each model answers a different class of question — it does
         not promise one comparable number across all of them.
       </p>
@@ -148,15 +148,26 @@
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
-      <div class="strategy-card strategy-card-static">
-        <header><span class="card-id mono">og-usa · frb/us</span><span class="tag-row"><span class="tag tag-planned">planned</span></span></header>
-        <h3>US macro models</h3>
+      <a class="strategy-card" href="https://github.com/PolicyEngine/us-frb-model">
+        <header><span class="card-id mono">frb-us</span><span class="tag-row"><span class="tag tag-local">local</span><span class="tag tag-replication">validated replication</span></span></header>
+        <h3>FRB/US</h3>
         <p>
-          The suite is expanding beyond the UK: OG-USA (the US
-          overlapping-generations model, also built on OG-Core) and FRB/US
-          (the Federal Reserve Board's large-scale US macroeconometric model)
-          are planned. Neither is available yet — the microsimulation card
-          above already covers the US today.
+          A from-scratch Python implementation of the Federal Reserve Board's
+          large-scale US macroeconometric model, built from the Fed's public
+          model definition and April 2026 LONGBASE data. VAR-expectations
+          solver validated against the Fed's own pyfrbus to ~1e-9; baseline
+          tracking reproduces LONGBASE to machine precision. Model-consistent
+          expectations are not yet implemented.
+        </p>
+        <span class="strategy-paper-link mono">read the code →</span>
+      </a>
+      <div class="strategy-card strategy-card-static">
+        <header><span class="card-id mono">og-usa</span><span class="tag-row"><span class="tag tag-planned">planned</span></span></header>
+        <h3>OG-USA</h3>
+        <p>
+          OG-USA (the US overlapping-generations model, also built on OG-Core)
+          is planned but not available yet — the microsimulation card above
+          already covers the US today.
         </p>
       </div>
     </div>

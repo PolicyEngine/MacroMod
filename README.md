@@ -29,7 +29,8 @@ in structural-shock terms and forecasts it, but does not score reforms.
 | **OBR macroeconometric model** | shipped | [PolicyEngine/obr-macroeconomic-model](https://github.com/PolicyEngine/obr-macroeconomic-model) |
 | **Bank of England structural VAR (boe-svar)** | shipped (baseline/conditioning member: forecasts with bands, shock readings, revision narratives — does not score reforms) | [PolicyEngine/boe-var-model](https://github.com/PolicyEngine/boe-var-model) |
 | **PolicyEngine tax-benefit microsimulation** | shipped (household calculator, household reform impacts, and population-level scoring) | [PolicyEngine/policyengine.py](https://github.com/PolicyEngine/policyengine.py) |
-| More model classes | planned | — |
+| **FRB/US (US macroeconometric model)** | shipped (from-scratch Python implementation of the Fed's model; VAR expectations, validated against pyfrbus; not yet wired into the CLI/MCP) | [PolicyEngine/us-frb-model](https://github.com/PolicyEngine/us-frb-model) |
+| More model classes (incl. OG-USA) | planned | — |
 
 PolicyEngine is the *micro* member: person/household-resolution taxes and
 benefits for the UK and US — the same engine that powers
@@ -170,8 +171,8 @@ non-real numbers as illustrative.
 - [x] Hosted MCP server (`https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp`, auto-deployed by CI)
 - [x] OG-UK steady-state scoring (`pe-macro score --model og` / `pe-macro og-score`, local only)
 - [x] Population-level PolicyEngine reform scoring (`population_reform_impact`, hosted and local)
-- [ ] Additional macroeconomic model classes
-- See [#1](https://github.com/PolicyEngine/macro/issues/1) — Rust port of the solver core
+- [x] FRB/US Python implementation ([PolicyEngine/us-frb-model](https://github.com/PolicyEngine/us-frb-model); CLI/MCP wiring still to come)
+- [ ] Additional macroeconomic model classes (incl. OG-USA)
 
 ---
 
