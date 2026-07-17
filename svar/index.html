@@ -223,11 +223,17 @@ python scripts/run_forecast_revision.py</code></pre></div>
         absolute error of 5.3e-12.
       </p>
       <div class="callout">
-        Unlike the other two models, the SVAR does <strong>not yet score
-        PolicyEngine reform objects</strong> — it has no policy levers to pull.
-        Its job is the empirical complement: establishing what state the
-        economy is in before you simulate changing it. Reform scoring (e.g.
-        conditional forecasts under a policy path) is planned.
+        Unlike the other two models, the SVAR does <strong>not score
+        PolicyEngine reform objects — and it won't</strong>: mapping a policy
+        reform into identified structural innovations is conceptually dubious,
+        not just unbuilt. Its role in the suite is the
+        <strong>baseline/conditioning member</strong> — it establishes what
+        state the economy is in and how uncertain the baseline is (forecasts
+        with bands, latest-shock readings, forecast-revision narratives)
+        before you simulate changing it with the structural members. If a
+        fiscal-shock-identified VAR variant ever earns a reform role, that
+        will be a new member with its own declared contract — not this
+        model's roadmap.
       </div>
     </div>
   </section>

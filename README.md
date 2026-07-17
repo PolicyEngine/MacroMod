@@ -27,7 +27,7 @@ in structural-shock terms and forecasts it, but does not score reforms.
 |-------|--------|------|
 | **Overlapping generations (OG-UK)** | shipped | [PSLmodels/OG-UK](https://github.com/PSLmodels/OG-UK) |
 | **OBR macroeconometric model** | shipped | [PolicyEngine/obr-macroeconomic-model](https://github.com/PolicyEngine/obr-macroeconomic-model) |
-| **Bank of England structural VAR (boe-svar)** | shipped (analysis & forecasting; reform scoring: planned) | [PolicyEngine/boe-var-model](https://github.com/PolicyEngine/boe-var-model) |
+| **Bank of England structural VAR (boe-svar)** | shipped (baseline/conditioning member: forecasts with bands, shock readings, revision narratives — does not score reforms) | [PolicyEngine/boe-var-model](https://github.com/PolicyEngine/boe-var-model) |
 | **PolicyEngine tax-benefit microsimulation** | shipped (household calculator, household reform impacts, and population-level scoring) | [PolicyEngine/policyengine.py](https://github.com/PolicyEngine/policyengine.py) |
 | More model classes | planned | — |
 
