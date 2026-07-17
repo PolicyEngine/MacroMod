@@ -144,10 +144,10 @@ async def test_score_reform_investment_closure_bounded_and_signed():
 
 
 @pytest.mark.anyio
-async def test_score_reform_obr_errors_actionably():
-    """The unified score_reform tool is live; its OBR arm (pending the
-    static-costing bridge, #9) must fail with a pointer to obr_shock,
-    not silently or cryptically."""
+async def test_score_reform_obr_refuses_corp_tax_actionably():
+    """The OBR bridge (#9) must refuse corporation-tax reforms — they are not
+    household-borne, so the static-costing bridge cannot carry them — with a
+    pointer to the direct obr_shock TCPRO lever, not silently or cryptically."""
     from mcp import ClientSession
     from mcp.client.streamable_http import streamablehttp_client
 
@@ -156,10 +156,70 @@ async def test_score_reform_obr_errors_actionably():
             await session.initialize()
             res = await session.call_tool(
                 "score_reform",
-                {"country": "uk", "reform": {"x": 1}, "model": "obr"},
+                {"country": "uk",
+                 "reform": {"gov.hmrc.corporation_tax.main_rate": 0.28},
+                 "model": "obr"},
             )
     assert res.isError
     assert "obr_shock" in json.dumps([c.text for c in res.content])
+
+
+@pytest.mark.anyio
+async def test_score_reform_microsim_scoreresult():
+    """score_reform(model='microsim') on the hosted server: a basic-rate
+    rise must raise revenue, and the common ScoreResult block (#10) must be
+    present and coherent (units, basis, distributional)."""
+    import asyncio
+
+    out = await asyncio.wait_for(
+        _call(
+            "score_reform",
+            {"country": "uk",
+             "reform": {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21},
+             "model": "microsim"},
+        ),
+        timeout=300,
+    )
+    assert out["budgetary_impact_bn"] > 0, out["budgetary_impact_bn"]
+    score = out["score"]
+    assert score["model_class"] == "microsim"
+    rev = score["quantities"]["revenue"]
+    assert rev["delta_bn"] == out["budgetary_impact_bn"]
+    assert rev["units"] and rev["basis"]
+    assert score["distributional"]["decile_impacts"]
+
+
+@pytest.mark.slow
+@pytest.mark.anyio
+async def test_score_reform_obr_bridge_end_to_end():
+    """The full #9 pipeline on the hosted server: microsim static costing →
+    HHDI shock path → OBR second-round effects. A basic-rate RISE raises
+    revenue, so disposable income and hence GDP must FALL, by a sane
+    magnitude. One-year window to keep the runtime bounded; slow-marked, so
+    it runs in the scheduled full validation, not on every deploy."""
+    import asyncio
+
+    out = await asyncio.wait_for(
+        _call(
+            "score_reform",
+            {"country": "uk",
+             "reform": {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21},
+             "model": "obr", "years": 1},
+        ),
+        timeout=540,
+    )
+    costing = out["annual_costings_bn"][0]["budgetary_impact_bn"]
+    assert costing > 0, costing
+    # Sign: revenue raised => HHDI falls => GDP falls.
+    assert all(q < 0 for q in out["quarterly_shock_path_m"])
+    cum = out["cumulative_delta_gdp_bn_over_shock_periods"]
+    assert cum < 0, cum
+    # Magnitude: |cumulative GDP effect| within ~2x the annual costing
+    # (demand-side multiplier of order 1 over the shocked year).
+    assert abs(cum) < 2 * costing + 1, (cum, costing)
+    score = out["score"]
+    assert score["model_class"] == "semi-structural"
+    assert score["caveats"]
 
 
 @pytest.mark.anyio

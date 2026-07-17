@@ -41,7 +41,10 @@ jobs:
     # runs only on a manual `deep` dispatch. force_build guarantees the deployed
     # model is always freshly cloned, so the fast suite is enough to confirm a
     # functional deploy on the automatic path.
-    timeout-minutes: 20
+    # 35 min: the slow leg now includes the OBR bridge end-to-end test (up to
+    # ~9 min against a cold server) on top of the closure probe (~7 min); the
+    # 20-min cap already timed out once on 2026-07-17.
+    timeout-minutes: 35
     # On workflow_run, only validate when the deploy actually succeeded;
     # schedule/manual runs always validate.
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
