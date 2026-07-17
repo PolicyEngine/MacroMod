@@ -103,9 +103,9 @@
           <span class="di-go">read the code →</span>
         </a>
         <a href="/olg/">
-          <span class="di-id">psl-og · UK · US · local · experimental</span>
+          <span class="di-id">psl-og · UK · US · local</span>
           <h3>PSL overlapping generations model</h3>
-          <p>A structural general-equilibrium model of 80 age cohorts on OG-Core, with tax functions from PolicyEngine microdata. Best for long-run, behaviour-driven questions: how a tax change reshapes work, saving, and the capital stock over decades. The UK integration (OG-UK) is wired today; the US side (OG-USA) is newer and experimental.</p>
+          <p>A structural general-equilibrium model of 80 age cohorts on OG-Core, with tax functions from PolicyEngine microdata. Best for long-run, behaviour-driven questions: how a tax change reshapes work, saving, and the capital stock over decades. The UK integration (OG-UK) is wired today; the US side (OG-USA) is newer.</p>
           <span class="di-go">read the OLG reference →</span>
         </a>
         <a href="/pe/">
@@ -140,10 +140,10 @@
         <tbody>
           <tr><td><strong>Question class</strong></td><td>Near-term UK fiscal multipliers and Budget-style scoring</td><td>What's driving the UK economy now; short-run forecasts and revision narratives</td><td>US macro dynamics: monetary and fiscal shocks, quarter by quarter</td><td>Long-run incentives: labour supply, saving, the capital stock over decades</td><td>What a specific family pays and receives; distributional effects</td></tr>
           <tr><td><strong>Method</strong></td><td>Structural macroeconometric emulator — Gauss–Seidel over ~370 equations per quarter</td><td>Bayesian structural VAR — posterior sampling with zero + sign restrictions naming the shocks</td><td>Large-scale macroeconometric model — 284 equations solved under VAR expectations</td><td>Dynamic general equilibrium (OLG) — steady-state root-find and transition-path iteration</td><td>Static tax-benefit microsimulation — direct rule evaluation, no behavioural response</td></tr>
-          <tr><td><strong>Country</strong></td><td>UK</td><td>UK</td><td>US</td><td>UK &amp; US (UK wired today; US experimental)</td><td>UK &amp; US</td></tr>
+          <tr><td><strong>Country</strong></td><td>UK</td><td>UK</td><td>US</td><td>UK &amp; US (UK wired today; US newer)</td><td>UK &amp; US</td></tr>
           <tr><td><strong>Anchored to / ground truth</strong></td><td>The OBR Economic and Fiscal Outlook (Nov 2025); anchored fit hard-gated nightly</td><td>The Bank of England paper's figures; public ONS, BoE, and FRED series — sample 1992Q1–2023Q2, packaged to 2024Q2</td><td>The Fed's LONGBASE database (April 2026) and pyfrbus solver</td><td>Calibrated to ONS, OBR, and BoE national accounts — no ground truth to validate against</td><td>UK &amp; US statute; enhanced FRS (53k households) / CPS microdata for population runs</td></tr>
           <tr><td><strong>Reform scoring</strong></td><td>Yes — shocks to exogenous model variables; static-costing bridge from PolicyEngine reforms</td><td>No — the baseline/conditioning member: it reads the economy reforms are scored against</td><td>Shock experiments (e.g. funds-rate or fiscal shocks) under VAR expectations; no PolicyEngine reform bridge yet</td><td>Yes — a PolicyEngine policy translated into estimated tax functions</td><td>Yes — a PolicyEngine parameter + a new value, applied directly to households</td></tr>
-          <tr><td><strong>Run surface</strong></td><td>Hosted (CLI, MCP, Python API)</td><td>Hosted (CLI, MCP, Python API)</td><td>Local only</td><td>Local only, experimental</td><td>Hosted</td></tr>
+          <tr><td><strong>Run surface</strong></td><td>Hosted (CLI, MCP, Python API)</td><td>Hosted (CLI, MCP, Python API)</td><td>Local only</td><td>Local only</td><td>Hosted</td></tr>
           <tr><td><strong>Typical runtime</strong></td><td>Seconds to minutes per scenario</td><td>Minutes per full estimation + identification run</td><td>Seconds to minutes per simulation</td><td>~17+ min per steady-state solve (two per score); hours for transition paths</td><td>Sub-second per household; minutes for population runs</td></tr>
         </tbody>
       </table>
@@ -166,7 +166,7 @@
       <ul>
         <li><strong>"How does this tax change affect UK growth and the deficit over the next 3–5 years?"</strong> — the OBR model. It's built for near-term fiscal scoring and speaks the same language as the official forecast.</li>
         <li><strong>"What does a 100bp Fed tightening — or a US fiscal shock — do to GDP, unemployment, and inflation?"</strong> — FRB/US. It runs the Fed's own model equations under VAR expectations, locally. (Model-consistent expectations, mcontrol, and stochastic simulations are not yet implemented.)</li>
-        <li><strong>"What does this reform do to work incentives, saving, and the long-run size of the economy?"</strong> — the OLG model, for the UK today and, experimentally, the US. It captures how households of every age re-optimise over their lifetimes.</li>
+        <li><strong>"What does this reform do to work incentives, saving, and the long-run size of the economy?"</strong> — the OLG model, for the UK today and, more recently, the US. It captures how households of every age re-optimise over their lifetimes.</li>
         <li><strong>"What's driving UK GDP and inflation at the latest data vintage — and why did the forecast change since the quarter before?"</strong> — the structural VAR. It decomposes the data at the latest available vintage (currently 2024 Q2) into named structural shocks, forecasts with credible bands, and splits a forecast revision into news and reassessment. It does not score reforms.</li>
         <li><strong>"What does this reform mean for a nurse on £35,000 with two kids?"</strong> — PolicyEngine. It runs the actual UK or US statute for that exact family and reads off taxes, benefits, and net income, before and after.</li>
         <li><strong>"I want both the transition and the destination."</strong> — run both UK scoring models (OBR and OLG). They report comparable real-world aggregates, so you can read the near-term multiplier against the long-run equilibrium.</li>
@@ -190,8 +190,7 @@
         GDP trough at −0.55% and unemployment +0.26pp).
         <strong>psl-og</strong> is a <em>structural counterfactual</em> model
         with no ground truth: it is calibrated to national-accounts targets,
-        not validated against a published result — and its US wiring is newer
-        and experimental. <strong>pe-microsim</strong> is validated against
+        not validated against a published result — and its US wiring is newer. <strong>pe-microsim</strong> is validated against
         statute itself, checkable rule by rule against the tax and benefit
         code. A replication you can audit against its anchor; statute you can
         audit against the law; a calibrated counterfactual you can only reason
