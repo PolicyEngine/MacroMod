@@ -1,0 +1,31 @@
+\section{Implementation and integration}
+\label{sec:implementation}
+
+\subsection{Software architecture}
+\label{subsec:arch}
+
+The stack has three layers, all open-source Python. At the bottom, \textbf{OG-Core} (\texttt{PSLmodels/OG-Core}) holds the country-agnostic theory of Section~\ref{sec:model}: the parameter apparatus, the \texttt{txfunc} estimation module, and the steady-state and TPI solvers, with transition-path lifetime problems distributed across Dask workers. Above it, \textbf{OG-UK} (\texttt{PSLmodels/OG-UK}, package \texttt{oguk}) supplies the UK calibration --- demographics, macro parameters, and the PolicyEngine microsimulation hookup --- and a deliberately small scoring API: \texttt{solve\_steady\_state(start\_year, policy, ...)}, \texttt{run\_transition\_path(...)}, and \texttt{map\_to\_real\_world(baseline, reform)}, which converts model-unit changes into current-price \pounds bn using a GDP-anchored scale factor with levels tied to live ONS series (GDP, consumption, investment, government spending, the debt ratio) and HMRC total receipts, falling back to cached values offline. At the top, \textbf{policyengine-macro} (the PolicyEngine Macro integration package) wraps \texttt{oguk} in the suite's common adapters.
+
+A reform is the suite's shared object --- a flat \texttt{\{parameter\_path: value\}} dictionary over PolicyEngine UK parameters, e.g.\ \texttt{\{"gov.hmrc.income\_tax.rates.uk[0].rate": 0.21\}} for a 21\% basic rate. The adapter builds a PolicyEngine \texttt{Policy} object from it, solves baseline and reform steady states, and returns levels, \pounds bn changes, percent changes, and baseline/reform interest rates, together with the suite's common \texttt{ScoreResult} block (model class \texttt{olg-ge}, horizon \texttt{steady-state}) so that the same reform can be laid side by side with the OBR-emulator and microsimulation scores. Structural shocks outside statute --- corporation tax (\texttt{cit\_rate}), TFP ($Z$), demographics, spending shares --- enter through \texttt{param\_overrides} passed to the solvers, and can be combined with a statutory \texttt{Policy} in a single run.
+
+\subsection{The CLI: \texttt{pe-macro score --model og}}
+\label{subsec:cli}
+
+The command-line surface is two commands (plus the unified entry point):
+\begin{quote}
+\texttt{pe-macro og-baseline}\\
+\texttt{pe-macro og-score} \texttt{--reform}\\
+\hspace*{1.5em}\texttt{'\{"gov.hmrc.income\_tax.rates.uk[0].rate": 0.21\}'}\\
+\texttt{pe-macro score --country uk --model og --reform '...'}
+\end{quote}
+Both use the fast configuration: pooled-age tax functions, a single representative sector, and steady-state comparison only. The baseline solve is cached at module level per \texttt{(start\_year, max\_iter)}, so repeated reform scores within a process pay for one baseline. The OG member is UK-only in the scorer today; passing another country is rejected with an explicit error.
+
+\subsection{Why local-only}
+\label{subsec:localonly}
+
+The model is deliberately excluded from the hosted PolicyEngine Macro MCP server. A single steady-state solve --- PolicyEngine microdata calibration plus the general-equilibrium fixed point --- has been measured at over seventeen minutes on a laptop, a reform score needs two solves, and a transition path takes hours. That is incompatible with an interactive hosted tool whose other members answer in seconds, so the OG member runs only locally, and the suite's documentation states the runtime expectation up front rather than letting a hosted request time out.
+
+\subsection{Pinned-version fragility}
+\label{subsec:pins}
+
+The integration pins \texttt{oguk==0.3.0}, which itself pins \texttt{policyengine-uk==2.88.0}. This is a real fragility, stated plainly: \texttt{policyengine-uk} $\geq$ 2.89 renamed the microdata dataset keys the calibration downloads (from \texttt{enhanced\_frs\_2023\_24\_<year>} to \texttt{populace\_uk\_*}), so mixing the pinned \texttt{oguk} with a newer \texttt{policyengine-uk} fails with a \texttt{KeyError} at calibration time. The adapter traps this failure mode and raises an actionable error naming both causes --- the version mismatch, and the other common environment failure, a missing \texttt{HUGGING\_FACE\_TOKEN} for the gated enhanced-FRS dataset --- rather than surfacing a bare stack trace. Until the pin is lifted upstream, the environment that runs OG-UK must hold \texttt{policyengine-uk==2.88.0}, which also means the OG member scores reforms against a slightly older statute vintage than the suite's microsimulation member, which tracks the latest \texttt{policyengine} release. This divergence is a known, declared inconsistency of the current wiring, not a hidden one.

@@ -1,0 +1,31 @@
+\section{Method and implementation}
+\label{sec:method}
+
+The emulator is a pure-Python package (\texttt{obr\_macro}, Python~3.11--3.13, NumPy/pandas) that ships the OBR equation listing, the November 2025 EFO detailed tables, and the ONS input snapshot as package data, so \texttt{pip install} from GitHub is sufficient to run it. The pipeline has five stages.
+
+\paragraph{1. Transpile.} A deterministic transpiler rewrites each EViews line into an equivalent Python expression: \texttt{dlog(X)} and \texttt{d(X)} become log- and first-differences with balanced-parenthesis scanning, lags \texttt{X(-n)} become indexed look-backs, \texttt{@elem(VAR,"1970Q1")} becomes a base-period constant lookup, \texttt{@recode(@date=...)} becomes a period dummy (with EViews month-coded quarters normalised), \texttt{@trend} becomes a time index, and \texttt{\^{}} becomes \texttt{**}. Each equation is classified (identity, error-correction, growth-rate, simultaneous) and compiled once; the dashboard's Equations tab displays every published EViews line beside its transpiled Python for line-by-line audit.
+
+\paragraph{2. Initialise.} History and forecast values load from the EFO tables and the ONS snapshot from 2016Q1; any variable an equation references but the data do not supply is created and seeded. Left-hand sides that arrive as transformations ($\Delta\ln y$, $\Delta y$, ratios) are solved analytically for the level of $y$.
+
+\paragraph{3. Solve.} Each quarter's 372 interdependent equations are solved simultaneously by Gauss--Seidel iteration \citep{fair2004}: cycle through the equations in order, update each left-hand variable in place, and repeat until the maximum change falls below tolerance (with damping and stall detection). Quarters are solved sequentially forward over the horizon; scenario solves run 2025Q1--2027Q4 and baseline solves extend to 2031Q1.
+
+\paragraph{4. Closure swap.} The published listing fixes GDP and lets identities distribute it; for policy shocks the emulator swaps the closure, re-arranging identity~\eqref{eq:gdpid} so that $GDPM$ becomes endogenous and inventories $DINV$ become the residual. Output then responds to demand. Under this demand closure the impact multiplier on a government-consumption shock is approximately one by construction (\pounds 1.25bn per quarter of $CGG$ raises quarterly GDP by about \pounds 1.25bn on impact). For corporation-tax experiments an optional \emph{investment closure} restores the user-cost channel: $TCPRO$ moves the cost of capital, desired capital, and business investment via equation~\eqref{eq:ibus}, with the market-sector supply feedback stabilised by tracking-pass add-factors to prevent an explosive output--investment accelerator loop (an eigenvalue-above-one interaction that was diagnosed, bounded, and locked with sign- and magnitude-invariant tests).
+
+\paragraph{5. Shock and compare.} \texttt{run\_reform(name, var, shock, periods)} solves the baseline and the shocked path with identical structure---add-factors on in both---and reports per-quarter deviations ($\Delta$GDP in \pounds bn, per cent of GDP, $\Delta$ consumption, $\Delta$ investment). Shocks may be scalar (\pounds m per quarter, or decimal rate changes) or explicit quarterly paths.
+
+\subsection{The static-costing bridge from PolicyEngine microsimulation}
+\label{sec:bridge}
+
+The bridge reproduces the OBR's policy-costing workflow \citep{obr2014costings}: static costing in, second-round effects out. A reform is expressed as PolicyEngine parameters---the same \texttt{\{parameter\_path: value\}} dictionary used across the suite, e.g.\ \texttt{\{"gov.hmrc.income\_tax.rates.uk[0].rate": 0.21\}}---and processed in three steps:
+
+\begin{enumerate}
+\item \emph{Microsimulation costing.} PolicyEngine's UK model \citep{policyengine} runs the reform against the enhanced Family Resources Survey microdata for each year of the scoring window, returning the annual budgetary impact in \pounds bn together with household-level detail (winners, losers, net-income change).
+\item \emph{Translation.} Annual costings convert to a quarterly additive shock on nominal household disposable income ($HHDI$, \pounds m per quarter): sign-flipped (revenue raised means households keep less), scaled by $1000/4$, and applied flat within each year---a deliberately crude and declared interpolation, since the microsimulation produces annual numbers.
+\item \emph{Macro propagation.} \texttt{run\_reform(var="HHDI", shock=path)} propagates the shock through the OBR's own demand-side incidence channel, $HHDI \to RHHDI \to CONS \to GDPM$ (equations \eqref{eq:hhdi} and \eqref{eq:cons}), with $HHDI$ exogenised identically in baseline and shocked runs so the delta isolates the reform. The output is the second-round demand effect.
+\end{enumerate}
+
+Two boundaries are enforced rather than fudged: the economy's feedback onto disposable income itself (income $\to$ tax $\to$ income) is not recycled, and corporation-tax reforms are refused by the bridge---corporation tax is not household-borne in the microsimulation---with a pointer to the direct $TCPRO$ lever. Supply-side channels (participation, saving, capital deepening) are deliberately left to the suite's overlapping-generations member; that division of labour is the point of a multi-model suite.
+
+\subsection{Hosted surfaces}
+
+The emulator is drivable from AI workflows and the command line through the suite's integration layer (\texttt{pe-macro}): a CLI and a Model Context Protocol (MCP) server exposing tools including \texttt{score\_reform} (a PolicyEngine reform through a chosen model, with a common \texttt{ScoreResult} schema across model classes), \texttt{obr\_shock} (raw variable shocks), forecasting, and household calculators. The hosted MCP server deploys automatically to Modal on every merge---merges to the model repository trigger the same redeploy---and a live dashboard (\url{https://obr-macroeconomic-model.vercel.app}) provides the scenario explorer, a searchable glossary of all 636 variable codes with ONS series, and the full equation listing beside its transpiled Python. Nightly CI validates the live endpoint against the correctness suite.

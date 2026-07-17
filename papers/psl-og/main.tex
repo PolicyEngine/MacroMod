@@ -1,0 +1,44 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+% Paper chrome uses the firm-microsim template blue (YGTemplate MyBlue);
+% figures use the PolicyEngine palette separately.
+\definecolor{paperblue}{rgb}{0,0,0.7}   % MyBlue, matching the sister papers
+\definecolor{peteal}{HTML}{39C6C0}      % PolicyEngine teal accent
+\usepackage{sectsty}
+\allsectionsfont{\color{paperblue}}
+\usepackage[colorlinks=true, citecolor=paperblue, linkcolor=paperblue, urlcolor=paperblue]{hyperref}
+\usepackage[hang,flushmargin]{footmisc}
+\usepackage{natbib}
+\bibliographystyle{apalike}
+
+\title{\bfseries An overlapping-generations model for PolicyEngine reform scoring\\[0.15cm] OG-Core, the OG-UK calibration, and microdata-estimated tax functions\thanks{\textbf{Acknowledgements:} I thank Max Ghenis for helpful discussions and suggestions. The OG-Core framework and its country calibrations are the work of the Policy Simulation Library community, in particular Jason DeBacker and Richard W.\ Evans; this paper documents PolicyEngine Macro's integration of that work and any errors in the description are mine. This paper was prepared with the assistance of Claude (Anthropic); all analysis and conclusions were reviewed by the author.}\\[0.7cm]}
+\author{Vahid Ahmadi\thanks{Research Associate at PolicyEngine. Email: \href{mailto:vahid@policyengine.org}{vahid@policyengine.org}.}}
+\date{\small \ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\ \the\year}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent This paper documents the overlapping-generations (OLG) member of the PolicyEngine Macro model suite: the open-source OG-Core dynamic general-equilibrium framework of \citet{DeBackerEvans2024}, deployed today through its United Kingdom country calibration OG-UK, with the United States calibration OG-USA in scope. The model tracks 80 annual age cohorts of heterogeneous lifetime-ability households who choose labour supply and saving over the life cycle, a perfectly competitive production sector, and a government that taxes, transfers, spends, and issues debt, and it solves both the long-run stationary steady state and the year-by-year transition path between steady states. Its distinguishing feature within the suite is the microdata bridge of \citet{DeBackerEvansPhillips2019}: statutory reforms are specified as PolicyEngine tax--benefit parameters, run through the PolicyEngine UK microsimulation model over enhanced Family Resources Survey microdata, and summarised as smooth parametric effective- and marginal-tax-rate functions that the optimising households respond to --- so the general-equilibrium model sees the true shape of a reform across the income distribution rather than a stylised wedge. I set out the model's equations, the tax-function estimation pipeline, the UK calibration and how selected targets compare with official ONS and OBR figures, and the \texttt{policyengine-macro} command-line integration (\texttt{pe-macro score --model og}). I am explicit about status: the wiring is experimental-grade, scoring is steady-state-only in the CLI today, a single solve takes upwards of seventeen minutes so the model is excluded from the hosted service, and --- unlike the suite's OBR and SVAR members --- there is no published ground truth to replicate: the model delivers structural counterfactuals, not validated forecasts.
+\end{abstract}
+
+\medskip
+\noindent\textbf{Keywords:} overlapping generations, dynamic general equilibrium, fiscal policy, microsimulation, tax functions, dynamic scoring
+
+\newpage
+\input{sections/intro}
+\input{sections/literature}
+\input{sections/model}
+\input{sections/taxfunctions}
+\input{sections/implementation}
+\input{sections/calibration}
+\input{sections/limitations}
+\input{sections/conclusion}
+
+\bibliography{references}
+
+\end{document}

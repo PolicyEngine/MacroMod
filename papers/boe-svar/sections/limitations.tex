@@ -1,0 +1,14 @@
+\section{Limitations and conclusion}
+\label{sec:limitations}
+
+Three limitations should frame any use of the model, and each is disclosed in the codebase as well as here.
+
+\paragraph{The data edge is frozen at 2024Q2.} The estimation sample ends in 2023Q2 and the conditioning data in 2024Q2, matching the source paper's vintage. Forecasts and shock readings therefore describe the economy as of mid-2024; the out-of-sample comparison in Section~\ref{sec:results} is possible precisely because the edge is frozen, but operational use requires re-running the data pipeline on current vintages, and results will shift with revisions.
+
+\paragraph{Internal Bank series are approximated.} The UK-trade-weighted world GDP and world CPI series are unpublished; the replication's OECD/IMF-based proxies, the assumed lag length, the default prior hyperparameters and the simplified pandemic-prior treatment mean the global block matches the paper qualitatively and within bands, not exactly. The one documented substantive discrepancy --- UK monetary policy not being the largest domestic contributor to CPI variance --- most likely traces to these approximations.
+
+\paragraph{This is not an official Bank product.} The replication is an independent open-source reconstruction from the published paper. It is not endorsed by, and does not speak for, the Bank of England; where the replication and the paper disagree, the paper is ground truth. Nor does the model score reforms: within PolicyEngine Macro it is the baseline and conditioning member, and reform scoring belongs to the suite's other models.
+
+\medskip
+
+\noindent Within those limits, the exercise shows that a central bank's operational structural VAR can be rebuilt in the open: every identifying restriction verified on every draw, published magnitudes matched within stated bands, identities holding to machine precision, honest out-of-sample performance on the record, and the whole apparatus callable through hosted tools. Replication of policy-institution models, with numbers attached, is both feasible and useful --- and this paper is offered as a template for doing it.

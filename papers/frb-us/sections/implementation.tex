@@ -1,0 +1,29 @@
+\section{Implementation}
+\label{sec:implementation}
+
+The package (\texttt{frbus}) is roughly 700 lines of Python over \texttt{numpy}, \texttt{scipy}, \texttt{sympy} and \texttt{pandas}, organised as a pipeline from the Fed's published artefacts to a compiled per-period solver. The public API mirrors the essentials of the Fed's \texttt{pyfrbus}: \texttt{Frbus(path)}, \texttt{.init\_trac(start, end, data)}, \texttt{.solve(start, end, data)} and \texttt{.exogenize([...])}, so that the Fed's demo programs translate line-for-line.
+
+\subsection{Parsing the model and data}
+
+\texttt{parse.py} reads \texttt{model.xml} directly: variable names, endogenous/exogenous classification, per-equation coefficient values, and the VAR ``standard'' equation text in EViews syntax. \texttt{data.py} loads \texttt{LONGBASE.TXT} --- the Fed's quarterly database of history and staff projections, here the April 2026 vintage --- into a \texttt{pandas} DataFrame on a quarterly \texttt{PeriodIndex}. \texttt{equations.py} and \texttt{lexing.py} normalise each equation: EViews constructs (\texttt{d(log(x),0,1)}, lag notation \texttt{x(-2)}, coefficient references \texttt{y\_eq(i)}) are lexed, coefficients are substituted by value, the equation is flipped to residual form $F_i(\cdot)=0$, and every equation is augmented with an additive tracking residual (add factor) \texttt{<endo>\_trac} alongside the model's own shock terms \texttt{<endo>\_aerr}. Variable references are then index-substituted into array coordinates: current-period endogenous variables become entries of the unknown vector \texttt{x[i]}, and everything else (lags and exogenous variables) becomes \texttt{data[p,\,j]} references into the data matrix.
+
+\subsection{Symbolic differentiation and compilation}
+
+\texttt{symbolic.py} evaluates the substituted equation strings in a \texttt{sympy} namespace in which \texttt{x} and \texttt{data} are containers returning symbols literally named \texttt{x[i]} and \texttt{data[p,j]}; the string form of any derivative is then directly executable Python again. The analytic Jacobian is built by differentiating each residual $F_i$ with respect to each unknown $x_j$ appearing in it, stored as a sparse triplet list $(i, j, \partial F_i/\partial x_j)$, with the diagonal structurally present as in \texttt{pyfrbus}. Non-smooth primitives (\texttt{max}, \texttt{min}, an indicator function used by the policy-threshold equations) are given exact piecewise derivatives. \texttt{runtime.py} compiles the residual vector and Jacobian into ordinary Python functions evaluated with \texttt{numpy}; compilation happens once per data layout and is cached on the model object.
+
+\subsection{The per-period Newton solver}
+
+Because the VAR model is backward-looking across quarters, \texttt{solver.py} solves period by period. For each quarter the full 284-equation simultaneous system $F(x)=0$ is solved by a damped Newton method: the Newton step solves the sparse linear system with an LU factorisation (\texttt{scipy.sparse.linalg.splu}) after diagonal row-scaling for conditioning, and a backtracking line search halves the step until the model evaluates cleanly (no domain errors or NaNs). Defaults are a step tolerance \texttt{xtol} $=10^{-8}$ and residual tolerance \texttt{rtol} $=5\times10^{-4}$; the previous quarter's solution is the initial guess. In practice a 20-quarter simulation solves in about three seconds on a laptop, including one-off symbolic compilation.
+
+\subsection{Add factors}
+
+\texttt{init\_trac} implements FRB/US's standard add-factoring (``tracking'') mechanism: for each quarter in the simulation window it evaluates every equation at the baseline data and stores the negated residual in the equation's \texttt{\_trac} variable, so that the baseline is an exact solution of the adjusted model. Shocks are then imposed on top of the add-factored baseline (e.g.\ via \texttt{\_aerr} terms), and simulated paths are read as deviations from base. Section~\ref{sec:validation} shows this reproduction is exact to machine precision.
+
+\subsection{Differences from pyfrbus}
+
+The implementation follows \texttt{pyfrbus} semantics exactly but departs from it in engineering terms:
+\begin{itemize}
+  \item \textbf{Modern dependencies.} No pin of \texttt{sympy} 1.3, no \texttt{scikit-umfpack}/\texttt{symengine} requirement, no pre-2.0 \texttt{pandas}; the package installs on current Python (3.10+) with wheels only. Sparse solves use \texttt{scipy}'s bundled SuperLU rather than UMFPACK.
+  \item \textbf{Single-block Newton.} \texttt{pyfrbus} decomposes each period's system into recursive and simultaneous blocks and solves them in sequence; this implementation solves the full simultaneous system in one Newton iteration loop. Both solve the same $F(x)=0$, and Section~\ref{sec:validation} confirms the solutions agree to solver tolerance.
+  \item \textbf{Scope.} MCE (rational-expectations) equation variants are not implemented --- \texttt{Frbus(path, mce=...)} raises \texttt{NotImplementedError} --- and the \texttt{mcontrol} trajectory-matching utility and stochastic simulations are likewise out of scope. The VAR model, add-factoring, exogenisation and shock simulation are complete.
+\end{itemize}

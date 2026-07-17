@@ -1,0 +1,16 @@
+\section{Limitations and conclusion}
+\label{sec:limitations}
+
+Four limitations should frame any use of this implementation.
+
+\paragraph{VAR expectations only.} Only the backward-looking VAR expectations version of FRB/US is implemented. The MCE (rational-expectations) equation variants --- under which agents' expectations are consistent with the model's own future paths, and which the Fed uses for exercises such as forward-guidance and threshold-policy analysis --- raise \texttt{NotImplementedError}. As Section~\ref{sec:results} notes, the two expectations options can deliver materially different quantitative answers (an output-gap response of $-0.4$ versus $-0.1$ percentage point to the same funds-rate shock in \citealp{brayton2014note}), so results from this package speak only to the VAR configuration. The \texttt{mcontrol} trajectory-matching utility and stochastic simulations are likewise not implemented.
+
+\paragraph{Data vintage.} All results are tied to the April 2026 LONGBASE vintage and the contemporaneous \texttt{model.xml}. The Board re-estimates equations and revises the projection database over time; users should refresh the vendored artefacts from the Board's website \citep{fedfrbuspython} and re-run the validation gates when doing so, since coefficients, baseline paths and hence impulse responses all shift with vintage.
+
+\paragraph{Not an official product.} FRB/US, its database and its documentation are produced and published by the Federal Reserve Board in the public domain; this reimplementation is an independent open-source project of PolicyEngine and is neither produced, endorsed, nor reviewed by the Board. Fidelity claims rest entirely on the reproducible validation evidence of Section~\ref{sec:validation}.
+
+\paragraph{Model-inherent caveats.} The implementation inherits FRB/US's own modelling choices --- estimated PAC dynamics, a flat reduced-form Phillips curve, policy closure by simple rules --- and the usual caveats about using an estimated backward-looking system for counterfactuals far from the estimation sample apply with full force.
+
+\medskip
+
+\noindent Within those bounds, the contribution is a small, dependable, continuously tested platform: the Fed's public model definition and data, parsed and solved on a modern scientific-Python stack, reproducing the Fed's own reference implementation to $10^{-9}$ on identical experiments and its published simulation properties in sign, shape and magnitude. Within PolicyEngine Macro it provides the U.S. macroeconomic backbone against which microsimulation-based tax and transfer analyses can be given dynamic, model-consistent macro context, and a template --- artefact parsing, symbolic Jacobians, add-factoring, hard validation gates in CI --- for bringing other public-sector macromodels into the open-source ecosystem.

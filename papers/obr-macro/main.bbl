@@ -1,0 +1,75 @@
+\begin{thebibliography}{}
+
+\bibitem[Brayton and Tinsley, 1996]{brayton1996}
+Brayton, F. and Tinsley, P.~A. (1996).
+\newblock A guide to {FRB/US}: A macroeconomic model of the {United States}.
+\newblock {\em Finance and Economics Discussion Series}, 1996-42.
+\newblock Board of Governors of the Federal Reserve System.
+
+\bibitem[Davidson et~al., 1978]{davidson1978}
+Davidson, J. E.~H., Hendry, D.~F., Srba, F., and Yeo, S. (1978).
+\newblock Econometric modelling of the aggregate time-series relationship
+  between consumers' expenditure and income in the {United Kingdom}.
+\newblock {\em The Economic Journal}, 88(352):661--692.
+
+\bibitem[Engle and Granger, 1987]{engle1987}
+Engle, R.~F. and Granger, C. W.~J. (1987).
+\newblock Co-integration and error correction: Representation, estimation, and
+  testing.
+\newblock {\em Econometrica}, 55(2):251--276.
+
+\bibitem[Fair, 2004]{fair2004}
+Fair, R.~C. (2004).
+\newblock {\em Estimating How the Macroeconomy Works}.
+\newblock Harvard University Press, Cambridge, MA.
+
+\bibitem[{HM Revenue and Customs}, 2025]{hmrc2025reckoner}
+{HM Revenue and Customs} (2025).
+\newblock Direct effects of illustrative tax changes.
+\newblock Official statistics bulletin, GOV.UK.
+\newblock Ready reckoner of tax changes for 2026--27 to 2028--29, April 2026
+  implementation.
+
+\bibitem[Klein, 1950]{klein1950}
+Klein, L.~R. (1950).
+\newblock {\em Economic Fluctuations in the United States, 1921--1941}.
+\newblock Cowles Commission Monograph No.~11. John Wiley \& Sons, New York.
+
+\bibitem[{Office for Budget Responsibility}, 2013]{obr2013model}
+{Office for Budget Responsibility} (2013).
+\newblock The macroeconomic model.
+\newblock Briefing Paper No.~5, Office for Budget Responsibility.
+
+\bibitem[{Office for Budget Responsibility}, 2014]{obr2014costings}
+{Office for Budget Responsibility} (2014).
+\newblock Policy costings and our forecast.
+\newblock Briefing Paper No.~6, Office for Budget Responsibility.
+
+\bibitem[{Office for Budget Responsibility}, 2025a]{obr2025efo}
+{Office for Budget Responsibility} (2025a).
+\newblock Economic and fiscal outlook -- november 2025.
+\newblock Technical report, Office for Budget Responsibility.
+\newblock CP 1403, published 26 November 2025.
+
+\bibitem[{Office for Budget Responsibility}, 2025b]{obr2025modelpage}
+{Office for Budget Responsibility} (2025b).
+\newblock {OBR} macroeconomic model.
+\newblock Forecasts in depth,
+  \url{https://obr.uk/forecasts-in-depth/obr-macroeconomic-model/}.
+\newblock Model code and variable listing of 15 October 2025.
+
+\bibitem[{PolicyEngine}, 2025]{policyengine}
+{PolicyEngine} (2025).
+\newblock {PolicyEngine}: Open-source tax and benefit microsimulation.
+\newblock \url{https://policyengine.org}.
+\newblock Software and documentation; UK model at
+  \url{https://github.com/PolicyEngine/policyengine-uk}.
+
+\bibitem[Wallis et~al., 1987]{wallis1987}
+Wallis, K.~F., Andrews, M.~J., Fisher, P.~G., Longbottom, J.~A., and Whitley,
+  J.~D. (1987).
+\newblock {\em Models of the {UK} Economy: A Fourth Review by the {ESRC}
+  Macroeconomic Modelling Bureau}.
+\newblock Oxford University Press, Oxford.
+
+\end{thebibliography}

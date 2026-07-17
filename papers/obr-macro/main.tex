@@ -1,0 +1,42 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+% Paper chrome uses the firm-microsim template blue (YGTemplate MyBlue).
+\definecolor{paperblue}{rgb}{0,0,0.7}
+\definecolor{peteal}{HTML}{39C6C0}
+\usepackage{sectsty}
+\allsectionsfont{\color{paperblue}}
+\usepackage[colorlinks=true, citecolor=paperblue, linkcolor=paperblue, urlcolor=paperblue]{hyperref}
+\usepackage[hang,flushmargin]{footmisc}
+\usepackage{natbib}
+\bibliographystyle{apalike}
+
+\title{\bfseries An open Python emulator of the OBR macroeconometric model\\[0.15cm] for UK fiscal-reform scoring\thanks{\textbf{Acknowledgements:} I thank Max Ghenis for his great suggestions and helpful discussions. This paper is a PolicyEngine working paper describing the OBR macroeconometric emulator in the PolicyEngine Macro suite. It was prepared with AI assistance (Claude, Anthropic). All remaining errors are my own.}\\[0.7cm]}
+\author{Vahid Ahmadi\thanks{Research Associate at PolicyEngine. Email: \href{mailto:vahid@policyengine.org}{vahid@policyengine.org}.}}
+\date{\small \ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\ \the\year}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent I describe an open-source Python implementation of the Office for Budget Responsibility's macroeconometric model of the UK economy, built for near-term fiscal-reform scoring in the PolicyEngine Macro suite. The emulator transpiles the OBR's 372 published EViews equations into Python, solves them by Gauss--Seidel iteration with a demand-side closure swap, and anchors the baseline to the OBR's November 2025 \emph{Economic and Fiscal Outlook} using the OBR's own add-factor device. In anchored mode the model reproduces the published EFO path with a GDP MAPE of 0.18 per cent and consumption of 0.29 per cent over 2025Q1--2027Q4, hard-gated in continuous integration. The free-running fit is deliberately reported without flattery: of 21 headline variables, 10 are passthroughs and only 4 of the 11 actually computed land within band, with company profits 54.6 per cent off---a gap traced to unpublished OBR calibration constants rather than live bugs. A static-costing bridge injects PolicyEngine microsimulation costings into the model as a household-disposable-income shock, delivering the OBR's own ``static costing in, second-round effects out'' workflow. A worked example---raising the basic rate of income tax by 1p---yields a static costing of \pounds 6.46 billion in 2026 rising to \pounds 7.38 billion by 2030, within the range of HMRC's published ready reckoner, with second-round GDP effects of $-$0.02 to $-$0.03 per cent.
+\end{abstract}
+
+\medskip
+\noindent\textbf{Keywords:} macroeconometric models, fiscal policy, policy costings, OBR, microsimulation, open source
+
+\newpage
+\input{sections/intro}
+\input{sections/model}
+\input{sections/method}
+\input{sections/calibration}
+\input{sections/results}
+\input{sections/limitations}
+\input{sections/conclusion}
+
+\bibliography{references}
+
+\end{document}

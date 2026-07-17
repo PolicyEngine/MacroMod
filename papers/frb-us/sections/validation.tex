@@ -1,0 +1,59 @@
+\section{Validation}
+\label{sec:validation}
+
+The implementation is validated against the Fed's own artefacts in two layers, both of which run as hard gates in the package's test suite and continuous integration. All experiments use the VAR model over 2026Q1--2030Q4 with the Fed's standard demo fiscal configuration (surplus-ratio targeting: \texttt{dfpdbt} $=0$, \texttt{dfpsrp} $=1$) and the April 2026 LONGBASE vintage.
+
+\subsection{Tracking invariant}
+
+After \texttt{init\_trac}, solving the baseline must reproduce LONGBASE exactly for all 284 endogenous variables in all 20 quarters. This exercises the entire pipeline --- parser, lexer, coefficient substitution, compiled residuals, Jacobian and Newton solver --- against the Fed's own data. Table~\ref{tab:tracking} shows the result: the maximum absolute error across all $284\times20$ variable-quarters is $5.6\times10^{-17}$, i.e.\ machine precision.
+
+\begin{table}[htbp]
+\centering
+\caption{Tracking invariant: solved baseline vs.\ LONGBASE, 2026Q1--2030Q4}
+\label{tab:tracking}
+\begin{tabular}{lcc}
+\toprule
+Metric & Value & Test gate \\
+\midrule
+Max absolute error, all 284 endogenous $\times$ 20 quarters & $5.6\times10^{-17}$ & $<10^{-8}$ \\
+Max relative error & $5.6\times10^{-17}$ & $<10^{-10}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Cross-validation against the Fed's pyfrbus}
+
+The identical experiment --- \texttt{init\_trac} followed by a 100-basis-point shock to \texttt{rffintay\_aerr} in 2026Q1, mirroring the Fed's \texttt{demos/example1.py} --- was run in both this implementation and the Fed's \texttt{pyfrbus}, and all 284 endogenous variables were compared over all 20 quarters. The vendor reference was produced by \texttt{pyfrbus} running in a separate Python 3.11 environment with its Newton solver at \texttt{xtol} $=10^{-8}$; a documented script regenerates it, recording the out-of-repo patches needed to run the vendor package on modern dependencies (an \texttt{splu} shim replacing \texttt{scikit-umfpack}, unpinning \texttt{sympy}, a fix to the vendor's \texttt{Max}/\texttt{Min} derivative fallback under modern \texttt{symengine}, and \texttt{pandas} $<2$).
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-validation vs.\ pyfrbus: identical 100bp funds-rate shock, 2026Q1--2030Q4}
+\label{tab:crossval}
+\begin{tabular}{lcc}
+\toprule
+Metric & Value & Test gate \\
+\midrule
+Max absolute difference, all 284 endogenous $\times$ 20 quarters & $6.0\times10^{-9}$ & $<10^{-6}$ \\
+Max relative difference (denominator clipped at $10^{-8}$) & $4.9\times10^{-8}$ & $<10^{-6}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-validation: agreement on key variables (max over 20 quarters)}
+\label{tab:crossval-key}
+\begin{tabular}{llcc}
+\toprule
+Variable & Description & Max abs.\ diff. & Max rel.\ diff. \\
+\midrule
+\texttt{xgdp}   & Real GDP                & $1.5\times10^{-10}$ & $5.6\times10^{-15}$ \\
+\texttt{pcpi}   & CPI price level          & $8.5\times10^{-13}$ & $2.5\times10^{-15}$ \\
+\texttt{picxfe} & Core PCE inflation       & $2.3\times10^{-13}$ & $1.2\times10^{-13}$ \\
+\texttt{lur}    & Unemployment rate        & $4.0\times10^{-13}$ & $9.2\times10^{-14}$ \\
+\texttt{rff}    & Federal funds rate       & $3.0\times10^{-13}$ & $1.1\times10^{-13}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Tables~\ref{tab:crossval} and \ref{tab:crossval-key} summarise the agreement. The worst-agreeing variables are near-zero expectational gap terms (\texttt{zgap05}, relative difference $4.9\times10^{-8}$ on values of order $10^{-4}$), which reflect the two solvers' respective step tolerances rather than any semantic difference; with the vendor solver at its default looser tolerance (\texttt{scipy.optimize.root}, \texttt{xtol} $=10^{-6}$) the discrepancy is $\sim1.7\times10^{-5}$ and again concentrated in the same terms. The headline variables agree to $10^{-10}$ or better in absolute terms. Since the vendor's block-decomposed solver and this implementation's single-block Newton solve the same $F(x)=0$, agreement up to solver tolerance is the expected --- and observed --- outcome.

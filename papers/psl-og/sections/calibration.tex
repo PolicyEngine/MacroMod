@@ -1,0 +1,60 @@
+\section{Calibration}
+\label{sec:calibration}
+
+OG-UK's calibration strategy follows the OG-Core template \citep{DeBackerEvans2024,OGUKdocs}: demographics from international and national statistical sources, macro parameters anchored to UK national accounts and official forecasts, preference parameters from the literature or matched to observed aggregates, and the tax detail supplied entirely by the estimated tax functions of Section~\ref{sec:taxfunc}. Table~\ref{tab:calibration} collects the headline values used by the deployed configuration.
+
+\begin{table}[t]
+\centering
+\caption{Headline calibration of the deployed OG-UK configuration}
+\label{tab:calibration}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llll}
+\toprule
+Parameter & Symbol & Value & Source / target \\
+\midrule
+Active life span & $S$ & 80 (ages 20--99) & model structure \\
+Childhood periods & $E$ & 20 (ages 0--19) & model structure \\
+Population by age, mortality, migration & $\omega_{s,t},\rho_s$ & UK profiles & UN World Population Prospects \citep{UNWPP2024} \\
+Coefficient of relative risk aversion & $\sigma$ & 1.5 & OG-Core default \\
+Frisch elasticity of labour supply & $\theta$ & 0.35 & \citet{BlundellMaCurdyMeghir2007} \\
+Discount factor & $\beta$ & matched & ONS household saving ratio \\
+Depreciation rate & $\delta$ & 0.065 / yr & ONS capital stocks and consumption of fixed capital \\
+Long-run productivity growth & $g_y$ & 0.011 / yr & OBR potential-output growth \citep{OBR2025EFO} \\
+World interest rate (open-economy features) & $r^{*}$ & gilt-based & Bank of England yield data \\
+Corporate tax rate & $\tau^b$ & 0.27 effective & UK corporation-tax schedule (structural override) \\
+Long-run debt-to-GDP target & $\alpha_D$ & ONS-anchored & fiscal closure rule, Section~\ref{subsec:government} \\
+Tax functions & $\tau^{etr},\tau^{mtrx},\tau^{mtry}$ & estimated & PolicyEngine UK on enhanced FRS (Section~\ref{sec:taxfunc}) \\
+Production sectors & $M$ & 1 (option: 8) & ONS Blue Book supply-and-use tables when $M=8$ \\
+Tax-function age treatment & --- & pooled & CLI default; \texttt{brackets}/\texttt{each} available \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Three remarks on the table. First, the lifetime-ability apparatus ($J$ ability types, shares $\lambda_j$, and profiles $e_{j,s}$) is inherited from the OG-Core default calibration, which estimates ability profiles from tax microdata for the United States; a UK-specific re-estimation of $e_{j,s}$ from the enhanced FRS is an open calibration task, and results that depend on the upper tail of the ability distribution should be read with that in mind. Second, the discount factor is not taken from the literature but matched so that the model's steady-state saving behaviour is consistent with the ONS household saving ratio, given the other parameters. Third, the multi-sector option ($M=8$ industries calibrated from ONS Blue Book supply-and-use tables by SIC section) exists for sector-level questions such as energy-price shocks, but the deployed scoring configuration is single-sector.
+
+\subsection{Model targets against official UK aggregates}
+\label{subsec:targets}
+
+Because the \pounds bn mapping is GDP-anchored (Section~\ref{subsec:arch}), the levels the model reports are anchored to ONS series by construction; the informative comparison is between the ratios the calibration \emph{targets} and the corresponding official numbers. Table~\ref{tab:targets} reports the comparison for the ratios the calibration speaks to directly. Where the deployed configuration anchors a quantity to the official series by construction, the table says so rather than presenting the match as an independent validation --- an honesty rule this suite applies throughout.
+
+\begin{table}[t]
+\centering
+\caption{Calibration targets and official UK counterparts}
+\label{tab:targets}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lll}
+\toprule
+Quantity & Official UK value & Model treatment \\
+\midrule
+Labour share of income & $\approx$ 0.59--0.60 (ONS unadjusted share) & $1-\gamma$ set from national accounts factor shares \\
+Capital--output ratio & $\approx$ 3 (ONS net capital stock / GDP) & emerges from $(\gamma,\delta,\beta,g_y)$; checked, not imposed \\
+Depreciation / capital & $\approx$ 6--7\% (ONS CFC / net stock) & imposed, $\delta = 0.065$ \\
+Government debt-to-GDP & $\approx$ 96--100\% (PSND ex BoE) & imposed via closure target $\alpha_D$; levels re-anchored \\
+& & to live ONS debt series in \texttt{map\_to\_real\_world} \\
+Potential growth & 1.1\% (OBR EFO) & imposed, $g_y = 0.011$ \\
+Household saving ratio & ONS series & targeted through $\beta$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+The distinction in the final column matters for interpretation. Imposed quantities (depreciation, growth, the debt target) cannot disagree with the data; the genuinely over-identifying checks are the ones the steady state must \emph{deliver} --- the capital--output ratio and the interest rate consistent with the calibrated $(\gamma,\delta,\beta)$ triple. In the deployed fast configuration these emerge in an economically sensible range (a baseline steady-state real interest rate in low single digits, reported by \texttt{og-baseline} alongside the model-unit aggregates), but no systematic published reconciliation of achieved-versus-target moments exists for OG-UK 0.3.0, and this paper does not manufacture one: producing that reconciliation table from logged solves is the single most valuable next step for this member (Section~\ref{sec:limitations}).

@@ -1,0 +1,43 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+% Paper chrome uses the firm-microsim template blue (YGTemplate MyBlue);
+% figures use the PolicyEngine palette separately.
+\definecolor{paperblue}{rgb}{0,0,0.7}   % MyBlue, matching the sister papers
+\definecolor{peteal}{HTML}{39C6C0}      % PolicyEngine teal accent
+\usepackage{sectsty}
+\allsectionsfont{\color{paperblue}}
+\usepackage[colorlinks=true, citecolor=paperblue, linkcolor=paperblue, urlcolor=paperblue]{hyperref}
+\usepackage[hang,flushmargin]{footmisc}
+\usepackage{natbib}
+\bibliographystyle{apalike}
+
+\title{\bfseries An open replication of the Bank of England's\\[0.15cm] structural VAR model for the UK economy\thanks{\textbf{Acknowledgements:} I thank Max Ghenis for his great suggestions and helpful discussions. This paper and the accompanying codebase were prepared with the assistance of Claude (Anthropic); all remaining errors are my own. The replication is an independent open-source project and is not an official product of, or endorsed by, the Bank of England.}\\[0.7cm]}
+\author{Vahid Ahmadi\thanks{Research Associate at PolicyEngine. Email: \href{mailto:vahid@policyengine.org}{vahid@policyengine.org}.}}
+\date{\small \ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\ \the\year}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent I present an open-source Python replication of the eight-variable Bayesian structural VAR that the Bank of England uses to disentangle domestic and global drivers of the UK business cycle \citep{brignone2025}. The model combines a Minnesota normal-inverse-Wishart prior with zero and sign restrictions imposed via the algorithm of \citet{arias2018}, identifying world demand, world energy, world supply, UK demand, UK supply and UK monetary policy shocks, with two unidentified residual shocks. The replication serves as the baseline and conditioning member of PolicyEngine Macro: it produces forecasts with credible bands, structural readings of the latest shocks, and forecast-revision narratives, but does not score reforms. Validation against the published paper shows that zero restrictions hold exactly on every accepted identification draw, sign restrictions hold on every draw and on the median impulse responses, the unrestricted oil-price response to a world supply shock is positive ($+6.06$ on impact), and the identified global shocks explain 47.4 per cent of UK GDP and 42.4 per cent of UK CPI forecast-error variance at the one-year horizon, against roughly 40 and 50 per cent in the paper --- inside deliberately wide calibration bands. Internal consistency holds to numerical precision: variance decompositions sum to one within $10^{-10}$ and the historical decomposition reconstructs the data within $10^{-8}$. An honest out-of-sample look from the 2024Q2 data edge shows the model's GDP forecast (year-on-year medians of 1.3--2.0 per cent) bracketing the ONS outturns, while CPI inflation (medians of 2.3--2.8 per cent) undershoots the 2025 re-acceleration to 3.8 per cent, an error shared by the Bank's own August 2024 projections. The model is served through hosted MCP tools, making a central-bank-grade structural VAR callable from any AI workflow.
+\end{abstract}
+
+\medskip
+\noindent\textbf{Keywords:} structural VAR, sign restrictions, Bayesian estimation, UK economy, replication, open source
+
+\newpage
+\input{sections/intro}
+\input{sections/model}
+\input{sections/source}
+\input{sections/implementation}
+\input{sections/validation}
+\input{sections/results}
+\input{sections/limitations}
+
+\input{sections/references}
+
+\end{document}

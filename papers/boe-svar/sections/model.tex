@@ -1,0 +1,103 @@
+\section{The model}
+\label{sec:model}
+
+\subsection{Reduced form}
+
+Let $y_t$ be the $k \times 1$ vector ($k=8$) of quarterly variables listed in Table~\ref{tab:variables}. The reduced form is a VAR($p$) in (mostly log) levels with a constant and six Covid-19 dummies:
+\begin{equation}
+y_t \;=\; c \;+\; \sum_{l=1}^{p} \Pi_l\, y_{t-l} \;+\; \sum_{j=1}^{6} \delta_j\, d_{j,t} \;+\; u_t,
+\qquad u_t \sim \mathcal{N}(0, \Sigma),
+\label{eq:var}
+\end{equation}
+where each dummy $d_{j,t}$ equals one in exactly one of the quarters 2020Q1--2021Q2 and zero otherwise, absorbing the extreme pandemic observations in the spirit of the pandemic prior of \citet{cascaldigarcia2022}. The source paper does not state the lag length; the replication uses $p=4$ as a configurable default.
+
+\begin{table}[t]
+\centering
+\caption{Variables, transformations and ordering (source paper Table 1)}
+\label{tab:variables}
+\small
+\begin{tabular}{clll}
+\toprule
+\# & Variable & Enters model as & Shown in figures as \\
+\midrule
+1 & Real world GDP (UK-trade-weighted) & $100\cdot\log$ & YoY growth \\
+2 & World CPI (UK-trade-weighted)      & $100\cdot\log$ & YoY growth \\
+3 & Real oil price in sterling         & $100\cdot\log$ & YoY growth \\
+4 & Bank Rate                          & level (\%)     & level \\
+5 & Sterling effective exchange rate (ERI) & $100\cdot\log$ & level \\
+6 & UK CPI, seasonally adjusted (CPISA) & $100\cdot\log$ & YoY growth \\
+7 & UK CPI Energy                      & $100\cdot\log$ & YoY growth \\
+8 & Real UK GDP                        & $100\cdot\log$ & YoY growth \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Reduced-form innovations map to orthonormal structural shocks through an impact matrix $B$:
+\begin{equation}
+u_t = B\,\varepsilon_t, \qquad \varepsilon_t \sim \mathcal{N}(0, I_k), \qquad \Sigma = BB'.
+\label{eq:structural}
+\end{equation}
+$B$ is parameterised through the Cholesky factor of $\Sigma$ and an orthogonal rotation:
+\begin{equation}
+B = \operatorname{chol}(\Sigma)\, Q, \qquad Q'Q = I_k .
+\label{eq:rotation}
+\end{equation}
+Any orthogonal $Q$ delivers the same reduced-form fit; identification consists of restricting the admissible set of $Q$.
+
+\subsection{Prior and posterior}
+
+Estimation is Bayesian in the tradition of \citet{doan1984} and \citet{litterman1986}, implemented as in \citet{giannone2015}: a Minnesota normal-inverse-Wishart (NIW) prior on $(\Pi, \Sigma)$ centred on independent random walks, combined with a sum-of-coefficients prior that disciplines the deterministic component. The conjugate posterior is standard: $\Sigma$ is drawn from an inverse Wishart and the stacked coefficients $\Pi$ from a matrix normal conditional on $\Sigma$. The replication uses overall tightness $\lambda = 0.2$ and sum-of-coefficients weight $\mu = 1$ (the paper does not report its hyperparameters), with the Covid dummies entering as exogenous regressors rather than through the full dummy-observation algebra of \citet{cascaldigarcia2022}.
+
+\subsection{Identification: zero and sign restrictions}
+
+Six of the eight shocks are identified --- world demand (WD), world energy (WE), world supply (WS), UK demand (UD), UK supply (US) and UK monetary policy (MP) --- while two are left unidentified, one global (U1) and one UK-specific (U2), to absorb residual volatility. All restrictions apply to the impact matrix $B$ only. Table~\ref{tab:restrictions} reproduces the restriction matrix (Table~2 of the source paper) exactly as encoded in the replication.
+
+\begin{table}[t]
+\centering
+\caption{Identifying restrictions on impact (source paper Table 2)}
+\label{tab:restrictions}
+\small
+\begin{tabular}{lcccccccc}
+\toprule
+Variable & WD & WE & WS & U1 & UD & US & MP & U2 \\
+\midrule
+World GDP    & $+$ & $+$ & $+$ &  & 0 & 0 & 0 & 0 \\
+World CPI    & $+$ & $-$ & $-$ &  & 0 & 0 & 0 & 0 \\
+Oil price    &     & $-$ &     &  & 0 & 0 & 0 & 0 \\
+Bank Rate    &     &     &     &  & $+$ &     & $+$ &  \\
+Exchange rate&     &     &     &  &     &     &     &  \\
+UK CPISA     & $+$ & $-$ & $-$ &  & $+$ & $-$ & $-$ &  \\
+CPI Energy   & $+$ & $-$ & 0   &  &     &     &     &  \\
+Real UK GDP  & $+$ & $+$ & $+$ &  & $+$ & $+$ & $-$ &  \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\parbox{0.92\textwidth}{\footnotesize \emph{Notes:} Blank cells are unrestricted. The zero block on the three world variables encodes the small-open-economy assumption: UK shocks (UD, US, MP) and the UK unidentified shock (U2) have no contemporaneous impact on world variables. The global unidentified shock U1 is exempt from that block --- that exemption is what makes it ``global''. The zero on CPI Energy under WS exogenises energy prices with respect to the world supply shock, separating it from the world energy shock.}
+\end{table}
+
+The economic content is conventional: a positive world demand shock raises world and UK output and prices; an expansionary (disinflationary) world energy shock raises real activity while lowering oil prices, world CPI and UK CPI including its energy component; a positive world supply shock raises output and lowers prices with a zero energy-price impact; a UK demand shock raises UK GDP, CPI and Bank Rate; a UK supply shock raises GDP and lowers CPI; and a monetary tightening raises Bank Rate while lowering CPI and GDP.
+
+For each posterior draw $(\Pi, \Sigma)$, $Q$ is drawn with the algorithm of \citet{arias2018} so that the \emph{zero} restrictions hold exactly by construction: with $L=\operatorname{chol}(\Sigma)$, column $q_j$ is a standard normal vector projected onto the null space of the zero restrictions on $Lq_j$ and of the previously drawn columns, then normalised. The \emph{sign} restrictions are then checked on $B = LQ$, flipping a column's (unidentified) sign where doing so satisfies its restrictions, and accepting or rejecting the whole draw as in \citet{uhlig2005} and \citet{rubioramirez2010}. Following the source paper's use of the invariance results of \citet{chan2025}, column permutations are also searched before rejecting; the replication conservatively permutes only within groups of shocks that share the same zero-restriction pattern, since with zero restrictions the Haar measure is permutation-invariant only within such groups.
+
+\subsection{Outputs}
+
+Write \eqref{eq:var} in companion form with companion matrix $F$ and selection matrix $J$ so that $\Psi_h = J F^h J'$ is the reduced-form moving-average coefficient at horizon $h$. The structural impulse response of variable $i$ to shock $j$ at horizon $h$ is
+\begin{equation}
+\operatorname{IRF}_{ij}(h) = \big[\Psi_h B\big]_{ij},
+\end{equation}
+reported as pointwise posterior medians with 68 and 90 per cent credible bands across accepted $(\Pi,\Sigma,Q)$ triples. The forecast-error variance decomposition (FEVD) at horizon $H$ is
+\begin{equation}
+\operatorname{FEVD}_{ij}(H) \;=\;
+\frac{\sum_{h=0}^{H}\big[\Psi_h B\big]_{ij}^{2}}
+     {\sum_{h=0}^{H}\big[\Psi_h \Sigma \Psi_h'\big]_{ii}},
+\qquad \sum_{j=1}^{k}\operatorname{FEVD}_{ij}(H) = 1 .
+\label{eq:fevd}
+\end{equation}
+Estimated structural shocks are recovered as $\hat{\varepsilon}_t = B^{-1}\hat{u}_t$ at each accepted draw. The historical decomposition splits each variable's path into the cumulative contribution of each structural shock, the Covid-dummy component and the deterministic component:
+\begin{equation}
+y_{i,t} \;=\; \underbrace{\sum_{j=1}^{k}\;\sum_{h=0}^{t-1}\big[\Psi_h B\big]_{ij}\,\hat{\varepsilon}_{j,t-h}}_{\text{structural shocks}}
+\;+\; \underbrace{y^{\text{covid}}_{i,t}}_{\text{dummies}}
+\;+\; \underbrace{y^{\text{det}}_{i,t}}_{\text{initial conditions, constant}},
+\label{eq:hd}
+\end{equation}
+an additive identity that must reconstruct the data exactly --- a property Section~\ref{sec:validation} verifies to $10^{-8}$.

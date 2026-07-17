@@ -1,0 +1,89 @@
+\begin{thebibliography}{}
+
+\bibitem[Arias et~al., 2018]{arias2018}
+Arias, J.~E., Rubio-Ram{\'i}rez, J.~F., and Waggoner, D.~F. (2018).
+\newblock Inference based on structural vector autoregressions identified with
+  sign and zero restrictions: Theory and applications.
+\newblock {\em Econometrica}, 86(2):685--720.
+
+\bibitem[{Bank of England}, 2024]{boe2024mpr}
+{Bank of England} (2024).
+\newblock Monetary policy report -- august 2024.
+\newblock
+  \url{https://www.bankofengland.co.uk/monetary-policy-report/2024/august-2024}.
+
+\bibitem[Brignone and Piffer, 2025]{brignone2025}
+Brignone, D. and Piffer, M. (2025).
+\newblock A structural {VAR} model for the {UK} economy.
+\newblock Macro Technical Paper~3, Bank of England.
+
+\bibitem[Brignone and Piffer, 2026]{brignone2026}
+Brignone, D. and Piffer, M. (2026).
+\newblock Structural forecast analysis.
+\newblock Staff Working Paper 1165, Bank of England.
+
+\bibitem[Cascaldi-Garcia, 2022]{cascaldigarcia2022}
+Cascaldi-Garcia, D. (2022).
+\newblock Pandemic priors.
+\newblock International Finance Discussion Papers 1352, Board of Governors of
+  the Federal Reserve System.
+
+\bibitem[Chan et~al., 2025]{chan2025}
+Chan, J. C.~C., Matthes, C., and Yu, X. (2025).
+\newblock Large structural {VAR}s with multiple sign and ranking restrictions.
+\newblock {\em Journal of Econometrics}.
+
+\bibitem[Doan et~al., 1984]{doan1984}
+Doan, T., Litterman, R.~B., and Sims, C.~A. (1984).
+\newblock Forecasting and conditional projection using realistic prior
+  distributions.
+\newblock {\em Econometric Reviews}, 3(1):1--100.
+
+\bibitem[Ghenis and {PolicyEngine contributors}, 2025]{policyengine}
+Ghenis, M. and {PolicyEngine contributors} (2025).
+\newblock {PolicyEngine}: Open-source tax--benefit microsimulation and
+  macroeconomic models.
+\newblock \url{https://policyengine.org}.
+
+\bibitem[Giannone et~al., 2015]{giannone2015}
+Giannone, D., Lenza, M., and Primiceri, G.~E. (2015).
+\newblock Prior selection for vector autoregressions.
+\newblock {\em Review of Economics and Statistics}, 97(2):436--451.
+
+\bibitem[Litterman, 1986]{litterman1986}
+Litterman, R.~B. (1986).
+\newblock Forecasting with {B}ayesian vector autoregressions --- five years of
+  experience.
+\newblock {\em Journal of Business \& Economic Statistics}, 4(1):25--38.
+
+\bibitem[{Office for National Statistics}, 2025a]{ons2024cpi}
+{Office for National Statistics} (2025a).
+\newblock Consumer price inflation, {UK}: December 2024.
+\newblock
+  \url{https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/december2024}.
+
+\bibitem[{Office for National Statistics}, 2025b]{ons2025cpi}
+{Office for National Statistics} (2025b).
+\newblock Consumer price inflation, {UK}: November 2025.
+\newblock
+  \url{https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/november2025}.
+
+\bibitem[{Office for National Statistics}, 2026]{ons2025gdp}
+{Office for National Statistics} (2026).
+\newblock {GDP} first quarterly estimate, {UK}: October to december 2025.
+\newblock
+  \url{https://www.ons.gov.uk/economy/grossdomesticproductgdp/bulletins/gdpfirstquarterlyestimateuk/octobertodecember2025}.
+
+\bibitem[Rubio-Ram{\'i}rez et~al., 2010]{rubioramirez2010}
+Rubio-Ram{\'i}rez, J.~F., Waggoner, D.~F., and Zha, T. (2010).
+\newblock Structural vector autoregressions: Theory of identification and
+  algorithms for inference.
+\newblock {\em Review of Economic Studies}, 77(2):665--696.
+
+\bibitem[Uhlig, 2005]{uhlig2005}
+Uhlig, H. (2005).
+\newblock What are the effects of monetary policy on output? {R}esults from an
+  agnostic identification procedure.
+\newblock {\em Journal of Monetary Economics}, 52(2):381--419.
+
+\end{thebibliography}

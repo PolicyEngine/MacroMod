@@ -1,0 +1,44 @@
+\section{Tax functions from PolicyEngine microdata}
+\label{sec:taxfunc}
+
+The channel through which a statutory reform enters the general-equilibrium model is the tax-function estimation step of \citet{DeBackerEvansPhillips2019}. This is the PolicyEngine-specific part of the pipeline, and it is what distinguishes the psl-og member from a stylised-wedge OLG exercise: the households in Section~\ref{subsec:households} respond to a smooth summary of the \emph{actual} UK tax and benefit code, computed reform-by-reform from microdata.
+
+\subsection{The pipeline}
+\label{subsec:txpipeline}
+
+The estimation loop, run once per budget-window year at calibration time (for both the baseline and each reform), is:
+\begin{enumerate}
+\item \textbf{Microsimulation.} PolicyEngine UK \citep{PolicyEngineUK} is run over the PolicyEngine enhanced FRS microdata --- the Family Resources Survey reweighted and enriched with HMRC Survey of Personal Incomes, Living Costs and Food Survey, and Wealth and Assets Survey information --- under the policy in question. This yields, for every adult in the sample, total tax liability, labour income $x$, and capital income $y$, and hence an \emph{effective tax rate} $ETR = tax/(x+y)$.
+\item \textbf{Marginal rates by perturbation.} Marginal tax rates are computed numerically: add \pounds 1 of employment income (for $\tau^{mtrx}$) or of capital income (for $\tau^{mtry}$) per adult, rerun the microsimulation, and read off the change in household net income. This captures the full statutory schedule including benefit tapers, thresholds, and interactions --- e.g.\ the Universal Credit taper and personal-allowance withdrawal appear in the marginal-rate cloud automatically.
+\item \textbf{Function fitting.} For each year (and, if configured, each age group), parametric functions $\tau^{etr}(x,y)$, $\tau^{mtrx}(x,y)$, $\tau^{mtry}(x,y)$ are fitted to the population-weighted scatter of micro observations by nonlinear least squares (OG-Core's \texttt{txfunc} module).
+\item \textbf{Embedding.} The fitted parameters are handed to OG-Core, where the functions appear in the households' budget constraints and Euler equations \eqref{eq:budget}--\eqref{eq:eul_save}, scaled between model units and pounds by the endogenous \emph{factor} solved alongside the steady state.
+\end{enumerate}
+A reform score is then the comparison of two full general-equilibrium solves whose only primitive difference is the fitted tax-function parameters (plus any structural overrides).
+
+\subsection{Functional forms}
+\label{subsec:txforms}
+
+OG-Core's default specification is the \emph{DEP} (DeBacker--Evans--Phillips) form: a bivariate function of labour income $x$ and capital income $y$ built as a Cobb--Douglas aggregate, with weight $\phi\in[0,1]$, of two univariate ratio-of-polynomials schedules,
+\begin{equation}
+\label{eq:dep}
+\tau(x,y) \;=\; \Bigl[\tau^{x}(x) + shift_x\Bigr]^{\phi}\,\Bigl[\tau^{y}(y) + shift_y\Bigr]^{1-\phi} + shift,
+\end{equation}
+where each univariate component is a bounded, monotone ratio of quadratics,
+\begin{equation}
+\label{eq:depuni}
+\tau^{x}(x) \;=\; \bigl(max_x - min_x\bigr)\,\frac{A x^2 + B x}{A x^2 + B x + 1} \;+\; min_x,
+\qquad A,B>0,
+\end{equation}
+and symmetrically for $\tau^{y}(y)$ with parameters $(C,D,max_y,min_y)$. The twelve parameters per rate type deliver rates that rise smoothly from a (possibly negative) minimum to an asymptotic maximum in each income dimension, and are estimated separately for $ETR$, $MTRx$, and $MTRy$ \citep{DeBackerEvansPhillips2019,DeBackerEvans2024}.
+
+The framework also supports simpler forms on total income $x+y$: the three-parameter \citet{GouveiaStrauss1994} schedule
+\begin{equation}
+\label{eq:gs}
+\tau^{etr}(x+y) \;=\; \phi_0\Bigl[\,1 - \bigl((x+y)^{-\phi_1} + \phi_2\bigr)^{-1/\phi_1}\,(x+y)^{-1}\Bigr],
+\end{equation}
+whose marginal-rate schedule is the analytical derivative of the same fitted parameters --- so effective and marginal rates are mutually consistent by construction --- and the log-linear progressivity form of \citet{HSV2017}, $\tau = 1-\phi_0 (x+y)^{-\phi_1}$. The OG-UK wiring deployed in PolicyEngine Macro fits the Gouveia--Strauss form \eqref{eq:gs} to the PolicyEngine effective-rate microdata for each year of a three-year budget window, taking marginal-rate schedules as its analytical derivatives; the richer DEP form \eqref{eq:dep}--\eqref{eq:depuni} remains available through OG-Core's \texttt{tax\_func\_type} option at the cost of a heavier estimation step.
+
+\subsection{Age pooling}
+\label{subsec:agepooling}
+
+Because ability profiles $e_{j,s}$ vary by age, tax functions can be estimated per age. The integration exposes three settings: \texttt{pooled} (one function for all ages --- fastest and most stable, and the CLI default), \texttt{brackets} (one per age bracket, four groups split at the state pension age), and \texttt{each} (one per single year of age, $S=80$ functions --- closest to \citet{DeBackerEvansPhillips2019}'s baseline but slowest and most fragile in thin cells). Pooling trades away age variation in effective schedules --- pension-age interactions in particular --- for robustness of the fit and of the equilibrium solve.

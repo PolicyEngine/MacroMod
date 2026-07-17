@@ -1,0 +1,74 @@
+\section{Simulation results and comparison with published FRB/US properties}
+\label{sec:results}
+
+\subsection{A 100-basis-point monetary policy shock}
+
+The canonical FRB/US experiment adds 100 basis points to the additive shock term of the inertial Taylor rule (equation~\ref{eq:taylor}) in the first simulation quarter, on top of the add-factored baseline. Table~\ref{tab:irf} reports the full impulse responses from a fresh run of the released example (\texttt{examples/monetary\_policy\_shock.py}), as deviations from baseline over 2026Q1--2030Q4.
+
+\begin{table}[htbp]
+\centering
+\caption{Impulse responses to a 100bp shock to the inertial Taylor rule (deviations from baseline)}
+\label{tab:irf}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Quarter & \texttt{rff} (pp) & \texttt{xgdp} (\%) & \texttt{lur} (pp) & \texttt{picxfe} (pp) \\
+\midrule
+2026Q1 & $1.000$  & $0.001$  & $-0.000$ & $0.000$ \\
+2026Q2 & $0.822$  & $-0.187$ & $0.099$  & $-0.010$ \\
+2026Q3 & $0.654$  & $-0.290$ & $0.151$  & $-0.021$ \\
+2026Q4 & $0.490$  & $-0.436$ & $0.210$  & $-0.025$ \\
+2027Q1 & $0.342$  & $-0.483$ & $0.227$  & $-0.030$ \\
+2027Q2 & $0.211$  & $-0.528$ & $0.246$  & $-0.032$ \\
+2027Q3 & $0.097$  & $-0.544$ & $0.254$  & $-0.033$ \\
+2027Q4 & $0.001$  & $\mathbf{-0.551}$ & $\mathbf{0.258}$ & $\mathbf{-0.034}$ \\
+2028Q1 & $-0.079$ & $-0.544$ & $0.257$  & $-0.033$ \\
+2028Q2 & $-0.143$ & $-0.526$ & $0.250$  & $-0.033$ \\
+2028Q3 & $-0.191$ & $-0.499$ & $0.240$  & $-0.032$ \\
+2028Q4 & $-0.226$ & $-0.464$ & $0.226$  & $-0.031$ \\
+2029Q1 & $-0.248$ & $-0.426$ & $0.209$  & $-0.030$ \\
+2029Q2 & $-0.260$ & $-0.384$ & $0.190$  & $-0.030$ \\
+2029Q3 & $-0.262$ & $-0.340$ & $0.168$  & $-0.029$ \\
+2029Q4 & $-0.257$ & $-0.296$ & $0.146$  & $-0.028$ \\
+2030Q1 & $-0.245$ & $-0.254$ & $0.124$  & $-0.027$ \\
+2030Q2 & $-0.229$ & $-0.214$ & $0.101$  & $-0.027$ \\
+2030Q3 & $-0.209$ & $-0.176$ & $0.080$  & $-0.026$ \\
+2030Q4 & $-0.187$ & $-0.142$ & $0.059$  & $-0.026$ \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\parbox{0.92\textwidth}{\footnotesize Bold entries mark the trough/peak responses. Source: fresh run of \texttt{examples/monetary\_policy\_shock.py} with the April 2026 LONGBASE vintage; identical to the cross-validated experiment of Table~\ref{tab:crossval}.}
+\end{table}
+
+The funds rate rises by exactly 100 basis points on impact and then decays as the inertial rule unwinds the shock, undershooting mildly once activity and inflation have fallen. Real GDP declines with a hump shape to a trough of $-0.55$ per cent seven quarters after the shock (2027Q4), the unemployment rate peaks $+0.26$ percentage point above baseline in the same quarter, and core PCE inflation bottoms at $-0.034$ percentage point --- the model's well-known flat reduced-form Phillips curve at work.
+
+\subsection{Comparison with published FRB/US simulations}
+
+\citet{brayton2014note} report the effects of an unanticipated 1-percentage-point increase in the federal funds rate in FRB/US under both expectations options. Under VAR expectations --- the relevant comparison --- they show the output gap declining by a maximum of about 0.4 percentage point, inflation falling by up to about 0.08 percentage point, and activity remaining below baseline for five to six years, with the real funds rate elevated for two to three years; under MCE the same shock moves the output gap only about $-0.1$ percentage point. Our responses sit squarely in this range: a peak output loss of half a per cent about two years out, unemployment up a quarter point, and a modest inflation decline, with the economy still below baseline at the five-year horizon. Exact magnitudes are not expected to coincide: the published figures reflect an earlier model vintage and baseline (2014 versus the April 2026 \texttt{model.xml} and LONGBASE), a different design of the funds-rate perturbation, and a decade of re-estimation --- the current vintage's inflation response, in particular, is somewhat smaller than the 2014 figure, consistent with the further flattening of the estimated price block. The qualitative fingerprint of FRB/US under VAR expectations --- hump-shaped and persistent real responses with small inflation movements --- is exactly reproduced, and the quantitative agreement with the Fed's own \emph{code} on the identical vintage is at the $10^{-9}$ level (Section~\ref{sec:validation}).
+
+\subsection{A government-purchases experiment}
+
+As a simple fiscal experiment, we exogenise real federal government purchases (\texttt{egfe}) and raise them by 1 per cent of baseline real GDP for eight quarters (2026Q1--2027Q4), leaving monetary policy on the inertial Taylor rule and fiscal closure on surplus-ratio targeting. Table~\ref{tab:fiscal} reports the results from a fresh run.
+
+\begin{table}[htbp]
+\centering
+\caption{Government purchases $+1$\% of GDP for 8 quarters: selected responses}
+\label{tab:fiscal}
+\begin{tabular}{lrrrr}
+\toprule
+Quarter & Shock (\% of GDP) & \texttt{xgdp} (\%) & \texttt{lur} (pp) & \texttt{rff} (pp) \\
+\midrule
+2026Q1 & $1.0$ & $0.74$ & $-0.31$ & $0.11$ \\
+2026Q4 & $1.0$ & $0.69$ & $-0.31$ & $0.34$ \\
+2027Q4 & $1.0$ & $0.59$ & $-0.31$ & $0.48$ \\
+2028Q4 & $0.0$ & $-0.30$ & $0.10$ & $0.12$ \\
+2030Q4 & $0.0$ & $-0.33$ & $0.18$ & $-0.21$ \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\parbox{0.92\textwidth}{\footnotesize Deviations from baseline. The implied spending multiplier is 0.74 on impact and averages about 0.72 over the first year, declining as the funds rate rises; output falls below baseline after the spending expires.}
+\end{table}
+
+The impact multiplier is 0.74, averaging roughly 0.7 over the first year and eroding to 0.59 by the end of the second year as the inertial Taylor rule raises the funds rate by nearly 50 basis points and crowds out private demand; once the stimulus expires, output dips below baseline. This is consistent with the fiscal properties the Board has published for FRB/US: government-spending multipliers of roughly one when the funds rate is held fixed, and noticeably smaller --- below one and declining with horizon --- when monetary policy responds \citep{brayton2014note}. The experiment also illustrates the platform's \texttt{exogenize} mechanism, which converts listed endogenous variables into exogenous instruments while keeping the remaining system simultaneous.

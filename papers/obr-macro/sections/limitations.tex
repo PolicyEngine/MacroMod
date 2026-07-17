@@ -1,0 +1,22 @@
+\section{Limitations}
+\label{sec:limitations}
+
+The PolicyEngine Macro suite grades its members on a \emph{verification gradient}: how far each model's outputs can be audited against ground truth should temper the weight placed on its answers. The OBR emulator is a \emph{replication with a published anchor}---auditable against the EFO tables---which is a stronger epistemic position than a calibrated counterfactual, but the audit itself reveals clear limits. In the spirit of reporting them rather than rounding them away:
+
+\begin{enumerate}
+\item \textbf{The anchored fit is by construction, not skill.} The 0.18/0.29 per cent reproduction of the EFO (Table~\ref{tab:anchored}) demonstrates that the transmission chains are wired correctly; it says nothing about forecasting ability. All forecasting claims rest on the much weaker free-running and held-add-factor scorecards.
+
+\item \textbf{The free-running model is weak, and says so.} Only 4 of 11 computed headline variables land within band; 10 of 21 are passthroughs held at the OBR value (Table~\ref{tab:rawscore}). The suite's documentation describes the free-running fit as ``deliberately report-only, and weak,'' and this paper endorses that description.
+
+\item \textbf{Unpublished inputs impose hard floors.} The OBR does not publish its full databank: the $OSHH$ base constant (behind the 54.6 per cent company-profits error and the $\sim$15 per cent incomes errors), the $I7$/$PR$ index history (behind decaying RPI inflation), and the overseas rate-of-return normalisers (behind the current-account error) are unrecoverable from public sources. These errors are gated against regression, not chased to zero, because closing them would mean fitting to the answer.
+
+\item \textbf{Dead and exogenised channels.} Exports, imports, CPI, the labour-demand block, and wages are exogenous in this configuration---held at the OBR path. Reforms whose first-round incidence runs through those channels (e.g.\ trade or supply-side labour measures) are outside the emulator's current scope, and employment ``accuracy'' is a trivial identity over two passthrough inputs.
+
+\item \textbf{Bridge assumptions are crude and declared.} The static costing lands entirely on nominal household disposable income, flat within each year; the economy's feedback onto disposable income is not recycled; incidence is demand-side only; and corporation-tax reforms are refused rather than mistranslated. Supply-side responses belong to the suite's OLG member.
+
+\item \textbf{Vintage sensitivity and judgement contamination.} The ONS input snapshot is current-vintage data merged into an autumn-2025 baseline, so revision slack silently enters the add-factors; and the held-add-factor base window extends into quarters that are the OBR's own forecast, so ``held judgement'' partly means ``agree with the OBR.'' The forecast scorecard also inherits a jump-off flatter from EFO seeding.
+
+\item \textbf{Stabilised, not structural, investment closure.} The corporation-tax investment closure freezes market-sector output feedback at a tracking-pass reference to suppress an explosive accelerator loop; the mandated sign and boundedness invariants hold, but the closure is a stop-gap pending a populated market-sector supply block, and it is computationally expensive on the hosted service.
+
+\item \textbf{No official counterpart to check dynamics against.} The OBR publishes the model listing and a description \citep{obr2013model} but no official working paper, ready-reckoner of model multipliers, or reference simulation set for the current vintage; the emulator's shock responses can be checked for sign, magnitude class, and convention-consistency, but not line-by-line against an official impulse response.
+\end{enumerate}

@@ -1,0 +1,43 @@
+\begin{thebibliography}{}
+
+\bibitem[{Board of Governors of the Federal Reserve System},
+  2026a]{fedfrbuspython}
+{Board of Governors of the Federal Reserve System} (2026a).
+\newblock {FRB/US} in {Python}.
+\newblock Web page.
+\newblock The pyfrbus simulation package, model.xml and the LONGBASE.TXT
+  database (April 2026 vintage used here).
+
+\bibitem[{Board of Governors of the Federal Reserve System},
+  2026b]{fedfrbusabout}
+{Board of Governors of the Federal Reserve System} (2026b).
+\newblock The {FRB/US} project.
+\newblock Web page.
+\newblock Model equations, data, documentation and simulation packages,
+  published in the public domain.
+
+\bibitem[Brayton et~al., 2014]{brayton2014note}
+Brayton, F., Laubach, T., and Reifschneider, D. (2014).
+\newblock The {FRB/US} model: A tool for macroeconomic policy analysis.
+\newblock FEDS Notes, Board of Governors of the Federal Reserve System.
+\newblock \url{https://doi.org/10.17016/2380-7172.0012}.
+
+\bibitem[Brayton and Tinsley, 1996]{brayton1996guide}
+Brayton, F. and Tinsley, P.~A. (1996).
+\newblock A guide to {FRB/US}: A macroeconomic model of the {United States}.
+\newblock Finance and Economics Discussion Series 1996-42, Board of Governors
+  of the Federal Reserve System, Washington, D.C.
+
+\bibitem[Tinsley, 1993]{tinsley1993}
+Tinsley, P.~A. (1993).
+\newblock Fitting both data and theories: Polynomial adjustment costs and
+  error-correction decision rules.
+\newblock Finance and Economics Discussion Series 93-21, Board of Governors of
+  the Federal Reserve System, Washington, D.C.
+
+\bibitem[Tinsley, 2002]{tinsley2002}
+Tinsley, P.~A. (2002).
+\newblock Rational error correction.
+\newblock {\em Computational Economics}, 19(2):197--225.
+
+\end{thebibliography}

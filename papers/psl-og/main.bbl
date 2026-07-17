@@ -1,0 +1,107 @@
+\begin{thebibliography}{}
+
+\bibitem[Auerbach and Kotlikoff, 1987]{AuerbachKotlikoff1987}
+Auerbach, A.~J. and Kotlikoff, L.~J. (1987).
+\newblock {\em Dynamic Fiscal Policy}.
+\newblock Cambridge University Press, Cambridge.
+
+\bibitem[Blundell et~al., 2007]{BlundellMaCurdyMeghir2007}
+Blundell, R., MaCurdy, T., and Meghir, C. (2007).
+\newblock Labor supply models: Unobserved heterogeneity, nonparticipation and
+  dynamics.
+\newblock In Heckman, J.~J. and Leamer, E.~E., editors, {\em Handbook of
+  Econometrics}, volume~6A, pages 4667--4775. Elsevier, Amsterdam.
+
+\bibitem[DeBacker and Evans, 2024a]{DeBackerEvans2024}
+DeBacker, J. and Evans, R.~W. (2024a).
+\newblock {OG-Core}: Documentation for the large-scale dynamic general
+  equilibrium overlapping generations model.
+\newblock Policy Simulation Library,
+  \url{https://pslmodels.github.io/OG-Core/}.
+\newblock Open-source model documentation, PSLmodels/OG-Core.
+
+\bibitem[DeBacker and Evans, 2024b]{DeBackerEvansOGUSA}
+DeBacker, J. and Evans, R.~W. (2024b).
+\newblock {OG-USA}: Documentation for the large-scale united states calibration
+  of the {OG-Core} overlapping generations model.
+\newblock Policy Simulation Library, \url{https://pslmodels.github.io/OG-USA/}.
+\newblock Open-source calibration documentation, PSLmodels/OG-USA.
+
+\bibitem[DeBacker et~al., 2019]{DeBackerEvansPhillips2019}
+DeBacker, J., Evans, R.~W., and Phillips, K.~L. (2019).
+\newblock Integrating microsimulation models of tax policy into a {DGE}
+  macroeconomic model.
+\newblock {\em Public Finance Review}, 47(2):207--275.
+
+\bibitem[DeBacker et~al., 2025]{OGUKdocs}
+DeBacker, J., Evans, R.~W., Woodruff, N., and Ghenis, M. (2025).
+\newblock {OG-UK}: An overlapping generations model to simulate fiscal policy
+  in the united kingdom.
+\newblock Policy Simulation Library, \url{https://github.com/PSLmodels/OG-UK}.
+\newblock Open-source calibration of OG-Core; version 0.3.0.
+
+\bibitem[Diamond, 1965]{Diamond1965}
+Diamond, P.~A. (1965).
+\newblock National debt in a neoclassical growth model.
+\newblock {\em American Economic Review}, 55(5):1126--1150.
+
+\bibitem[Evans and DeBacker, 2024]{EvansDeBacker2024}
+Evans, R.~W. and DeBacker, J. (2024).
+\newblock {\em Overlapping Generations Models for Policy Analysis: Theory and
+  Computation}.
+\newblock Open Research Group, Inc.
+\newblock Online textbook, \url{https://github.com/OpenRG/OGprimer}.
+
+\bibitem[Evans and Phillips, 2014]{EvansPhillips2014}
+Evans, R.~W. and Phillips, K.~L. (2014).
+\newblock {OLG} life cycle model transition paths: Alternate model forecast
+  method.
+\newblock {\em Computational Economics}, 43(1):105--131.
+
+\bibitem[Gouveia and Strauss, 1994]{GouveiaStrauss1994}
+Gouveia, M. and Strauss, R.~P. (1994).
+\newblock Effective federal individual income tax functions: An exploratory
+  empirical analysis.
+\newblock {\em National Tax Journal}, 47(2):317--339.
+
+\bibitem[Heathcote et~al., 2017]{HSV2017}
+Heathcote, J., Storesletten, K., and Violante, G.~L. (2017).
+\newblock Optimal tax progressivity: An analytical framework.
+\newblock {\em Quarterly Journal of Economics}, 132(4):1693--1754.
+
+\bibitem[Nishiyama and Smetters, 2007]{NishiyamaSmetters2007}
+Nishiyama, S. and Smetters, K. (2007).
+\newblock Does social security privatization produce efficiency gains?
+\newblock {\em Quarterly Journal of Economics}, 122(4):1677--1719.
+
+\bibitem[{Office for Budget Responsibility}, 2025a]{OBR2025EFO}
+{Office for Budget Responsibility} (2025a).
+\newblock Economic and fiscal outlook.
+\newblock Technical report, Office for Budget Responsibility, London.
+
+\bibitem[{Office for Budget Responsibility}, 2025b]{OBR2025OLG}
+{Office for Budget Responsibility} (2025b).
+\newblock The {UK} overlapping generations model ({UK OLG}).
+\newblock Working Paper~22, Office for Budget Responsibility, London.
+
+\bibitem[Samuelson, 1958]{Samuelson1958}
+Samuelson, P.~A. (1958).
+\newblock An exact consumption-loan model of interest with or without the
+  social contrivance of money.
+\newblock {\em Journal of Political Economy}, 66(6):467--482.
+
+\bibitem[{United Nations, Department of Economic and Social Affairs, Population
+  Division}, 2024]{UNWPP2024}
+{United Nations, Department of Economic and Social Affairs, Population
+  Division} (2024).
+\newblock World population prospects 2024.
+\newblock \url{https://population.un.org/wpp/}.
+
+\bibitem[Woodruff et~al., 2025]{PolicyEngineUK}
+Woodruff, N., Ghenis, M., and {PolicyEngine contributors} (2025).
+\newblock {PolicyEngine UK}: An open-source microsimulation model of the {UK}
+  tax and benefit system.
+\newblock \url{https://github.com/PolicyEngine/policyengine-uk}.
+\newblock Version 2.88.0.
+
+\end{thebibliography}

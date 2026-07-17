@@ -1,0 +1,32 @@
+\section{Results: a worked reform}
+\label{sec:results}
+
+To illustrate the full pipeline, consider raising the basic rate of income tax by one percentage point (20p to 21p) from April 2026---the canonical illustrative change in HMRC's ready reckoner. Expressed as a PolicyEngine reform it is a single parameter, \texttt{\{"gov.hmrc.income\_tax.rates.uk[0].rate": 0.21\}}, scored through the bridge over a five-year window, 2026--2030.
+
+\paragraph{Static costing.} PolicyEngine's microsimulation puts the direct Exchequer yield at \pounds 6.46 billion in 2026, rising with fiscal drag and earnings growth to \pounds 7.38 billion by 2030 (Table~\ref{tab:reform}). Household net income falls by a corresponding amount, and losers far outnumber winners---as expected for a broad-based rate rise.
+
+\paragraph{Second-round effects.} Converted to a quarterly $HHDI$ shock (roughly $-$\pounds 1.6bn to $-$\pounds 1.8bn per quarter) and propagated through the consumption function~\eqref{eq:cons} and the expenditure identity, the reform lowers GDP by 0.02--0.03 per cent relative to baseline over the window: households smooth part of the income loss (the short-run marginal propensity to consume out of income in equation~\eqref{eq:cons} is modest, with the error-correction term pulling consumption toward its long-run income-and-wealth solution at $\sim$12.5 per cent per quarter), so the demand drag is small relative to the mechanical costing. This is the sign and order of magnitude the OBR's own indirect-effect adjustments deliver for income-tax measures \citep{obr2014costings}.
+
+\begin{table}[ht]
+\centering
+\caption{Basic rate of income tax $+$1pp, scored through the static-costing bridge}
+\label{tab:reform}
+\begin{tabular}{lrr}
+\toprule
+ & 2026 & 2030 \\
+\midrule
+Static costing (PolicyEngine microsimulation), \pounds bn/yr & $+6.46$ & $+7.38$ \\
+Quarterly $HHDI$ shock, \pounds bn/qtr & $-1.62$ & $-1.85$ \\
+Second-round GDP effect (OBR emulator), \% of GDP & $-0.02$ & $-0.03$ \\
+\midrule
+HMRC ready reckoner, 1p on basic rate, \pounds bn/yr & \multicolumn{2}{c}{$\approx$ 6--8 (nearly 8 in 2026--27)} \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\parbox{0.92\textwidth}{\footnotesize \emph{Notes:} Reform \texttt{\{"gov.hmrc.income\_tax.rates.uk[0].rate": 0.21\}} from 2026, scored via \texttt{obr\_score\_reform} (Section~\ref{sec:bridge}): PolicyEngine annual costings on enhanced FRS microdata, converted to a flat-within-year quarterly shock on nominal household disposable income, propagated through the anchored OBR emulator under the demand closure. The GDP effect is the deviation of $GDPM$ from the anchored baseline. HMRC comparison: \citet{hmrc2025reckoner}.}
+\end{table}
+
+\paragraph{Comparison with HMRC's ready reckoner.} HMRC's \emph{Direct effects of illustrative tax changes} bulletin---the official ready reckoner, produced on the OBR-certified costing basis---puts a 1p change in the basic rate at close to \pounds 8 billion a year in 2026--27 \citep{hmrc2025reckoner}, and published vintages over recent years span roughly \pounds 6--8 billion per 1p. The PolicyEngine static costing of \pounds 6.46--7.38 billion sits within that range, toward its lower end; differences of this size are expected across costings that differ in data vintage (survey microdata versus HMRC administrative Survey of Personal Incomes), baseline policy assumptions (threshold-freeze paths), and behavioural adjustments (HMRC's figures embed taxable-income elasticities for higher incomes). Under the OBR's policy-costing conventions \citep{obr2014costings}, the ready-reckoner figure corresponds to the post-behavioural \emph{direct} effect, while the economy-wide feedback is applied at the forecast level---exactly the decomposition the bridge reproduces: the microsimulation supplies the direct effect, the macro model the indirect one.
+
+\paragraph{Direct macro levers.} Reforms outside the household tax--benefit space use the exogenous levers directly. A \pounds 5bn/yr government-consumption shock ($CGG$ $+$\pounds 1.25bn per quarter) raises GDP approximately one-for-one on impact under the demand closure; a 5pp corporation-tax cut with the investment closure raises business investment through the user cost of capital, with sign and boundedness locked by the CI invariants of Table~\ref{tab:anchored}.

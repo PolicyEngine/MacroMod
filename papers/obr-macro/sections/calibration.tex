@@ -1,0 +1,70 @@
+\section{Calibration and validation}
+\label{sec:calibration}
+
+All results in this paper are conditioned on the November 2025 EFO vintage \citep{obr2025efo} and the 15 October 2025 model code. Validation is organised around a principle borrowed from the reliability literature: separate what the model reproduces \emph{by construction} from what it genuinely generates, and gate the former hard while reporting the latter honestly.
+
+\subsection{The anchored baseline: a hard gate}
+
+With add-factors on (Section~\ref{sec:anchoring}), the anchored baseline must reproduce the OBR's published aggregates---that is what anchoring means, and any deviation is a broken transmission chain, not a forecast error. Table~\ref{tab:anchored} reports the anchored fit over the scored horizon 2025Q1--2027Q4. The GDP mean absolute percentage error is 0.18 per cent and consumption 0.29 per cent; continuous integration hard-fails the build if either exceeds 1 per cent, if any published aggregate turns non-finite on the horizon, or if the expenditure identity~\eqref{eq:gdpid} fails to close within 0.5 per cent of GDP in any quarter. (An earlier version of the anchored solve missed the EFO by 1.93 per cent on GDP because $HHDI$/$RHHDI$ ran raw and leaked into the consumption equation; anchoring the published income aggregates closed the gap to 0.18 per cent.)
+
+\begin{table}[ht]
+\centering
+\caption{Anchored baseline versus the OBR November 2025 EFO, 2025Q1--2027Q4}
+\label{tab:anchored}
+\begin{tabular}{lccl}
+\toprule
+Invariant & Metric & Value & CI gate \\
+\midrule
+Real GDP ($GDPM$) & MAPE vs EFO & 0.18\% & hard fail if $\geq 1\%$ \\
+Consumption ($CONS$) & MAPE vs EFO & 0.29\% & hard fail if $\geq 1\%$ \\
+Key aggregates finite & NaN/inf on horizon & none & hard fail on any \\
+Expenditure identity & max gap, \% of GDP & $<0.5\%$ & hard fail if $\geq 0.5\%$ \\
+Spending multiplier sign & $\Delta GDPM$ for $+CGG$ & positive & hard fail on sign flip \\
+Corp.-tax investment sign & $\Delta IF$ for $\pm TCPRO$ & correct, bounded & hard fail on sign/blow-up \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\parbox{0.92\textwidth}{\footnotesize \emph{Notes:} The anchored fit is a by-construction invariant, not a forecast claim: add-factors absorb the model's tracking error so the baseline reproduces the published EFO path. Structural sign invariants (positive fiscal multiplier; a corporation-tax cut raises, and a rise lowers, investment, with the response bounded) are gated alongside it. Source: \texttt{tests/test\_model\_invariants.py} in the model repository.}
+\end{table}
+
+\subsection{The free-running model: an honest scorecard}
+
+The true measure of calibration is the raw model with add-factors off. Two flattery traps are removed before scoring. First, \emph{de-seeding}: the solver's data frame is pre-filled with the EFO path, so a quarter whose Gauss--Seidel iteration exits on a stall would otherwise sit near the EFO seed; the scorecard re-solves each period after reseeding every live computed variable from the model's own previous-period value. Second, \emph{passthrough labelling}: a 0.00 per cent error usually does not mean a good forecast---it means the variable was left at the OBR's published value because its equation is dead or exogenous. Only variables the model actually computes measure calibration, and the employment identity ($ETLFS = HWA/AVH$, both passthrough inputs) is flagged as trivial rather than counted as a behavioural win.
+
+Table~\ref{tab:rawscore} presents the scorecard. ``Within band'' collapses per-metric thresholds---rates within 1.0pp, net balances within 1.5 per cent of GDP (the OBR's own convention for scoring a difference of two large gross flows), levels within 10 per cent MAPE.
+
+\begin{table}[ht]
+\centering
+\caption{Free-running (raw) model versus the OBR November 2025 EFO, 2025Q1--2027Q4}
+\label{tab:rawscore}
+\begin{tabular}{llrl}
+\toprule
+Variable & Metric & Error (3yr) & Status \\
+\midrule
+Real GDP & MAPE & 5.70\% & computed --- fair \\
+Consumption & MAPE & 9.45\% & computed --- fair \\
+Trade balance & \% of GDP & 0.62\% & computed --- fair \\
+Employment & MAPE & 0.00\% & computed --- \emph{trivial identity} \\
+Unemployment rate & pp & 1.01 & computed --- poor \\
+RPI inflation & pp & 2.03 & computed --- poor \\
+Household income & MAPE & 14.76\% & computed --- poor \\
+Real household income & MAPE & 14.48\% & computed --- poor \\
+Business investment & MAPE & 15.48\% & computed --- poor \\
+Current account & \% of GDP & 2.76\% & computed --- poor \\
+Company profits & MAPE & 54.57\% & computed --- \textbf{off} \\
+\midrule
+\multicolumn{2}{l}{Investment, exports, imports, employees, avg.\ earnings,} & 0.00\% & passthrough \\
+\multicolumn{2}{l}{CPI, CPI inflation, GDP deflator, wages, compensation} & & (held at OBR value) \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\parbox{0.92\textwidth}{\footnotesize \emph{Notes:} De-seeded raw solve, add-factors off. Of 21 headline variables, 11 are computed and 10 are passthroughs; of the 11 computed, 4 land within band (36\%)---real GDP, consumption, the trade balance, and the trivial employment identity. Bands: rates $<$1.0pp, net balances $<$1.5\% of GDP, levels $<$10\% MAPE. Source: \texttt{docs/calibration\_scorecard.md}, generated by \texttt{obr\_macro/calibration\_score.py}.}
+\end{table}
+
+Three residual errors deserve explanation because they are \emph{floors}, not bugs. The company-profits error (54.6 per cent) traces to households' operating surplus: the published equation $OSHH = 12874 + 0.85\,IROO - DIPHH^{mf}$ evaluates to roughly \pounds 38bn against the OBR databank's roughly \pounds 77bn, and the gap lives in the additive base constant and the vintage of the unpublished rent index feeding $IROO$. Because $HHDI$ \emph{adds} $OSHH$ (income runs $\sim$15 per cent low) while $FYCPR$ \emph{subtracts} it (profits are inflated), one unpublished constant drives a large share of the error in three scored variables at once. Re-tuning the constant to hit the target would be fitting to the answer, so it is documented and gated against regression instead. Similarly, RPI inflation decays because the unpublished $I7$/$PR$ index history runs out around 2026Q2, and the current-account error is bounded by overseas rate-of-return normalisers the OBR does not publish. These figures are far better than early development versions (business investment 318 per cent, household income $\sim$932 per cent, company profits $\sim$375 per cent), which reflected genuine bugs in the incomes, investment, and financial-account blocks that were found and fixed; what remains is bounded by unpublished inputs.
+
+\subsection{Held-add-factor forecast}
+
+Between the two extremes sits the forecasting configuration (Section~\ref{sec:anchoring}): add-factors fitted over 2024Q1--2025Q4, held constant, projected over 2026Q1--2027Q4. Scored against the EFO, real GDP comes in at 2.2 per cent MAPE, consumption 3.6 per cent, unemployment 0.75pp, and the current account 0.9 per cent of GDP---within band---while business investment ($\sim$18 per cent), company profits ($\sim$47 per cent), and household income ($\sim$12 per cent) sit over band: 10 of 16 headline variables are computed and 6 of those land within band. Honesty caveats apply and are documented with the result: the forecast is initialised at the EFO values it is scored against (a neutral jump-off scores worse); the add-factor base window extends into quarters that are themselves OBR forecast rather than outturn, so the held add-factors partly encode ``agree with the OBR''; and the ONS input snapshot is current-vintage data merged into an autumn-2025 baseline, so revision slack is absorbed into the add-factors.

@@ -1,0 +1,40 @@
+\section{Calibration and validation}
+\label{sec:validation}
+
+Validation is against ground truth --- the restrictions and published figures of \citet{brignone2025} --- rather than the mere absence of exceptions. The checks fall into three tiers: exact invariants that must hold on every draw, sign checks on quantities the identification does \emph{not} restrict, and quantitative comparisons with the paper's reported magnitudes inside deliberately wide bands that respect the replication's proxy data and Monte-Carlo noise. All checks run in continuous integration on the real dataset.
+
+\paragraph{Exact invariants.} On \emph{every} accepted identification draw: (i) each element of $B$ restricted to zero in Table~\ref{tab:restrictions} is zero to machine precision (largest violation below $10^{-9}$) --- the \citet{arias2018} construction guarantees this and the test suite verifies it; (ii) every sign restriction holds strictly ($s \cdot B_{vj} > 0$), the accept/reject invariant; (iii) $BB' = \Sigma$ within $10^{-7}$, so every accepted $B$ is a valid structural factorisation. Median impact impulse responses also respect every Table~\ref{tab:restrictions} sign.
+
+\paragraph{Unrestricted sign checks.} The paper's key overidentifying check is that the real oil price --- whose response to a world supply shock is left \emph{unrestricted} --- rises after a positive world supply shock. The replication reproduces this: the median impact response of the sterling real oil price to a one-standard-deviation world supply shock is $+6.06$ ($100\cdot\log$ units), positive as in the paper's Figure~2.
+
+\paragraph{Comparison with published magnitudes.} Table~\ref{tab:validation} collects the model-versus-paper comparison. The headline calibration target is the share of UK forecast-error variance attributed to the identified global shocks (world demand $+$ energy $+$ supply) at the one-year horizon: the paper reports roughly 40 per cent for UK GDP and roughly 50 per cent for UK CPI. The replication's CI validation configuration yields \textbf{47.4} and \textbf{42.4} per cent respectively; the full 10{,}000-draw production run yields 40.9 and 50.1 per cent. Both sit within the deliberately wide $[30, 60]$ per cent acceptance band, which is chosen to flag gross regressions without being flaky to Monte-Carlo variation and to the proxy world aggregates. The importance-weighted slow benchmark (ESS 350.3) moves the shares towards the paper's values, consistent with the weights correcting the \citet{arias2018} sampler towards the uniform-over-rotations posterior.
+
+\begin{table}[t]
+\centering
+\caption{Model versus paper: validation summary}
+\label{tab:validation}
+\small
+\begin{tabular}{lllc}
+\toprule
+Check & Replication & Paper & Verdict \\
+\midrule
+Zero restrictions (Table~\ref{tab:restrictions}) & exact, every draw ($<10^{-9}$) & imposed & pass \\
+Sign restrictions (Table~\ref{tab:restrictions}) & every draw and median IRF & imposed & pass \\
+$BB' = \Sigma$ & every draw ($<10^{-7}$) & by construction & pass \\
+Oil price after world supply shock (impact) & $+6.06$ (unrestricted) & positive (Fig.~2) & pass \\
+Global share, UK GDP FEVD, 1 yr & 47.4\% (40.9\% at 10k draws) & $\sim$40\% & in band \\
+Global share, UK CPI FEVD, 1 yr & 42.4\% (50.1\% at 10k draws) & $\sim$50\% & in band \\
+FEVD rows sum to one & $<10^{-10}$, all horizons/draws & identity & pass \\
+Historical decomposition reconstructs data & $<10^{-8}$ & identity & pass \\
+Forecast-revision adding-up identity & $<5.3\times10^{-12}$ & identity & pass \\
+Shock narrative (2008, 2022--23 episodes) & reproduced & Fig.~5 & pass \\
+Largest domestic CPI contributor & UK supply & monetary policy & disclosed miss \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\parbox{0.95\textwidth}{\footnotesize \emph{Notes:} ``In band'' refers to the $[30,60]$\% calibration band around the paper's approximate published shares. Production run: 10{,}000 posterior draws, 751 accepted, importance-weighted ESS 350.3. The final row is a known, documented discrepancy attributed to the proxy world aggregates and the smaller accepted sample; see the repository's sense-check log.}
+\end{table}
+
+\paragraph{Internal consistency.} Identities are verified to numerical precision rather than assumed: FEVD shares sum to one at every horizon on every draw within $10^{-10}$ (equation~\ref{eq:fevd}); the historical decomposition~\eqref{eq:hd} --- structural shocks plus Covid component plus deterministic component --- reconstructs the observed data within $10^{-8}$, and the stochastic component equals the sum over shocks within $10^{-10}$; and in the forecast-revision exercise the identity ``forecast at $T$ $=$ pseudo-forecast at $T{-}1$ $+$ composite impulse response'' holds per draw with a maximum absolute error of $5.3\times10^{-12}$ across all draws, horizons and variables.
+
+\paragraph{Narrative reproduction.} The estimated shock series reproduce the paper's episodes: the 2008 collapse in world demand, the contractionary world energy shocks of 2022, UK monetary loosening readings after 2022 followed by tightening readings in 2023, and muted shocks during 2020--21 by construction of the Covid dummies. Known caveats are equally documented: median UK GDP responses to world demand and supply shocks decay through zero at long horizons where the paper's remain positive (the paper's path lies inside the replication's bands), and within the global supply side the energy shock contributes more than the non-energy supply shock to world GDP and oil-price variance, where the paper's figure suggests the reverse ordering; the paper's claims about the \emph{combined} supply side are matched.

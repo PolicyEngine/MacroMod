@@ -1,0 +1,83 @@
+\section{The model}
+\label{sec:model}
+
+The OBR's macroeconomic model descends from the Treasury model first built in 1970 and has been jointly maintained by the OBR and HM Treasury since 2010 \citep{obr2013model}. It is a quarterly, large-scale macroeconometric model in the estimated-structural tradition of \citet{klein1950} and \citet{fair2004}: a small number of estimated behavioural equations embedded in a dense web of national-accounts identities, with expectations largely implicit and adjustment dynamics carried by error-correction terms \citep{davidson1978, engle1987}. It sits in the lineage of the large UK policy models reviewed by \citet{wallis1987}, and is the UK institutional counterpart of semi-structural policy models such as the Federal Reserve's FRB/US \citep{brayton1996}. The 15 October 2025 model listing used here contains 372 equations over 636 variable codes. Of these, roughly 29 equations are econometrically estimated, 216 are accounting identities, and 138 are calibrated or technical relationships; 253 variables are exogenous inputs---the fiscal levers, market assumptions, world demand, and demographic paths on which the OBR conditions its forecast---and 383 are solved by the model.
+
+\subsection{The expenditure core}
+
+Real GDP at market prices ($GDPM$) is tied to its expenditure components by the identity
+\begin{equation}
+GDPM \;=\; CGG + CONS + IF + DINV + VAL + X - M + SDE,
+\label{eq:gdpid}
+\end{equation}
+where $CGG$ is government consumption, $CONS$ private consumption, $IF$ total fixed investment, $DINV$ inventory change, $VAL$ valuables, $X$ and $M$ exports and imports, and $SDE$ the statistical discrepancy. In the published listing this identity is arranged with inventories as the residual; the emulator's closure swap (Section~\ref{sec:method}) re-arranges it so that output responds to demand shocks.
+
+\subsection{Consumption}
+
+The centrepiece behavioural equation is an error-correction consumption function in the tradition of \citet{davidson1978}. As published (coefficients verbatim from the OBR listing):
+\begin{equation}
+\begin{aligned}
+\Delta \ln CONS \;=\;& 0.2646 \;+\; 0.1030\,\Delta \ln RHHDI \;-\; 0.0084\,\Delta LFSUR \\
+&+\; 0.1269\,\Delta \ln\!\left(\frac{1000\,GPW}{PCE/100}\right) \;-\; 0.0004\,\Delta\!\left[R_{-1} - \pi^{PCE}_{4}\right] \\
+&-\; 0.1251\,\Big[ \ln CONS_{-1} - 0.4393 \ln RHHDI_{-1} \\
+&\qquad\quad - 0.1059 \ln\!\left(\tfrac{1000\,GPW_{-1}}{PCE_{-1}/100}\right) - 0.2216 \ln\!\left(\tfrac{NFWPE_{-1}}{PCE_{-1}/100}\right) \Big],
+\end{aligned}
+\label{eq:cons}
+\end{equation}
+where $RHHDI$ is real household disposable income, $LFSUR$ the LFS unemployment rate, $GPW$ gross housing wealth, $NFWPE$ net financial wealth of the personal sector, $PCE$ the consumption deflator, $R$ Bank Rate, and $\pi^{PCE}_4$ annual consumption-deflator inflation. The long-run solution ties consumption to income, housing wealth, and financial wealth with an adjustment speed of about 12.5 per cent per quarter; the short run responds to income growth, unemployment changes, wealth growth, and the real interest rate. A companion equation splits off durables ($CDUR$) with relative-price, income, and user-cost terms.
+
+\subsection{Investment}
+
+Total investment is built from its components,
+\begin{equation}
+IBUS \;=\; IF - GGI - PCIH - PCLEB - IH - IPRL,
+\end{equation}
+with business investment behaviour specified as an error-correction accelerator on market-sector output with a user-cost channel:
+\begin{equation}
+\begin{aligned}
+\Delta \ln IBUSX \;=\;& 0.1992\,\Delta \ln IBUSX_{-3} \;+\; 1.0057\,\Delta \ln MSGVA_{-1} \;-\; 0.0012\,CBIUD \\
+&-\; 0.0418\,\big[\ln IBUSX_{-1} - \ln (1000\,KMSXH_{-2}) + KGAP_{-2}\big] \;-\; 0.0884,
+\end{aligned}
+\label{eq:ibus}
+\end{equation}
+where $MSGVA$ is market-sector gross value added, $CBIUD$ a CBI capacity-utilisation survey balance, $KMSXH$ the market-sector capital stock, and $KGAP$ the gap between actual and desired capital---the term through which the corporation-tax rate ($TCPRO$), by raising the user cost of capital, lowers desired capital and hence investment. In the October 2025 listing this behavioural line ships commented out (the OBR runs investment off its databank with judgement); the emulator's corporation-tax experiments therefore operate the channel through an explicit investment closure with the cost-of-capital relationship restored and stabilised (Section~\ref{sec:method}).
+
+\subsection{Incomes}
+
+Household disposable income is a pure accounting identity over the sector accounts:
+\begin{equation}
+\begin{aligned}
+HHDI \;=\;& MI + FYEMP - EMPSC - EESC - TYWHH + NMTRHH + SBHH \\
+&+ (PIRHH - PIPHH + FSMADJ) - HHSB + HHISC + (EECOMPC - EECOMPD) + OSHH,
+\end{aligned}
+\label{eq:hhdi}
+\end{equation}
+summing mixed income, employee compensation less social contributions, taxes on income ($TYWHH$), net transfers and benefits, net property income, and households' operating surplus ($OSHH$, mostly imputed rent). Real income deflates by the consumption deflator, $RHHDI = 100\,HHDI/PCE$, and feeds equation~\eqref{eq:cons}. This chain---$HHDI \to RHHDI \to CONS \to GDPM$---is the transmission path used by the microsimulation bridge. On the other side of the factor-income split, company profits are the residual of the operating-surplus account:
+\begin{equation}
+FYCPR \;=\; OS - OSHH - OSGG - OSPC - RENTCO + SA - FISIMPS.
+\label{eq:fycpr}
+\end{equation}
+The wage bill aggregates employment, average earnings, and public-sector pay:
+\begin{equation}
+WFP = ADJW \cdot PSAVEI \cdot (EMS - ESLFS) + \tfrac{52}{4000}\,CGWADJ \cdot ERCG \cdot ECG + \tfrac{52}{4000}\,LAWADJ \cdot ERLA \cdot ELA,
+\end{equation}
+with private-sector average earnings ($PSAVEI$) determined by an estimated error-correction equation in market-sector prices, productivity, unemployment, and the wedge between consumer and producer prices. Employment is the identity $ETLFS = 1000\,(HWA/AVH)$, total hours over average hours---both exogenous inputs in this configuration, a point that matters for the honest scorecard in Section~\ref{sec:calibration}.
+
+\subsection{Prices}
+
+The retail-price block builds the RPI from mortgage-interest and other components, $PR = I7\,[(1-W_4)\,PRXMIP/I9 + W_4\,PRMIP/I4]$, with annual RPI inflation $RPI = 100\,(PR/PR_{-4} - 1)$; the consumption deflator moves with the CPI through $PCE/PCE_{-4} = CPI/CPI_{-4}$. The CPI itself is exogenous in this configuration (the OBR imposes its inflation judgement), so the deflator path is conditioned on the EFO inflation forecast.
+
+\subsection{Fiscal block}
+
+Government receipts and spending aggregate from their components---for example income-tax receipts $INCTAXG = TYEM + TSEOP + TCINV - INCTAC + CTC - NPISHTC$---up to public sector net borrowing, $PSNB = -PSCB + PSNI$ (the current deficit plus net investment). The fiscal levers a reform can pull directly include government consumption $CGG$, nominal central-government investment $CGIPS$, the corporation-tax rate $TCPRO$, and the market assumptions (Bank Rate $R$, gilt yields, the exchange rate).
+
+\subsection{Add-factors and the anchoring mechanism}
+\label{sec:anchoring}
+
+Every estimated equation in the listing carries an add-factor declaration (EViews \texttt{@ADD}), the residual-adjustment device through which the OBR imposes judgement on the pure model solution \citep{obr2013model}: for a behavioural equation $y_t = f(x_t) + a_t$, the add-factor $a_t$ shifts the equation's intercept period by period. The emulator uses the same device for two distinct purposes.
+
+\emph{Anchoring.} For the baseline, add-factors are computed at every quarter as exactly the residuals that reconcile each behavioural equation to the published EFO path, so the anchored baseline reproduces the OBR's published aggregates \emph{by construction}. Two published income aggregates ($HHDI$, $RHHDI$) are computed by level identities that receive no add-factor; because their unpublished inputs drift, they are instead held exogenously at their EFO values in the anchored solve---closing a leak that otherwise pulls consumption (through the $\Delta\ln RHHDI$ term) about 2 per cent off the EFO. This is anchoring to ground truth, not snapshotting a model error: the shock and baseline runs share the identical anchored structure, so reform deltas isolate the policy effect.
+
+\emph{Forecasting.} For genuine forecasts the emulator implements the OBR's own held-add-factor method: residuals are fitted over a recent base window (2024Q1--2025Q4), held constant, and the model is projected forward eight quarters. The forecast is the model's structural dynamics anchored by the frozen judgement terms---a real forecast rather than a replay of the input.
+
+\emph{Exogenous variables.} The 253 exogenous inputs comprise the fiscal levers above, monetary and financial-market assumptions, world demand and trade prices, demographics, and the technical adjustment factors. Where the EFO does not publish an input the model needs, the emulator draws on a vendored ONS snapshot: of 261 endogenous variables referenced by the listing but absent from the EFO tables, 199 had identifiable ONS series codes, yielding a 348-series databank that gives the circular fiscal and financial sub-blocks real balancing data.
