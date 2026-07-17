@@ -1,4 +1,4 @@
-"""Shared pytest configuration for the macromod integration tests.
+"""Shared pytest configuration for the policyengine-macro integration tests.
 
 Tests marked `slow` run a real model estimation/solve or a full PolicyEngine
 import (seconds to many minutes). They are skipped by default so a plain

@@ -8,7 +8,7 @@ import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-SERVER = StdioServerParameters(command=sys.executable, args=["-m", "macromod.mcp_server"])
+SERVER = StdioServerParameters(command=sys.executable, args=["-m", "policyengine_macro.mcp_server"])
 
 EXPECTED_TOOLS = {
     "score_reform",

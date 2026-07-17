@@ -6,7 +6,7 @@ import json
 
 import click
 
-from macromod import core
+from policyengine_macro import core
 
 
 def _emit_json(obj) -> None:
@@ -33,7 +33,7 @@ def main() -> None:
               show_default=True)
 @click.option("--reform", required=True,
               help='PolicyEngine reform JSON, e.g. \'{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}\' '
-                   "(same shape as `macromod population-impact`).")
+                   "(same shape as `pe-macro population-impact`).")
 @click.option("--model", required=True,
               type=click.Choice(list(core.SCORE_MODELS)),
               help="Scoring model: og (OG-UK steady state; slow), obr (OBR "
@@ -52,9 +52,9 @@ def score(country, reform, model, year, max_iter, years, dataset, as_json):
     """Score a PolicyEngine reform with a scoring model of the suite.
 
     One reform vocabulary: the same {parameter_path: value} dict as
-    `macromod population-impact`. Every result carries a common `score`
-    block for cross-model comparison (`macromod compare`). For raw OBR
-    variable shocks in model units, use `macromod obr-shock`.
+    `pe-macro population-impact`. Every result carries a common `score`
+    block for cross-model comparison (`pe-macro compare`). For raw OBR
+    variable shocks in model units, use `pe-macro obr-shock`.
     """
     try:
         res = core.score_reform(
@@ -98,7 +98,7 @@ def _echo_score_block(score: dict) -> None:
 @click.option("--country", type=click.Choice(["uk", "us"]), default="uk",
               show_default=True)
 @click.option("--reform", required=True,
-              help='PolicyEngine reform JSON (same shape as `macromod score`).')
+              help='PolicyEngine reform JSON (same shape as `pe-macro score`).')
 @click.option("--models", default="microsim,obr", show_default=True,
               help="Comma-separated scoring models (og, obr, microsim).")
 @click.option("--year", default=2026, show_default=True, help="Reform start year.")
@@ -142,7 +142,7 @@ def compare(country, reform, models, year, as_json):
 
 
 @main.command("obr-shock")
-@click.option("--var", required=True, help="Policy variable to shock (see `macromod variables`).")
+@click.option("--var", required=True, help="Policy variable to shock (see `pe-macro variables`).")
 @click.option("--shock", required=True, type=float,
               help="Shock size; units depend on the variable (£m/quarter for CGG, decimal for TCPRO).")
 @click.option("--periods", default=12, show_default=True, help="Quarters the shock is applied.")

@@ -1,7 +1,7 @@
 name: Integration tests
 
-# Fast wiring/integration suite for the macromod integration layer. Runs on
-# PRs and pushes that touch integration/**. It installs the base macromod
+# Fast wiring/integration suite for the policyengine-macro integration layer. Runs on
+# PRs and pushes that touch integration/**. It installs the base policyengine-macro
 # package plus the two lightweight model repos (OBR emulator + UK SVAR) so the
 # real OBR/SVAR wiring is exercised, but NOT the heavy PolicyEngine country
 # models — those (and every full model solve) are marked `slow` and skipped by
@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Install macromod + the two lightweight model repos
+      - name: Install policyengine-macro + the two lightweight model repos
         run: |
           python -m pip install --upgrade pip
           # Base package (click, numpy, pandas, mcp) + pytest.

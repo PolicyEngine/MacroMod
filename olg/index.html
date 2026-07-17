@@ -362,14 +362,14 @@ impact = map_transition_to_real_world(base_tp, reform_tp)
     </div>
     <div class="prose">
       <p>
-        OG-UK is wired into the macromod CLI as two commands:
+        OG-UK is wired into the PolicyEngine Macro CLI as two commands:
         <code>og-baseline</code> (baseline steady state, model units) and
         <code>og-score</code> (score a PolicyEngine reform — one or more parameter changes,
         baseline + reform steady states mapped to £bn). Both use the fast
         configuration: pooled tax functions, single sector, steady state only.
       </p>
-      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>macromod og-baseline
-macromod og-score --reform <span class="kw">'{"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}'</span></code></pre></div>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pe-macro og-baseline
+pe-macro og-score --reform <span class="kw">'{"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}'</span></code></pre></div>
       <p>
         Two prerequisites, stated plainly. First, the calibration needs the
         PolicyEngine <strong>enhanced-FRS microdata</strong>, which is gated:

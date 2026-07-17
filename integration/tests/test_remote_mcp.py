@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(
 
 URL = os.environ.get(
     "MACROMOD_REMOTE_URL",
-    "https://policyengine--macromod-mcp-serve.modal.run/mcp",
+    "https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp",
 )
 
 EXPECTED_TOOLS = {

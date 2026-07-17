@@ -14,7 +14,7 @@ import types
 
 import pytest
 
-from macromod import core
+from policyengine_macro import core
 
 
 # ---------------------------------------------------------------------------

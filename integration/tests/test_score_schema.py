@@ -13,8 +13,8 @@ import os
 
 import pytest
 
-from macromod import core
-from macromod.cli import main
+from policyengine_macro import core
+from policyengine_macro.cli import main
 
 
 # ---------------------------------------------------------------------------

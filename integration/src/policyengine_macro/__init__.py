@@ -8,11 +8,11 @@ Wraps the suite's models behind one API:
   ``obr_shock``.
 - UK SVAR / BVAR model (``boe_var``): forecasts and structural shock readings.
 
-Same functions are exposed via a CLI (``macromod``) and an MCP server
-(``python -m macromod.mcp_server``).
+Same functions are exposed via a CLI (``pe-macro``) and an MCP server
+(``python -m policyengine_macro.mcp_server``).
 """
 
-from macromod.core import (
+from policyengine_macro.core import (
     score_reform,
     obr_shock,
     obr_list_variables,

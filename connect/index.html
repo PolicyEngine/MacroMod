@@ -221,7 +221,7 @@
             <span class="step-n mono">1</span>
             <h3>Copy the PolicyEngine Macro URL</h3>
             <p>Click the copy button — you'll paste it in the next step.</p>
-            <div class="copyblock"><code>https://policyengine--macromod-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
           </div>
           <div class="step">
             <span class="step-n mono">2</span>
@@ -240,7 +240,7 @@
           <div class="step" style="grid-column: 1 / -1;">
             <h3>Using Claude Code?</h3>
             <p>One command adds the same server to Claude Code:</p>
-            <div class="copyblock"><code>claude mcp add --transport http macromod https://policyengine--macromod-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>claude mcp add --transport http policyengine-macro https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
           </div>
         </div>
 
@@ -249,7 +249,7 @@
             <span class="step-n mono">1</span>
             <h3>Copy the PolicyEngine Macro URL</h3>
             <p>Click the copy button — you'll paste it in the next step.</p>
-            <div class="copyblock"><code>https://policyengine--macromod-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
           </div>
           <div class="step">
             <span class="step-n mono">2</span>
@@ -268,7 +268,7 @@
           <div class="step" style="grid-column: 1 / -1;">
             <h3>Using Codex?</h3>
             <p>One command adds the same server to OpenAI's Codex CLI:</p>
-            <div class="copyblock"><code>codex mcp add macromod --url https://policyengine--macromod-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>codex mcp add policyengine-macro --url https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
           </div>
         </div>
 
@@ -286,13 +286,13 @@
             <span class="step-n mono">1</span>
             <h3>Install</h3>
             <p>Python 3.11+. One package wraps the OBR emulator, the UK SVAR, and PolicyEngine behind a single command — models and data included.</p>
-            <div class="copyblock"><code>pip install "macromod[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"</code><button data-copy>copy</button></div>
           </div>
           <div class="step">
             <span class="step-n mono">2</span>
             <h3>Ask Claude Code</h3>
             <p>Claude Code runs the CLI from its terminal — just describe the reform, or run it yourself:</p>
-            <div class="copyblock"><code>macromod obr-shock --var CGG --shock 1250 --periods 4</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>pe-macro obr-shock --var CGG --shock 1250 --periods 4</code><button data-copy>copy</button></div>
           </div>
           <div class="step">
             <span class="step-n mono">3</span>
@@ -306,13 +306,13 @@
             <span class="step-n mono">1</span>
             <h3>Install</h3>
             <p>Python 3.11+. One package wraps the OBR emulator, the UK SVAR, and PolicyEngine behind a single command — models and data included.</p>
-            <div class="copyblock"><code>pip install "macromod[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"</code><button data-copy>copy</button></div>
           </div>
           <div class="step">
             <span class="step-n mono">2</span>
             <h3>Ask Codex</h3>
             <p>Codex runs the CLI from its terminal — just describe the reform, or run it yourself:</p>
-            <div class="copyblock"><code>macromod obr-shock --var CGG --shock 1250 --periods 4</code><button data-copy>copy</button></div>
+            <div class="copyblock"><code>pe-macro obr-shock --var CGG --shock 1250 --periods 4</code><button data-copy>copy</button></div>
           </div>
           <div class="step">
             <span class="step-n mono">3</span>
@@ -322,7 +322,7 @@
         </div>
 
         <hr class="panel-divider" />
-        <p class="soon-hint" style="max-width: none;">The <code class="mono">macromod</code> CLI installs straight from GitHub — one <code class="mono">pip install</code> pulls the CLI plus all three models with their data, no cloning required. It lives in this repo's <a href="https://github.com/PolicyEngine/macro/tree/main/integration"><code class="mono">integration/</code></a> directory; a shorter <code class="mono">pip install macromod</code> will come with PyPI publication.</p>
+        <p class="soon-hint" style="max-width: none;">The <code class="mono">pe-macro</code> CLI installs straight from GitHub — one <code class="mono">pip install</code> pulls the CLI plus all three models with their data, no cloning required. It lives in this repo's <a href="https://github.com/PolicyEngine/macro/tree/main/integration"><code class="mono">integration/</code></a> directory; a shorter <code class="mono">pip install policyengine-macro</code> will come with PyPI publication.</p>
         <p class="panel-foot mono" style="color: var(--paper-faint);">
           coding agents with a terminal — Claude Code, Codex — can run the CLI directly, no MCP needed; or add the MCP server with one command (see the MCP tab).
         </p>
@@ -668,9 +668,9 @@ UK CPI  identified global <span class="out-val">50.1%</span>  domestic <span cla
         Under the hood: an 8-variable Bayesian VAR (1992Q1–2023Q2, Covid
         dummies) is sampled from its normal-inverse-Wishart posterior, and each
         draw is rotated per Arias–Rubio-Ramírez–Waggoner (2018) until the zero
-        and sign restrictions name six structural shocks. The macromod CLI
-        wraps the common outputs: <code>macromod forecast</code>,
-        <code>macromod shocks</code>, <code>macromod summary</code>.
+        and sign restrictions name six structural shocks. The PolicyEngine Macro CLI
+        wraps the common outputs: <code>pe-macro forecast</code>,
+        <code>pe-macro shocks</code>, <code>pe-macro summary</code>.
       </p>
 
       <div class="dials">

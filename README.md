@@ -36,7 +36,7 @@ benefits for the UK and US — the same engine that powers
 [policyengine.org](https://policyengine.org) — complementing the macro models.
 
 The models live in their own repositories. This repo hosts the **PolicyEngine Macro
-website** and the **integration layer** (`integration/`) — a `macromod` CLI
+website** and the **integration layer** (`integration/`) — a `pe-macro` CLI
 and MCP server over the models, with CI auto-deploying the hosted MCP server
 to Modal on every merge — merges to the model repos
 (obr-macroeconomic-model, boe-var-model) trigger the same redeploy via
@@ -88,11 +88,11 @@ The [connect page](https://macromod.vercel.app/connect/) covers three ways to us
 models:
 
 - **MCP** — the hosted Model Context Protocol server is **live** at
-  `https://policyengine--macromod-mcp-serve.modal.run/mcp`. Add it as a custom
+  `https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp`. Add it as a custom
   connector in Claude or ChatGPT, or in Claude Code:
 
   ```bash
-  claude mcp add --transport http macromod https://policyengine--macromod-mcp-serve.modal.run/mcp
+  claude mcp add --transport http policyengine-macro https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp
   ```
 
   Ten tools: `score_reform` (a PolicyEngine reform — the same
@@ -103,19 +103,19 @@ models:
   (`calculate_household`, `household_reform_impact`, `list_reform_parameters`,
   `population_reform_impact`). `score_reform` with `model='og'` works locally
   only: OG-UK is deliberately excluded from the hosted image (a score takes
-  tens of minutes) — use `macromod score --model og` instead; `model='obr'`
+  tens of minutes) — use `pe-macro score --model og` instead; `model='obr'`
   awaits the microsim static-costing bridge (#9), so raw shocks go through
   `obr_shock`.
   The server runs serverless and scales to zero — the first call after idle
   may take ~10 s to wake.
-- **CLI** — the `macromod` CLI (`score`, `obr-shock`, `variables`, `forecast`,
+- **CLI** — the `pe-macro` CLI (`score`, `obr-shock`, `variables`, `forecast`,
   `shocks`, `summary`, `household`, `household-impact`, `population-impact`,
   `parameters`, `og-score`) lives
   in [`integration/`](integration/); PyPI publish is planned. Install it —
   with all three hosted-model packages and their data, no clone — via:
 
   ```bash
-  pip install "macromod[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
+  pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
   ```
 - **Code** — drive each model's Python API yourself.
 
@@ -165,10 +165,10 @@ non-real numbers as illustrative.
 
 ## Roadmap
 
-- [x] `macromod` CLI (in `integration/`; PyPI publish still to come)
-- [x] Local MCP server (`python -m macromod.mcp_server`)
-- [x] Hosted MCP server (`https://policyengine--macromod-mcp-serve.modal.run/mcp`, auto-deployed by CI)
-- [x] OG-UK steady-state scoring (`macromod score --model og` / `macromod og-score`, local only)
+- [x] `pe-macro` CLI (in `integration/`; PyPI publish still to come)
+- [x] Local MCP server (`python -m policyengine_macro.mcp_server`)
+- [x] Hosted MCP server (`https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp`, auto-deployed by CI)
+- [x] OG-UK steady-state scoring (`pe-macro score --model og` / `pe-macro og-score`, local only)
 - [x] Population-level PolicyEngine reform scoring (`population_reform_impact`, hosted and local)
 - [ ] Additional macroeconomic model classes
 - See [#1](https://github.com/PolicyEngine/macro/issues/1) — Rust port of the solver core

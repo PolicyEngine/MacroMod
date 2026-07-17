@@ -55,7 +55,7 @@ jobs:
           python-version: "3.13"
       - name: Install remote test deps
         # The remote suite talks to the public MCP endpoint over HTTP; it needs
-        # no Modal auth and does not import the macromod package.
+        # no Modal auth and does not import the policyengine-macro package.
         run: pip install --upgrade pip && pip install "mcp[cli]" pytest anyio
       - name: Validate the live deployment
         working-directory: integration

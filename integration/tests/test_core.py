@@ -1,10 +1,10 @@
-"""Unit tests for the macromod adapters (small draws to keep runtime low)."""
+"""Unit tests for the policyengine_macro adapters (small draws to keep runtime low)."""
 
 import json
 
 import pytest
 
-from macromod import core
+from policyengine_macro import core
 
 
 def test_list_variables():
@@ -158,7 +158,7 @@ def test_summary_without_boe_var_uses_env_checkout(monkeypatch, tmp_path):
 def test_cli_summary_without_boe_var_errors_actionably(monkeypatch):
     from click.testing import CliRunner
 
-    from macromod.cli import main
+    from policyengine_macro.cli import main
 
     _block_boe_var(monkeypatch)
     monkeypatch.delenv("MACROMOD_BOE_VAR_REPO", raising=False)
@@ -172,7 +172,7 @@ def test_cli_summary_env_checkout_missing_files_errors(monkeypatch, tmp_path):
     empty headings and exit 0 (round-2 review, new finding 1)."""
     from click.testing import CliRunner
 
-    from macromod.cli import main
+    from policyengine_macro.cli import main
 
     _block_boe_var(monkeypatch)
     monkeypatch.setenv("MACROMOD_BOE_VAR_REPO", str(tmp_path))

@@ -1,17 +1,17 @@
 """PolicyEngine Macro MCP server (stdio transport).
 
-Run with:  python -m macromod.mcp_server
+Run with:  python -m policyengine_macro.mcp_server
 
-Exposes the same adapter functions as the `macromod` CLI as MCP tools.
+Exposes the same adapter functions as the `pe-macro` CLI as MCP tools.
 """
 
 from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
-from macromod import core
+from policyengine_macro import core
 
-mcp = FastMCP("macromod")
+mcp = FastMCP("policyengine-macro")
 
 
 @mcp.tool()
@@ -41,7 +41,7 @@ def score_reform(
                     general-equilibrium comparison; the reform enters through
                     PolicyEngine-estimated tax functions. VERY SLOW (tens of
                     minutes) and excluded from the hosted server — run it
-                    locally via `macromod score --model og`; calling it here
+                    locally via `pe-macro score --model og`; calling it here
                     returns install/CLI instructions.
             'obr' — OBR macroeconometric emulator via the microsim
                     static-costing bridge: the reform is costed per year with

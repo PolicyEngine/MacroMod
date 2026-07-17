@@ -2,14 +2,14 @@
 
     modal deploy integration/modal_app.py
 
-Serves the FastMCP instance from `macromod.mcp_server` (tools: score_reform,
+Serves the FastMCP instance from `policyengine_macro.mcp_server` (tools: score_reform,
 obr_shock, list_reform_variables, forecast_uk, latest_shocks, model_summary,
 calculate_household, household_reform_impact, list_reform_parameters,
 population_reform_impact) as an
-ASGI app at  https://policyengine--macromod-mcp-serve.modal.run/mcp
+ASGI app at  https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp
 
 Both model repos resolve their data files relative to their own repo root
-(`Path(__file__)`-relative); `macromod.core`'s svar_summary falls back to a
+(`Path(__file__)`-relative); `policyengine_macro.core`'s svar_summary falls back to a
 checkout via MACROMOD_BOE_VAR_REPO only when boe_var is absent (it is
 installed here, so the fallback never fires). We bake the repos into the
 image at the SAME absolute paths and `pip install -e` them, so every path
@@ -35,9 +35,12 @@ COST PROFILE
 
 POPULATION DATA (population_reform_impact)
 ------------------------------------------
-- Secret "macromod-hf" provides HUGGING_FACE_TOKEN for the private UK
+- Secret "macromod-hf" (legacy name kept deliberately; renaming the Modal
+  Secret needs maintainer action) provides HUGGING_FACE_TOKEN for the private UK
   enhanced-FRS microdata on HuggingFace.
-- A modal.Volume ("macromod-pe-data") is mounted at /root/.cache/macromod;
+- A modal.Volume ("macromod-pe-data" — legacy name kept deliberately, see
+  above) is mounted at /root/.cache/macromod (legacy path, matches the data
+  already on the volume);
   HF_HOME points the HuggingFace download cache inside it and
   MACROMOD_PE_DATA_DIR puts the derived per-year .h5 files (~92MB/year)
   there too, so the ~125MB download + dataset build happens once and
@@ -51,7 +54,7 @@ scenario: measured >17 minutes for ONE baseline solve at defaults on a laptop,
 and a reform score needs two solves. That cannot fit the 600s Modal timeout
 with any headroom, so oguk is excluded here; the score_reform MCP tool with
 model='og' will return an ImportError on the hosted server. Use the local CLI
-(`macromod score --model og`) or a local MCP server instead. If it is ever added,
+(`pe-macro score --model og`) or a local MCP server instead. If it is ever added,
 `pip install git+https://github.com/PSLmodels/OG-UK` works (hatchling build;
 heavy deps: ogcore, policyengine-uk==2.88.0), but calibration also downloads
 the enhanced FRS dataset (HUGGING_FACE_TOKEN) and UN demographics at runtime.
@@ -92,7 +95,7 @@ image = (
         "click",
         "mcp[cli]>=1.9",  # needs FastMCP.streamable_http_app()
         # PolicyEngine microsimulation (household calculator tools). Importing
-        # it loads the full UK+US country models (~20s), so macromod.core
+        # it loads the full UK+US country models (~20s), so policyengine_macro.core
         # imports it lazily inside the pe_* adapters — module import at
         # container start stays fast; only the first policyengine tool call
         # in a fresh container pays the load.
@@ -135,13 +138,15 @@ image = (
     )
 )
 
-app = modal.App("macromod-mcp")
+app = modal.App("policyengine-macro-mcp")
 
 # Persistent cache for PolicyEngine population microdata: the HuggingFace
 # download cache (HF_HOME) and the derived per-year .h5 datasets both live
 # on this volume, so the first population_reform_impact call pays the
 # download/build once and every later container reuses it.
+# Legacy path kept deliberately: it matches the data already on the volume.
 CACHE_DIR = "/root/.cache/macromod"
+# Volume keeps its legacy name deliberately; renaming needs maintainer action.
 pe_data_volume = modal.Volume.from_name("macromod-pe-data", create_if_missing=True)
 
 
@@ -156,7 +161,7 @@ pe_data_volume = modal.Volume.from_name("macromod-pe-data", create_if_missing=Tr
     min_containers=0,       # scale to zero: no idle cost
     scaledown_window=300,   # stay warm 5 min between calls, then sleep
     max_containers=3,       # spend cap
-    secrets=[modal.Secret.from_name("macromod-hf")],
+    secrets=[modal.Secret.from_name("macromod-hf")],  # legacy name kept deliberately
     volumes={CACHE_DIR: pe_data_volume},
 )
 @modal.concurrent(max_inputs=20)
@@ -167,8 +172,8 @@ def serve():
     if "HUGGING_FACE_TOKEN" not in os.environ and os.environ.get("HF_TOKEN"):
         os.environ["HUGGING_FACE_TOKEN"] = os.environ["HF_TOKEN"]
 
-    from macromod import core
-    from macromod.mcp_server import mcp
+    from policyengine_macro import core
+    from policyengine_macro.mcp_server import mcp
 
     # Warm the cheap in-process cache (parses committed results/*.md only —
     # NOT a model estimation, which would make cold starts take minutes).
@@ -188,7 +193,7 @@ def serve():
     from mcp.server.transport_security import TransportSecuritySettings
 
     mcp.settings.transport_security = TransportSecuritySettings(
-        allowed_hosts=["policyengine--macromod-mcp-serve.modal.run"],
+        allowed_hosts=["policyengine--policyengine-macro-mcp-serve.modal.run"],
         allowed_origins=["*"],
     )
     return mcp.streamable_http_app()

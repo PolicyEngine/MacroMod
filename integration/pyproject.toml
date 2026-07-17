@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "macromod"
+name = "policyengine-macro"
 version = "0.1.0"
-description = "MacroMod integration layer: unified CLI and MCP server over the OBR macro emulator and the UK SVAR model"
+description = "PolicyEngine Macro integration layer: unified CLI and MCP server over the OBR macro emulator and the UK SVAR model"
 requires-python = ">=3.10"
 dependencies = [
     "click>=8",
@@ -28,7 +28,9 @@ models = [
 ]
 
 [project.scripts]
-macromod = "macromod.cli:main"
+pe-macro = "policyengine_macro.cli:main"
+# Legacy alias kept for existing docs/users.
+macromod = "policyengine_macro.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

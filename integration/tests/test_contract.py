@@ -17,7 +17,7 @@ import os
 
 import pytest
 
-from macromod import core
+from policyengine_macro import core
 
 
 def _import_or_require(modname: str):

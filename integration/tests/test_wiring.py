@@ -19,8 +19,8 @@ import json
 import pytest
 from click.testing import CliRunner
 
-from macromod import core, mcp_server
-from macromod.cli import main
+from policyengine_macro import core, mcp_server
+from policyengine_macro.cli import main
 
 # The full tool surface the server must expose (README + mcp_server.py).
 EXPECTED_TOOLS = {

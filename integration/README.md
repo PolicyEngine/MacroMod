@@ -1,6 +1,6 @@
 # PolicyEngine Macro integration layer
 
-A single Python package (`macromod`) exposing the suite's models behind
+A single Python package (`policyengine-macro`) exposing the suite's models behind
 one CLI and one MCP server:
 
 - **OBR emulator** (`obr_macro`): runs the OBR's published model equations —
@@ -13,7 +13,7 @@ one CLI and one MCP server:
   microdata (UK data is private: set `HUGGING_FACE_TOKEN`; the hosted
   deployment provisions it server-side).
 - **OG-UK** (`oguk`, optional/local-only): overlapping-generations
-  steady-state scoring through `macromod score --model og`.
+  steady-state scoring through `pe-macro score --model og`.
 
 `score_reform` is the one reform vocabulary across the suite: the same flat
 `{parameter_path: value}` dict as the microsimulation tools, dispatched to a
@@ -35,11 +35,11 @@ scoring model by its declared contract:
 Every scoring result also carries a common `score` block — the `ScoreResult`
 schema ([#10](https://github.com/PolicyEngine/macro/issues/10)): model id and
 class, horizon, per-quantity deltas with units and basis, assumptions,
-caveats, and an optional distributional block — so `macromod compare
+caveats, and an optional distributional block — so `pe-macro compare
 --reform '...' --models microsim,obr` renders the same reform through
 different model classes in one table.
 
-`src/macromod/core.py` holds the model adapters (single source of truth);
+`src/policyengine_macro/core.py` holds the model adapters (single source of truth);
 `cli.py` and `mcp_server.py` are thin wrappers over the same functions.
 
 ## Install
@@ -48,10 +48,10 @@ No clone needed — one pip install pulls the CLI plus the hosted-model
 packages (the OBR emulator and the SVAR ship their data as package data):
 
 ```bash
-pip install "macromod[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
+pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
 ```
 
-A shorter `pip install macromod` will come with PyPI publication.
+A shorter `pip install policyengine-macro` will come with PyPI publication.
 
 For development, install with the full model set (policyengine included via
 the `[models]` extra), then override the two model packages with local
@@ -73,36 +73,36 @@ uv venv .venv-og && uv pip install -p .venv-og/bin/python -e ./integration \
     "oguk @ git+https://github.com/PSLmodels/OG-UK"
 ```
 
-(`-e ./integration` gives that env the `macromod` executable; the base
+(`-e ./integration` gives that env the `pe-macro` executable (and its legacy `macromod` alias); the base
 package pins no policyengine version, so OG-UK's own pins win there.)
 
 ## CLI
 
 ```bash
-macromod variables                                    # OBR shock variables + units
-macromod score --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
+pe-macro variables                                    # OBR shock variables + units
+pe-macro score --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
     --model og                                        # PolicyEngine reform -> OG-UK (slow)
-macromod score --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
+pe-macro score --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
     --model obr --years 5                             # static costing -> OBR second-round effects
-macromod compare --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
+pe-macro compare --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
     --models microsim,obr                             # same reform, model classes side by side
-macromod obr-shock --var CGG --shock 1250 --periods 4 # £5bn/yr spending, 1 year
-macromod obr-shock --var TCPRO --shock -0.05          # 5pp corp tax cut (closure auto-on)
-macromod forecast --horizons 12 --draws 500           # YoY GDP & CPI, 68/90 bands
-macromod shocks --draws 500                           # P(sign) of latest-quarter shocks
-macromod summary                                      # instant, parses committed results
+pe-macro obr-shock --var CGG --shock 1250 --periods 4 # £5bn/yr spending, 1 year
+pe-macro obr-shock --var TCPRO --shock -0.05          # 5pp corp tax cut (closure auto-on)
+pe-macro forecast --horizons 12 --draws 500           # YoY GDP & CPI, 68/90 bands
+pe-macro shocks --draws 500                           # P(sign) of latest-quarter shocks
+pe-macro summary                                      # instant, parses committed results
 ```
 
 PolicyEngine tools:
 
 ```bash
-macromod parameters                                   # curated reform parameters
-macromod household --country uk \
+pe-macro parameters                                   # curated reform parameters
+pe-macro household --country uk \
     --people '[{"age":35,"employment_income":50000}]'
-macromod household-impact --country uk \
+pe-macro household-impact --country uk \
     --people '[{"age":35,"employment_income":50000}]' \
     --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.25}'
-macromod population-impact --country uk \
+pe-macro population-impact --country uk \
     --reform '{"gov.hmrc.cgt.basic_rate":0.20,"gov.hmrc.cgt.higher_rate":0.40}'
 ```
 
@@ -119,7 +119,7 @@ benefits the MCP server).
 
 ## MCP server
 
-Runs over stdio via `python -m macromod.mcp_server`, exposing ten tools:
+Runs over stdio via `python -m policyengine_macro.mcp_server`, exposing ten tools:
 `score_reform` (a PolicyEngine reform through a chosen macro model),
 `obr_shock` and `list_reform_variables` (raw OBR variable shocks),
 `forecast_uk`, `latest_shocks`, `model_summary` (SVAR), and the PolicyEngine
@@ -129,7 +129,7 @@ tools `calculate_household`, `household_reform_impact`,
 Test locally with Claude Code:
 
 ```bash
-claude mcp add macromod -- python -m macromod.mcp_server
+claude mcp add policyengine-macro -- python -m policyengine_macro.mcp_server
 ```
 
 Default `draws=500` keeps tool calls to tens of seconds; raise it (e.g. 2000+)
@@ -142,7 +142,7 @@ The MCP server is deployed on Modal (workspace `policyengine`) over
 streamable HTTP:
 
 ```
-https://policyengine--macromod-mcp-serve.modal.run/mcp
+https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp
 ```
 
 Defined in `modal_app.py`. `policyengine[models]` is installed in the image;
@@ -158,8 +158,8 @@ model load. The private UK microdata credential comes from the Modal secret
 - Claude Code:
 
   ```bash
-  claude mcp add --transport http macromod-remote \
-      https://policyengine--macromod-mcp-serve.modal.run/mcp
+  claude mcp add --transport http policyengine-macro-remote \
+      https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp
   ```
 
 **Cost profile** — `min_containers=0` (scales to zero, $0 idle),

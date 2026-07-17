@@ -662,6 +662,8 @@ _PE_POP_BASELINE_CACHE: dict[tuple[str, int, str | None], tuple] = {}
 def _pe_pop_data_folder() -> str:
     import os
 
+    # MACROMOD_PE_DATA_DIR env var and ~/.cache/macromod path keep their
+    # legacy names deliberately (the hosted Modal volume is mounted there).
     return os.environ.get(
         "MACROMOD_PE_DATA_DIR",
         os.path.expanduser("~/.cache/macromod/policyengine-data"),

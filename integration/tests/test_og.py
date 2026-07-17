@@ -7,7 +7,7 @@ OG-UK (oguk) is a local-only tool: it is deliberately excluded from the Modal
 deployment image (see modal_app.py). oguk 0.3.0 calibrates its tax functions
 from the PolicyEngine enhanced-FRS microdata and pins policyengine-uk==2.88.0;
 policyengine-uk >= 2.89 renamed the dataset keys (enhanced_frs_2023_24_* ->
-populace_uk_*), so calibration KeyError-fails under a newer PE. The macromod
+populace_uk_*), so calibration KeyError-fails under a newer PE. The policyengine-macro
 package itself requires policyengine[models]>=4 (which brings pe-uk >= 2.89 for
 the household/population tools), so a single env cannot satisfy both. The real
 end-to-end solve is therefore skipped when the installed PE is incompatible
@@ -20,7 +20,7 @@ import os
 
 import pytest
 
-from macromod import core
+from policyengine_macro import core
 
 
 def _oguk_calibration_skip_reason():
