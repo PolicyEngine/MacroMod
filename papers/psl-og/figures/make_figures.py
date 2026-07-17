@@ -300,6 +300,42 @@ def fig_dep_compare():
     plt.close(fig)
 
 
+def fig_gdp_range():
+    """Published long-run GDP effects across OG-Core-family / OLG simulations.
+
+    All values are as published: OBR WP 22 Table 5.1 (basic rate +/-1pp);
+    DeBacker-Evans-Phillips (2019) TCJA steady state (preferred spec, with
+    the +0.03 to +0.15 range across tax-function forms); Pomerleau-DeBacker-
+    Evans (AEI, 2020) Biden platform long run.
+    """
+    rows = [
+        # (label, value, lo, hi)
+        ("OBR UK OLG: basic rate +1pp", -0.1, None, None),
+        ("OBR UK OLG: basic rate −1pp", 0.1, None, None),
+        ("OG-USA: TCJA (steady state)", 0.07, 0.03, 0.15),
+        ("OG-USA: Biden 2020 platform\n(AEI, long run)", -0.2, None, None),
+    ]
+    ypos = np.arange(len(rows))[::-1]
+    fig, ax = plt.subplots(figsize=(7.2, 2.9))
+    for y, (lab, v, lo, hi) in zip(ypos, rows):
+        ax.barh(y, v, height=0.55, color=OI[0] if v >= 0 else OI[1],
+                alpha=0.85)
+        if lo is not None:
+            ax.plot([lo, hi], [y, y], color=OI[6], lw=1.4)
+            ax.plot([lo, lo], [y - 0.12, y + 0.12], color=OI[6], lw=1.4)
+            ax.plot([hi, hi], [y - 0.12, y + 0.12], color=OI[6], lw=1.4)
+    ax.axvline(0, color=OI[6], lw=0.8)
+    ax.set_yticks(ypos)
+    ax.set_yticklabels([r[0] for r in rows], fontsize=8)
+    ax.set_xlabel("Published long-run GDP effect (%)")
+    ax.set_xlim(-0.45, 0.45)
+    ax.set_title("Long-run GDP effects of tax reforms in published "
+                 "OG-family simulations", fontsize=9)
+    fig.tight_layout()
+    fig.savefig(f"{HERE}/fig_gdp_range.pdf")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     fig_demographics()
     fig_ability()
@@ -308,4 +344,5 @@ if __name__ == "__main__":
     fig_dep()
     fig_targets()
     fig_dep_compare()
+    fig_gdp_range()
     print("done")

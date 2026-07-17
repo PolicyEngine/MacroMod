@@ -48,7 +48,7 @@ fig, ax = plt.subplots(figsize=(6.4, 3.6))
 groups = [
     (
         "Purchases,\nTaylor rule",
-        0.73,
+        0.72,
         (0.7, 1.0),
         None,
         "Coenen et al. (2012),\nno accommodation",

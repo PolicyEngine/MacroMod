@@ -229,9 +229,9 @@ def main():
 
     # ONS outturns (YoY, per cent): quarterly-average CPI inflation and
     # quarterly real GDP growth on a year earlier (see paper for sources).
-    outturn_q = pd.period_range("2024Q3", "2025Q3", freq="Q")
-    outturn_cpi = [2.0, 2.5, 2.8, 3.5, 3.8]
-    outturn_gdp = [1.0, 1.5, 1.3, 1.4, 1.3]
+    outturn_q = pd.period_range("2024Q3", "2026Q1", freq="Q")
+    outturn_cpi = [2.0, 2.5, 2.8, 3.5, 3.8, 3.4, 3.1]
+    outturn_gdp = [1.0, 1.5, 1.3, 1.4, 1.3, 1.0, 0.9]
 
     fig, axes = plt.subplots(1, 2, figsize=(8.8, 3.2))
     for ax, i, title, pts in (

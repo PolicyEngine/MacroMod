@@ -274,7 +274,7 @@
 
         <hr class="panel-divider" />
         <p class="mono foot-head" style="margin-bottom:10px;">on the server</p>
-        <p class="soon-hint" style="max-width: none;">Ten tools across four of the five models (FRB/US is local-only and not exposed via MCP): <code class="mono">score_reform</code> (a PolicyEngine reform — the same reform dict as the microsimulation tools — through a chosen macro model; OG-UK runs locally only, and the OBR arm runs hosted via the static-costing bridge); <code class="mono">obr_shock</code> and <code class="mono">list_reform_variables</code> (OBR — raw variable shocks in model units); <code class="mono">forecast_uk</code>, <code class="mono">latest_shocks</code>, <code class="mono">model_summary</code> (SVAR); and <code class="mono">calculate_household</code>, <code class="mono">household_reform_impact</code>, <code class="mono">list_reform_parameters</code>, <code class="mono">population_reform_impact</code> (PolicyEngine). OG-UK scoring stays local-only (a solve takes tens of minutes, so the hosted server excludes it); every other tool above, including score_reform through the OBR static-costing bridge, including population-level reform scoring, runs on the hosted server. The server is serverless and scales to zero — the first call after a quiet spell takes ~10 seconds to wake.</p>
+        <p class="soon-hint" style="max-width: none;">Ten tools across four of the five models (FRB/US is local-only): <code class="mono">score_reform</code> (a PolicyEngine reform dict through a chosen macro model — the OBR arm runs hosted via the static-costing bridge; OG-UK runs locally only, since a solve takes tens of minutes); <code class="mono">obr_shock</code> and <code class="mono">list_reform_variables</code> (OBR raw variable shocks); <code class="mono">forecast_uk</code>, <code class="mono">latest_shocks</code>, <code class="mono">model_summary</code> (SVAR); and <code class="mono">calculate_household</code>, <code class="mono">household_reform_impact</code>, <code class="mono">list_reform_parameters</code>, <code class="mono">population_reform_impact</code> (PolicyEngine). The server scales to zero — the first call after a quiet spell takes ~10 seconds to wake.</p>
       </div>
 
       <!-- ================= CLI ================= -->
@@ -322,7 +322,7 @@
         </div>
 
         <hr class="panel-divider" />
-        <p class="soon-hint" style="max-width: none;">The <code class="mono">pe-macro</code> CLI installs straight from GitHub — one <code class="mono">pip install</code> pulls the CLI plus all three models with their data, no cloning required. It lives in this repo's <a href="https://github.com/PolicyEngine/macro/tree/main/integration"><code class="mono">integration/</code></a> directory; a shorter <code class="mono">pip install policyengine-macro</code> will come with PyPI publication.</p>
+        <p class="soon-hint" style="max-width: none;">One <code class="mono">pip install</code> pulls the CLI plus the three hosted models with their data, no cloning required. It lives in this repo's <a href="https://github.com/PolicyEngine/macro/tree/main/integration"><code class="mono">integration/</code></a> directory; a shorter <code class="mono">pip install policyengine-macro</code> will come with PyPI publication.</p>
         <p class="panel-foot mono" style="color: var(--paper-faint);">
           coding agents with a terminal — Claude Code, Codex — can run the CLI directly, no MCP needed; or add the MCP server with one command (see the MCP tab).
         </p>

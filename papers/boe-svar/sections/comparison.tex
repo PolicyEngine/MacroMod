@@ -42,3 +42,46 @@ Figure~\ref{fig:comparison} shows the same comparison graphically. No ours-versu
 \caption{One-year global FEVD shares of UK GDP and UK CPI: replication versus \citet{brignone2025}. Blue: fresh fixed-seed run of the CI fast configuration (600 draws, 51 accepted, unweighted). Orange: production run (10{,}000 draws, 751 accepted, importance-weighted). Hatched grey: the paper's approximate published values. Shaded region: the $[30,60]$ per cent calibration band used by the validation suite.}
 \label{fig:comparison}
 \end{figure}
+
+\subsection{The companion Staff Working Paper on structural forecast analysis}
+\label{sec:comparison-swp}
+
+The natural question after Table~\ref{tab:quarterly} is whether the model's authors have published forecast-evaluation numbers of their own to compare against. The companion paper --- \citet{brignone2026}, Bank of England Staff Working Paper No.~1{,}165, ``Structural forecast analysis'', January 2026 --- turns out to answer a different question. It is a methods paper: it derives a five-way structural decomposition of forecast errors and forecast revisions (deterministic component, past shocks, revisions to past shocks, new shocks, and parameter/vintage revision) and illustrates it on a \emph{four}-variable UK SVAR (Bank Rate, real GDP, CPI and real oil prices, 1992Q1--2025Q2, five lags, hierarchical \citealp{giannone2015} hyperpriors, Covid dummies for 2020), running real-time unconditional forecasts each quarter from 2021Q4 to 2025Q2 on the actual ONS vintages. It publishes no root-mean-squared errors, coverage rates or benchmark comparisons --- its output is the structural attribution of the errors, shown in figures --- so no numeric accuracy comparison with Table~\ref{tab:quarterly} is possible, and the RMSEs reported there (0.32 percentage points at horizons of one to seven quarters) stand without an official counterpart.
+
+The comparison that \emph{is} possible is of the attribution itself, and it is reassuring. \citet{brignone2026} attribute the large upward inflation-forecast revisions of 2022 to inflationary supply and energy shocks combined with expansionary demand and monetary policy shocks, plus revisions to previously estimated shocks. The replication's forecast-revision machinery (Section~\ref{sec:forecasting-math}) is exactly the ``new shocks'' term of their five-way decomposition --- the term their identity isolates when the parameters and past data are held fixed --- and its 2024Q2 reading (a probable contractionary world energy shock alongside strong world demand, Section~\ref{sec:results}) is the same shock vocabulary applied two years later. Their broader decomposition, which also tracks vintage revisions and re-estimation, is a natural extension of the replication's fixed-parameter identity~\eqref{eq:revision}.
+
+\subsection{Cross-checks against other published UK shock estimates}
+\label{sec:comparison-shocks}
+
+A replication of a set-identified SVAR should also be checked \emph{sideways}, against shock estimates published by other authors with different identification schemes. Table~\ref{tab:shockcompare} performs the check qualitatively --- sign and timing over the major overlapping episodes --- against three benchmarks: the Bank's own Monetary Policy Report narrative (most recently the November 2025 Report's quantified account of the 2025 inflation overshoot), the oil-supply-news series of \citet{kanzig2021}, identified from futures-price movements in tight windows around OPEC announcements (extended vintage through 2022), and the narrative UK monetary policy shock series of \citet{cloyne2016}.
+
+\begin{table}[t]
+\centering
+\caption{Sign and timing of identified shocks across published UK estimates}
+\label{tab:shockcompare}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Episode & This replication & Bank MPR narrative & \citet{kanzig2021} oil-supply news \\
+\midrule
+2008--09 crisis & Large negative world demand shocks & Global demand collapse & No large supply-news events; oil swings demand-driven --- consistent \\
+\addlinespace
+Covid, 2020 & Shocks muted by construction (Covid dummies absorb 2020Q1--2021Q2) & Unprecedented demand and supply disruption & 2020 oil crash read as demand, not supply news; April 2020 OPEC+ cut a positive supply-news event \\
+\addlinespace
+2021--23 energy crisis & Contractionary world energy shocks dominate the CPI decomposition (Figure~\ref{fig:hd}) & ``Imported inflation'': energy and tradables & Only modest shocks: the Russian gas shock fell outside OPEC announcement windows --- complementary, not contradictory \\
+\addlinespace
+2025 inflation hump & Energy/supply-side price shocks on weak demand (2024Q2 posterior reading, extended) & Nov 2025 MPR: 1.8 pp overshoot $=$ 0.4 pp administered prices $+$ 0.4 pp food $+$ $\sim$1 pp labour costs & Outside the series' 2022 data edge \\
+\bottomrule
+\end{tabularx}
+\par\smallskip
+\parbox{0.97\textwidth}{\footnotesize \emph{Notes:} Qualitative comparison of sign and timing; the underlying series use different identification schemes (zero/sign restrictions here; narrative decomposition in the MPRs; high-frequency futures surprises around OPEC announcements in \citealp{kanzig2021}). The \citet{cloyne2016} narrative UK monetary policy series is omitted from the episode columns because it ends in the 2000s (extended to early 2009, when Bank Rate reached its effective lower bound) and so overlaps none of the episodes; it and the high-frequency UK series of \citet{cesabianchi2020} (through 2015) remain the natural benchmarks for the replication's monetary policy shock over the pre-Covid sample.}
+\end{table}
+
+Three points deserve emphasis. First, where the schemes measure the same object --- the 2008 world demand collapse, the 2022 energy shock --- signs and timing agree. Second, where they measure \emph{different} objects the disagreement is informative rather than troubling: the replication's world energy shock is defined by price--quantity comovement across all energy-price drivers, so it registers the 2022 Russian gas shock strongly, while the OPEC-announcement instrument of \citet{kanzig2021} is deliberately silent on non-OPEC events. Third, the November 2025 MPR's arithmetic of the 2025 overshoot --- roughly half administered prices and food, half labour costs --- maps into the model's vocabulary as domestic cost-push (negative UK supply) layered on imported price shocks, which is precisely the shock combination the frozen 2024Q2 data edge could not yet see; it explains \emph{which} shocks the undershoot in Table~\ref{tab:quarterly} missed, not just that some were missed.
+
+\subsection{The Bank's use of the model since publication}
+\label{sec:comparison-use}
+
+Two 2026 Bank publications confirm that the replicated model remains in operational use. The January 2026 \emph{Forecast Evaluation Report} lists \citet{brignone2025} among the ``range of cross-check models \ldots{} used regularly to help inform judgements and in some cases also interpret changes in the Bank's forecasts'' \citep{boe2026fer}. And in July 2026, MPC member Catherine L.\ Mann cited the companion methodology directly: ``Using a structural VAR model, Brignone and Piffer (2026) demonstrate that upward revisions in inflation forecasts following the post-pandemic inflation surge can be attributed to a combination of expansionary shocks on the demand side, revisions to past shocks, and contractionary supply-side shocks'' \citep{mann2026} --- the same attribution the replication's historical decomposition delivers for 2021--23 (Figure~\ref{fig:hd}).
+
+The Bank's own published projections also provide a late cross-check on Table~\ref{tab:quarterly}. The February 2026 Monetary Policy Report put four-quarter CPI inflation at 3.0 per cent and four-quarter GDP growth at 0.8 per cent for 2026Q1 \citep{boe2026mpr_feb} --- forecasts made with seven more quarters of data than the replication's frozen 2024Q2 edge. The outturns were 3.1 and 0.9; the replication's eighteen-month-old medians were 3.2 and 0.9. For that quarter, at least, freezing the data edge in mid-2024 cost the model almost nothing relative to the official forecast made contemporaneously.

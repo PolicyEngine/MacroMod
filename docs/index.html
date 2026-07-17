@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — documentation</title>
-<meta name="description" content="Documentation for the PolicyEngine Macro suite — what each of the five models is, how the model classes differ across the UK and US, when to use which, and the shared pipeline that ties them together." />
+<meta name="description" content="Documentation for the PolicyEngine Macro suite — what each of the five models is, how they differ across the UK and US, when to use which, and the working papers behind them." />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
@@ -53,14 +53,12 @@
         Five models. Two economies, read <em>five</em> ways.
       </h1>
       <p class="lede reveal" style="--d:2">
-        PolicyEngine Macro is a suite where each model answers a different
-        class of economic question — near-term fiscal scenarios, forecasts
-        and shock identification, US macro dynamics under VAR expectations,
+        Each model answers a different class of question — near-term fiscal
+        scenarios, forecasts and shock identification, US macro dynamics,
         long-run structural change, and household or distributional effects.
         Two models are UK-specific, one is US-specific, and two span both
-        countries. It is not one reform scored five ways: different questions
-        call for different machinery. This is the reference: what each model
-        is, how they differ, and when to reach for which.
+        countries. This is the reference: what each model is, how they
+        differ, and when to reach for which.
       </p>
     </div>
   </section>
@@ -72,16 +70,13 @@
     </div>
     <div class="prose">
       <p>
-        The OLG and OBR models take the same kind of input — a policy change —
-        and report the same kind of output — its effect on macroeconomic
-        aggregates. The structural VAR is the UK empirical member: it reads the
-        current state of the economy and forecasts it, rather than scoring
-        reforms. FRB/US is the US macroeconometric member: the Fed's own
-        large-scale model, reimplemented in Python and validated against the
-        Fed's published baseline and solver. PolicyEngine is the micro member:
-        it answers at person and household resolution rather than in
-        aggregates. Start with the model that matches your question, or read
-        on for the comparison.
+        The OLG and OBR models score policy changes into macroeconomic
+        aggregates. The structural VAR is the UK empirical member: it reads
+        and forecasts the economy rather than scoring reforms. FRB/US is the
+        US macroeconometric member, validated against the Fed's published
+        baseline and solver. PolicyEngine is the micro member, answering at
+        person and household resolution. Start with the model that matches
+        your question, or read on for the comparison.
       </p>
       <div class="doc-index">
         <a href="/obr/">
@@ -117,9 +112,9 @@
       </div>
       <h2>Working papers.</h2>
       <p>
-        Each macro model ships with a working paper documenting its equations,
-        method, implementation, calibration, and validation against official
-        numbers — sources and figure-reproduction scripts live in the
+        Each macro model ships with a working paper documenting its
+        equations, implementation, and validation — sources and
+        figure-reproduction scripts live in the
         <a href="https://github.com/PolicyEngine/macro/tree/main/papers">papers/</a>
         directory of the repo.
       </p>
@@ -160,13 +155,11 @@
     <div class="prose">
       <p>
         The models are complementary, not competing. Two reproduce official
-        forecasters' empirical systems — the OBR's for the UK, the Fed's for
-        the US — and answer what happens over the next few years; one imposes
-        minimal theory and answers what is driving the UK economy at the
-        latest available data vintage (currently 2024 Q2); one derives
-        behaviour from first principles and answers where the economy settles
-        in the long run; and one drops from aggregates to people, computing
-        the actual statute for a specific household.
+        forecasters' systems — the OBR's for the UK, the Fed's for the US;
+        one imposes minimal theory and reads what is driving the UK economy;
+        one derives behaviour from first principles for the long run; and
+        one drops from aggregates to people, computing the actual statute
+        for a specific household.
       </p>
       <div class="table-scroll">
       <table>
@@ -198,43 +191,36 @@
         span both countries. The second cut is the question:
       </p>
       <ul>
-        <li><strong>"How does this tax change affect UK growth and the deficit over the next 3–5 years?"</strong> — the OBR model. It's built for near-term fiscal scoring and speaks the same language as the official forecast.</li>
-        <li><strong>"What does a 100bp Fed tightening — or a US fiscal shock — do to GDP, unemployment, and inflation?"</strong> — FRB/US. It runs the Fed's own model equations under VAR expectations, locally. (Model-consistent expectations, mcontrol, and stochastic simulations are not yet implemented.)</li>
-        <li><strong>"What does this reform do to work incentives, saving, and the long-run size of the economy?"</strong> — the OLG model, for the UK today and, more recently, the US. It captures how households of every age re-optimise over their lifetimes.</li>
-        <li><strong>"What's driving UK GDP and inflation at the latest data vintage — and why did the forecast change since the quarter before?"</strong> — the structural VAR. It decomposes the data at the latest available vintage (currently 2024 Q2) into named structural shocks, forecasts with credible bands, and splits a forecast revision into news and reassessment. It does not score reforms.</li>
-        <li><strong>"What does this reform mean for a nurse on £35,000 with two kids?"</strong> — PolicyEngine. It runs the actual UK or US statute for that exact family and reads off taxes, benefits, and net income, before and after.</li>
-        <li><strong>"I want both the transition and the destination."</strong> — run both UK scoring models (OBR and OLG). They report comparable real-world aggregates, so you can read the near-term multiplier against the long-run equilibrium.</li>
+        <li><strong>"How does this tax change affect UK growth and the deficit over the next 3–5 years?"</strong> — the OBR model. Near-term fiscal scoring in the language of the official forecast.</li>
+        <li><strong>"What does a 100bp Fed tightening — or a US fiscal shock — do to GDP, unemployment, and inflation?"</strong> — FRB/US, locally. (VAR expectations only; model-consistent expectations, mcontrol, and stochastic simulations are not yet implemented.)</li>
+        <li><strong>"What does this reform do to work incentives, saving, and the long-run size of the economy?"</strong> — the OLG model, which captures how households of every age re-optimise over their lifetimes.</li>
+        <li><strong>"What's driving UK GDP and inflation — and why did the forecast change?"</strong> — the structural VAR. It decomposes the latest data vintage (currently 2024 Q2) into named structural shocks, forecasts with credible bands, and splits a revision into news and reassessment. It does not score reforms.</li>
+        <li><strong>"What does this reform mean for a nurse on £35,000 with two kids?"</strong> — PolicyEngine. It runs the actual UK or US statute for that exact family, before and after.</li>
+        <li><strong>"I want both the transition and the destination."</strong> — run both UK scoring models (OBR and OLG) and read the near-term multiplier against the long-run equilibrium.</li>
       </ul>
       <p>
-        <strong>Verification gradient.</strong> The models also differ in how far
-        they can be checked against ground truth, and that should temper how much
-        weight you put on each answer. Three of the five are
-        <em>replications</em> with published anchors.
-        The <strong>OBR emulator</strong> is validated against the OBR's
-        Economic and Fiscal Outlook tables: in anchored mode it reproduces the
-        November 2025 EFO with a GDP MAPE of 0.18% and consumption 0.29%,
-        hard-gated in nightly CI; its free-running fit is deliberately
-        report-only, and weak. The <strong>structural VAR</strong> is validated
-        against the Bank of England paper's figures — sign and zero
-        restrictions hold on every accepted draw, and FEVD shares fall within
-        the paper's bands. <strong>FRB/US</strong> is validated against the
-        Fed's own artefacts: baseline tracking reproduces the LONGBASE
-        database to machine precision (5.6e-17), and a 100bp funds-rate shock
-        matches the Fed's pyfrbus solver to ~1e-9 (a +1pp tightening puts the
-        GDP trough at −0.55% and unemployment +0.26pp).
-        <strong>psl-og</strong> is a <em>structural counterfactual</em> model
-        with no ground truth: it is calibrated to national-accounts targets,
-        not validated against a published result — and its US wiring is newer. <strong>pe-microsim</strong> is validated against
-        statute itself, checkable rule by rule against the tax and benefit
-        code. A replication you can audit against its anchor; statute you can
-        audit against the law; a calibrated counterfactual you can only reason
-        about.
+        <strong>Verification gradient.</strong> The models differ in how far
+        they can be checked against ground truth — weight their answers
+        accordingly. Three are <em>replications</em> with published anchors:
+        the <strong>OBR emulator</strong> reproduces the November 2025 EFO in
+        anchored mode (GDP MAPE 0.18%, consumption 0.29%, hard-gated in
+        nightly CI; its free-running fit is report-only, and weak); the
+        <strong>structural VAR</strong> matches the Bank of England paper's
+        figures, with FEVD shares inside the paper's bands;
+        <strong>FRB/US</strong> reproduces the Fed's LONGBASE database to
+        machine precision and matches pyfrbus shock responses to ~1e-9.
+        <strong>pe-microsim</strong> is validated against statute itself,
+        checkable rule by rule. <strong>psl-og</strong> is a <em>structural
+        counterfactual</em>: calibrated to national-accounts targets, with no
+        published result to validate against. A replication you can audit
+        against its anchor; statute you can audit against the law; a
+        calibrated counterfactual you can only reason about.
       </p>
       <div class="callout">
-        Running the same reform through both UK scoring models is the point of a
-        suite: agreement raises confidence, and a divergence is informative — it
-        usually marks where long-run behavioural response departs from near-term
-        empirical dynamics.
+        Running the same reform through both UK scoring models is the point
+        of a suite: agreement raises confidence, and divergence usually marks
+        where long-run behavioural response departs from near-term empirical
+        dynamics.
       </div>
     </div>
   </section>
@@ -246,21 +232,16 @@
     </div>
     <div class="prose">
       <p>
-        For the scoring engines, the shape of the work is the same:
+        For the scoring engines the shape of the work is the same:
         <strong>build</strong> a reform, <strong>solve</strong> baseline and
-        reform, <strong>read</strong> the difference in real-world quantities —
-        GDP, consumption, investment, revenue. The OLG model expresses the reform
-        as PolicyEngine statute translated into tax functions; the OBR model
-        expresses it as a shock to an exogenous variable; FRB/US expresses it as
-        a shock experiment on the Fed's equations. All report the
-        deviation from a baseline anchored to official data, so a result is
-        always "relative to current forecast", never a raw level to be
-        misread. The structural VAR sits upstream of that loop: it establishes
-        the empirical starting point — which shocks the UK economy is currently
-        absorbing — from the same public official data. And PolicyEngine sits
-        underneath: it supplies the reform objects the suite scores and the
-        household-level answer to the same question the macro engines answer
-        in aggregates.
+        reform, <strong>read</strong> the difference in real-world quantities.
+        The OLG model expresses the reform as statute translated into tax
+        functions; the OBR model and FRB/US express it as shocks to their
+        equation systems. All report deviations from a baseline anchored to
+        official data — always "relative to current forecast", never a raw
+        level to be misread. The structural VAR sits upstream, establishing
+        the empirical starting point; PolicyEngine sits underneath, supplying
+        the reform objects and the household-level answer.
       </p>
       <p class="research-link mono">
         <a href="/obr/">OBR model reference</a> &nbsp;·&nbsp;

@@ -37,7 +37,7 @@
 <main id="top">
   <section class="hero model-hero">
     <div class="hero-inner">
-      <p class="eyebrow reveal" style="--d:0">model 03 — Bank of England structural VAR</p>
+      <p class="eyebrow reveal" style="--d:0">model 03 — Bank of England structural VAR · boe-svar · UK · hosted</p>
       <h1 class="reveal page-title" style="--d:1;">
         Read the economy in <em>shocks</em>, not headlines.
       </h1>
@@ -77,20 +77,16 @@
       <p>
         In July 2025 the Bank of England published Macro Technical Paper
         No.&nbsp;3 — <em>A structural VAR model for the UK economy</em>
-        (Brignone &amp; Piffer) — documenting the Bayesian SVAR the Bank uses
-        to disentangle domestic and global drivers of the UK business cycle.
-        No replication package was released. This project re-implements the
-        full pipeline in Python — data assembly from public sources, Bayesian
-        estimation, identification, and every output figure — and validates
-        it against the paper's published results.
+        (Brignone &amp; Piffer) — with no replication package. This project
+        re-implements the full pipeline in Python — data assembly from public
+        sources, Bayesian estimation, identification, and every output
+        figure — and validates it against the paper's published results.
       </p>
       <p>
-        Within the suite it is the <strong>empirical, time-series member</strong>:
-        where the OLG model derives behaviour from optimising agents and the
-        OBR emulator reproduces the official forecaster's equation system, the
-        SVAR imposes minimal theory and lets the data speak — just enough
-        structure (zero and sign restrictions) to name the shocks hitting the
-        economy as of the latest data the model has ingested (currently 2024&nbsp;Q2).
+        Within the suite it is the <strong>empirical, time-series
+        member</strong>: it imposes just enough structure (zero and sign
+        restrictions) to name the shocks hitting the economy as of the latest
+        ingested data (currently 2024&nbsp;Q2).
       </p>
     </div>
   </section>
@@ -133,14 +129,11 @@
         volatility.
       </p>
       <p>
-        Honestly stated, this is accept/reject sampling: the replication run
-        behind the results below drew 10,000 posterior (Π,&nbsp;Σ) draws, of
-        which <strong>751 passed the sign restrictions</strong> (a 7.5%
-        acceptance rate), each carrying the Arias et al. volume-element
-        importance weight — an effective sample size of <strong>~350</strong>.
-        All medians and credible bands are weighted quantiles over those
-        draws, so they are correct but noisier than the paper's 10,000
-        accepted draws.
+        This is accept/reject sampling: the run behind the results below drew
+        10,000 posterior (Π,&nbsp;Σ) draws, of which <strong>751 passed the
+        sign restrictions</strong>, each importance-weighted — an effective
+        sample size of <strong>~350</strong>. Medians and bands are therefore
+        correct but noisier than the paper's 10,000 accepted draws.
       </p>
     </div>
   </section>
@@ -152,15 +145,14 @@
     </div>
     <div class="prose">
       <p>
-        The package installs straight from GitHub — no clone needed. The
-        prepared quarterly dataset ships inside the package, so
-        <code>boe_var.data.load_data()</code> works immediately. Every input
-        series is public — UK CPI, CPI energy and real GDP from the ONS API;
-        Bank Rate and the sterling ERI from the Bank of England database;
-        Brent oil, exchange rates and the world-aggregate components from
-        FRED. The Bank's internal trade-weighted world GDP and CPI are not
-        published, so they are rebuilt as chain-weighted US + euro-area +
-        Japan + China aggregates with time-varying UK trade weights.
+        The package installs straight from GitHub, with the prepared
+        quarterly dataset inside — <code>boe_var.data.load_data()</code>
+        works immediately. Every input series is public: ONS (CPI, CPI
+        energy, real GDP), Bank of England (Bank Rate, sterling ERI), and
+        FRED (oil, exchange rates, world components). The Bank's internal
+        trade-weighted world GDP and CPI are not published, so they are
+        rebuilt as chain-weighted US + euro-area + Japan + China aggregates
+        with time-varying UK trade weights.
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pip install git+https://github.com/PolicyEngine/boe-var-model</code></pre></div>
       <p>
@@ -224,17 +216,12 @@ python scripts/run_forecast_revision.py</code></pre></div>
         absolute error of 5.3e-12.
       </p>
       <div class="callout">
-        Unlike the other two models, the SVAR does <strong>not score
-        PolicyEngine reform objects — and it won't</strong>: mapping a policy
-        reform into identified structural innovations is conceptually dubious,
-        not just unbuilt. Its role in the suite is the
+        The SVAR does <strong>not score reforms — and it won't</strong>:
+        mapping a policy reform into identified structural innovations is
+        conceptually dubious, not just unbuilt. Its role is the
         <strong>baseline/conditioning member</strong> — it establishes what
-        state the economy is in and how uncertain the baseline is (forecasts
-        with bands, latest-shock readings, forecast-revision narratives)
-        before you simulate changing it with the structural members. If a
-        fiscal-shock-identified VAR variant ever earns a reform role, that
-        will be a new member with its own declared contract — not this
-        model's roadmap.
+        state the economy is in and how uncertain the baseline is before you
+        simulate changing it with the structural members.
       </div>
     </div>
   </section>
@@ -246,18 +233,15 @@ python scripts/run_forecast_revision.py</code></pre></div>
     </div>
     <div class="prose">
       <p>
-        With no official replication package, validation is against the
-        paper's published figures and headline numbers. All of Figures 2–6
-        replicate, and the headline variance decompositions land on the
-        paper's benchmarks. The replication was independently reviewed three
-        ways: an econometrics review against reference toolboxes
-        (bsvarSIGNs, BEAR, VAR-Toolbox) that caught and fixed a genuine bias
-        — the missing Arias et al. importance weights for zero restrictions —
-        a data-construction review, and a panel-by-panel figure-fidelity
-        review against the paper. The figure review's verdicts: Figures 3 and
-        5 <strong>pass</strong>, Figures 2 and 4 <strong>pass with
-        caveats</strong>, Figure 6 carries a presentation caveat, and the
-        summary tables are internally consistent (rows sum to ~100%).
+        Validation is against the paper's published figures and headline
+        numbers: Figures 2–6 replicate, and the headline variance
+        decompositions land on the paper's benchmarks. Three independent
+        reviews backed this up — an econometrics review against reference
+        toolboxes (bsvarSIGNs, BEAR, VAR-Toolbox), which caught and fixed a
+        genuine bias in the zero-restriction importance weights; a
+        data-construction review; and a panel-by-panel figure-fidelity
+        review (Figures 3 and 5 pass, 2 and 4 pass with caveats, Figure 6
+        carries a presentation caveat).
       </p>
       <div class="table-scroll"><table>
         <thead><tr><th>check</th><th>this replication</th><th>the paper</th></tr></thead>
@@ -303,19 +287,14 @@ python scripts/run_forecast_revision.py</code></pre></div>
       </div>
     </div>
     <p class="chart-note" style="max-width: 80ch;">
-      Honest caveats, reported in the repository rather than smoothed over:
-      the Bank's internal UK-trade-weighted world aggregates are not
-      published, so they are proxied from public sources; the lag length is
-      not stated in the paper (p&nbsp;=&nbsp;4 assumed, as a parameter); the
-      pandemic prior is simplified to exogenous Covid dummies (algebraically
-      the Cascaldi-Garcia prior at its uninformative default); data are
-      current vintages rather than the paper's August-2024 ones; and one
-      known discrepancy — the paper's ranking of UK monetary policy as the
-      largest domestic contributor to CPI variance — does not replicate
-      (here UK supply, 15.6%, exceeds monetary policy, 7.4%), most likely
-      because of the proxy world aggregates and the smaller number of
-      accepted draws. Every deviation is enumerated in
-      <code>docs/methodology.md</code>.
+      Known caveats: the Bank's internal UK-trade-weighted world aggregates
+      are proxied from public sources; the lag length is assumed
+      (p&nbsp;=&nbsp;4); the pandemic prior is simplified to exogenous Covid
+      dummies; data are current vintages rather than the paper's August-2024
+      ones; and the paper's ranking of UK monetary policy as the largest
+      domestic contributor to CPI variance does not replicate (here UK
+      supply, 15.6%, exceeds monetary policy, 7.4%). Every deviation is
+      enumerated in <code>docs/methodology.md</code>.
     </p>
   </section>
 

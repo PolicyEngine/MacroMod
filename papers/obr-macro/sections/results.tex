@@ -5,7 +5,7 @@ To illustrate the full pipeline, consider raising the basic rate of income tax b
 
 \paragraph{Static costing.} PolicyEngine's microsimulation puts the direct Exchequer yield at \pounds 6.46 billion in 2026, rising with fiscal drag and earnings growth to \pounds 7.38 billion by 2030 (Table~\ref{tab:reform}). Household net income falls by a corresponding amount, and losers far outnumber winners---as expected for a broad-based rate rise.
 
-\paragraph{Second-round effects.} Converted to a quarterly $HHDI$ shock (roughly $-$\pounds 1.6bn to $-$\pounds 1.8bn per quarter) and propagated through the consumption function~\eqref{eq:cons} and the expenditure identity, the reform lowers GDP by 0.02--0.03 per cent relative to baseline over the first scored year: Figure~\ref{fig:reform} traces the quarterly path, from $-$0.020 per cent on impact in 2026Q1 through $-$0.040 per cent by 2026Q4 to $-$0.057 per cent by 2027Q4, the equilibrium-correction term of Section~\ref{sec:ecm} cumulating the income loss into the consumption level at $\sim$12.5 per cent per quarter. The demand drag builds slowly because households smooth part of the income loss (the short-run marginal propensity to consume out of income in equation~\eqref{eq:cons} is modest, with the error-correction term pulling consumption toward its long-run income-and-wealth solution at $\sim$12.5 per cent per quarter), so the demand drag is small relative to the mechanical costing. This is the sign and order of magnitude the OBR's own indirect-effect adjustments deliver for income-tax measures \citep{obr2014costings}.
+\paragraph{Second-round effects.} Converted to a quarterly $HHDI$ shock (roughly $-$\pounds 1.6bn to $-$\pounds 1.8bn per quarter) and propagated through the consumption function~\eqref{eq:cons} and the expenditure identity, the reform lowers GDP by 0.02--0.03 per cent relative to baseline over the first scored year: Figure~\ref{fig:reform} traces the quarterly path, from $-$0.020 per cent on impact in 2026Q1 through $-$0.040 per cent by 2026Q4 to $-$0.057 per cent by 2027Q4. The drag builds slowly because households smooth part of the income loss: the short-run marginal propensity to consume out of income in equation~\eqref{eq:cons} is modest, and the equilibrium-correction term of Section~\ref{sec:ecm} then cumulates the income loss into the consumption level at $\sim$12.5 per cent per quarter, so the demand effect remains small relative to the mechanical costing throughout the window. This is the sign and order of magnitude the OBR's own indirect-effect adjustments deliver for income-tax measures \citep{obr2014costings}.
 
 \begin{table}[ht]
 \centering
@@ -17,20 +17,20 @@ To illustrate the full pipeline, consider raising the basic rate of income tax b
 \midrule
 Static costing (PolicyEngine microsimulation), \pounds bn/yr & $+6.46$ & $+7.38$ \\
 Quarterly $HHDI$ shock, \pounds bn/qtr & $-1.62$ & $-1.85$ \\
-Second-round GDP effect (OBR emulator), \% of GDP & $-0.02$ & $-0.03$ \\
+Second-round GDP effect (OBR emulator), \% of GDP & $-0.02$ & $-0.06^{\ast}$ \\
 \midrule
 HMRC ready reckoner, 1p on basic rate, \pounds bn/yr & \multicolumn{2}{c}{6.9 (2026--27) to $\approx$8.2 (2028--29)} \\
 \bottomrule
 \end{tabular}
 
 \medskip
-\parbox{0.92\textwidth}{\footnotesize \emph{Notes:} Reform \texttt{\{"gov.hmrc.income\_tax.rates.uk[0].rate": 0.21\}} from 2026, scored via \texttt{obr\_score\_reform} (Section~\ref{sec:bridge}): PolicyEngine annual costings on enhanced FRS microdata, converted to a flat-within-year quarterly shock on nominal household disposable income, propagated through the anchored OBR emulator under the demand closure. The GDP effect is the deviation of $GDPM$ from the anchored baseline. HMRC comparison: \citet{hmrc2025reckoner}.}
+\parbox{0.92\textwidth}{\footnotesize \emph{Notes:} Reform \texttt{\{"gov.hmrc.income\_tax.rates.uk[0].rate": 0.21\}} from 2026, scored via \texttt{obr\_score\_reform} (Section~\ref{sec:bridge}): PolicyEngine annual costings on enhanced FRS microdata, converted to a flat-within-year quarterly shock on nominal household disposable income, propagated through the anchored OBR emulator under the demand closure. The GDP effect is the deviation of $GDPM$ from the anchored baseline; $^{\ast}$the macro solve runs to 2027Q4, so the second column reports the end-of-window (2027Q4) effect, not a 2030 value. HMRC comparison: \citet{hmrc2025reckoner}.}
 \end{table}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_reform.pdf}
-\caption{The 1p basic-rate reform. Left: PolicyEngine static costing by year (endpoints as scored through the bridge, interior years interpolated) against the range of HMRC's published ready reckoner---the June 2025 vintage puts 1p on the basic rate at \pounds 6.9bn in 2026--27 and \pounds 8.2--8.25bn in the two following years \citep{hmrc2025reckoner}. Right: quarterly second-round GDP effect of the corresponding $HHDI$ shock through the anchored emulator under the demand closure. Generated by \texttt{figures/fig\_reform.py}.}
+\caption{The 1p basic-rate reform. Left: PolicyEngine static costing by year (endpoints as scored through the bridge, interior years interpolated) against the range of HMRC's published ready reckoner---the June 2025 vintage puts 1p on the basic rate at \pounds 6.9bn in 2026--27 and \pounds 8.2bn a year in the two following years \citep{hmrc2025reckoner}. Right: quarterly second-round GDP effect of the corresponding $HHDI$ shock through the anchored emulator under the demand closure. Generated by \texttt{figures/fig\_reform.py}.}
 \label{fig:reform}
 \end{figure}
 

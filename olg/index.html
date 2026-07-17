@@ -42,19 +42,15 @@
         Eighty cohorts. <em>One</em> economy.
       </h1>
       <p class="lede reveal" style="--d:2">
-        OG-UK is an overlapping-generations model of the UK economy for dynamic
-        general-equilibrium analysis of fiscal policy. It builds on
-        <strong>OG-Core</strong> — which holds the theory and logic of a general
-        OG model — with a UK calibration sourced from ONS, OBR, Bank of England,
-        and GOV.UK data. It accepts both PolicyEngine tax-and-benefit reforms and
-        direct <strong>structural parameter overrides</strong> — productivity
-        (TFP), corporation tax, demographics, and government spending — and solves
-        for the long-run response of labour supply, saving, investment, wages,
-        interest rates, tax revenues, and debt, plus the year-by-year transition
-        path between steady states. This page documents the UK integration
-        (OG-UK), which is wired into the suite today; the US integration
-        (OG-USA), built on the same OG-Core, is part of this model's scope and
-        is newer.
+        OG-UK is an overlapping-generations model of the UK economy, built on
+        <strong>OG-Core</strong> with a UK calibration from ONS, OBR, Bank of
+        England, and GOV.UK data. It accepts PolicyEngine tax-and-benefit
+        reforms and direct <strong>structural parameter overrides</strong> —
+        TFP, corporation tax, demographics, spending — and solves the
+        long-run response of labour supply, saving, investment, wages,
+        interest rates, revenue, and debt, plus the year-by-year transition
+        path. This page documents the UK integration; the US integration
+        (OG-USA), on the same OG-Core, is newer.
       </p>
       <div class="hero-cta reveal" style="--d:3">
         <a class="btn btn-primary" href="#quickstart">Quickstart</a>
@@ -62,15 +58,13 @@
         <a class="btn btn-ghost" href="/papers/psl-og/main.pdf">Working paper (PDF)</a>
       </div>
       <div class="callout reveal" style="--d:4">
-        <strong>Status — local only.</strong> OG-UK is
-        <strong>not</strong> on the hosted PolicyEngine Macro MCP server, because
-        runs are very slow: a single steady-state solve has been measured at
-        <strong>17+&nbsp;minutes</strong>, and a full transition path can take
-        <strong>hours</strong>. You run it on your own machine. It is a
-        <strong>calibrated structural model, not a validated replication</strong>
-        — a structural counterfactual with no published ground-truth to
-        reproduce, unlike the OBR and SVAR models on this site, which are
-        replications anchored to published figures.
+        <strong>Status — local only.</strong> OG-UK is not on the hosted MCP
+        server: a single steady-state solve takes
+        <strong>17+&nbsp;minutes</strong> and a transition path can take
+        <strong>hours</strong>, so you run it on your own machine. It is a
+        <strong>calibrated structural model, not a validated
+        replication</strong> — a structural counterfactual with no published
+        ground truth, unlike the OBR and SVAR replications on this site.
       </div>
     </div>
   </section>
@@ -171,12 +165,10 @@ impact = map_to_real_world(baseline, reform_ss)
 <span class="kw">print</span>(f<span class="kw">"Tax revenue change: {impact.tax_revenue_change:+.1f}bn"</span>)
 <span class="kw">print</span>(f<span class="kw">"Interest rate: {impact.r_baseline:.2%} → {impact.r_reform:.2%}"</span>)</code></pre></div>
       <div class="callout">
-        <strong>Honest runtime expectations:</strong> a single steady-state
-        solve (calibration + solver) has been measured at over
-        <strong>17&nbsp;minutes</strong> on a laptop, and the script above needs
-        two of them. Budget half an hour or more end-to-end, and much longer for
-        a transition path. This is a full general-equilibrium solve, not a
-        microsimulation query.
+        <strong>Runtime:</strong> a single steady-state solve takes over
+        <strong>17&nbsp;minutes</strong> on a laptop, and the script above
+        needs two. Budget half an hour or more end-to-end, and much longer
+        for a transition path.
       </div>
     </div>
   </section>
@@ -375,16 +367,15 @@ impact = map_transition_to_real_world(base_tp, reform_tp)
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pe-macro og-baseline
 pe-macro og-score --reform <span class="kw">'{"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}'</span></code></pre></div>
       <p>
-        Two prerequisites, stated plainly. First, the calibration needs the
-        PolicyEngine <strong>enhanced-FRS microdata</strong>, which is gated:
-        set <code>HUGGING_FACE_TOKEN</code> to a token with read access to
-        <code>policyengine/policyengine-uk-data</code>. Second, there is a
-        <strong>version-pin wrinkle</strong>: oguk 0.3.0 pins
+        Two prerequisites. First, the calibration needs the gated PolicyEngine
+        <strong>enhanced-FRS microdata</strong>: set
+        <code>HUGGING_FACE_TOKEN</code> to a token with read access to
+        <code>policyengine/policyengine-uk-data</code>. Second, a
+        <strong>version pin</strong>: oguk 0.3.0 pins
         <code>policyengine-uk==2.88.0</code>, and policyengine-uk ≥ 2.89
-        renamed the dataset files it downloads — mixing the two fails with a
-        <code>KeyError</code> at calibration time. Until the pin is lifted,
-        keep <code>policyengine-uk==2.88.0</code> in the environment that runs
-        OG-UK.
+        renamed its dataset files — mixing the two fails with a
+        <code>KeyError</code> at calibration time, so keep the pinned version
+        in the environment that runs OG-UK.
       </p>
       <div class="callout">
         Want to see the model before running it? The

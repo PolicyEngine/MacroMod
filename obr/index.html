@@ -37,17 +37,16 @@
 <main id="top">
   <section class="hero model-hero">
     <div class="hero-inner">
-      <p class="eyebrow reveal" style="--d:0">model 02 — OBR macroeconometric model</p>
+      <p class="eyebrow reveal" style="--d:0">model 02 — OBR macroeconometric model · obr-macro · UK · hosted</p>
       <h1 class="reveal page-title" style="--d:1;">
         The OBR's published model, <em>in Python</em>.
       </h1>
       <p class="lede reveal" style="--d:2">
-        An independent emulator of the Office for Budget Responsibility's
-        published macroeconomic model — the 372-equation system behind the
-        UK's official economic forecast, transpiled from the OBR's 15 October
-        2025 EViews listing and solved simultaneously. Shock a tax rate or a
-        spending line, read the deviation quarter by quarter, anchored to the
-        November 2025 Economic and Fiscal Outlook.
+        An independent emulator of the OBR's published macroeconomic model —
+        the 372-equation system behind the UK's official forecast, transpiled
+        from the October 2025 EViews listing and solved simultaneously. Shock
+        a tax rate or a spending line and read the deviation quarter by
+        quarter, anchored to the November 2025 Economic and Fiscal Outlook.
       </p>
       <div class="hero-cta reveal" style="--d:3">
         <a class="btn btn-primary" href="https://obr-macroeconomic-model.vercel.app/">Explore it live</a>
@@ -77,35 +76,29 @@
     <div class="prose">
       <p>
         The OBR's model is a computational representation of the UK National
-        Accounts — first built by HM Treasury in 1970, jointly maintained by
-        the OBR and the Treasury since 2010, and aligned to the ESA10
-        accounting framework. The OBR publishes its full equation listing, but
-        as EViews source that few can run. This project is an independent
-        Python emulator that transpiles that listing and solves it, so the
-        published equations behind the official forecast become something you
-        can open, shock, and inspect: the <strong>372 published
-        equations</strong> of the October 2025 model code, organised in
-        <strong>17 thematic groups</strong> from consumption to the financial
-        balance sheet, over <strong>636 variables</strong>.
+        Accounts — first built by HM Treasury in 1970 and jointly maintained
+        by the OBR and the Treasury since 2010. The OBR publishes its full
+        equation listing, but as EViews source that few can run. This project
+        transpiles that listing to Python and solves it, so the equations
+        behind the official forecast become something you can open, shock,
+        and inspect: <strong>372 published equations</strong> in
+        <strong>17 thematic groups</strong>, over <strong>636
+        variables</strong>.
       </p>
       <p>
         The anchored baseline reproduces the published Economic and Fiscal
         Outlook by construction — the add-factors are set so it matches. In
-        raw mode, with those corrections switched off, only some headline
-        variables fall within calibration bands and some blocks are harder to
-        reproduce. We report that gradient openly as a matter of transparency,
-        not as a hidden flaw.
+        raw mode, with those corrections off, only some headline variables
+        fall within calibration bands; we report that gradient openly.
       </p>
       <p>
         This is a <strong>structural macroeconometric model</strong> in the
-        HM Treasury / Cowles-Commission tradition — a different lens from the
-        overlapping-generations engine. Where the OLG model derives behaviour
-        from optimising households and firms, this one reproduces the
-        estimated relationships and accounting identities the official
-        forecaster relies on: of its variables, 29 equations are
-        econometrically estimated, 216 are identities, 138 are calibrated or
-        technical relationships, and 253 variables are exogenous inputs —
-        the judgements and assumptions you get to change.
+        HM Treasury / Cowles-Commission tradition. Where the OLG model
+        derives behaviour from optimising households and firms, this one
+        reproduces the estimated relationships and identities the official
+        forecaster relies on: 29 equations econometrically estimated, 216
+        identities, 138 calibrated or technical relationships, and 253
+        exogenous inputs — the judgements and assumptions you get to change.
       </p>
     </div>
   </section>
@@ -278,9 +271,8 @@ results = run_reform(
       <p>
         Scored against the OBR's published outlook over the projected window,
         the core real block tracks closely; the incomes and profit blocks are
-        harder — and reported openly, not hidden. Of 16 headline variables,
-        10 are actually computed by the model, and 6 of those land within
-        band.
+        harder. Of 16 headline variables, 10 are actually computed by the
+        model, and 6 of those land within band.
       </p>
     </div>
     <div class="metrics">
@@ -328,9 +320,8 @@ results = run_reform(
     <div class="prose">
       <p>
         Results depend entirely on your assumptions — they are not OBR
-        forecasts. The official model runs in EViews; this is an independent
-        Python re-implementation, and its limits are documented rather than
-        smoothed over:
+        forecasts. This is an independent Python re-implementation, and its
+        limits are documented:
       </p>
       <div class="table-scroll"><table>
         <thead><tr><th>caveat</th><th>detail</th></tr></thead>

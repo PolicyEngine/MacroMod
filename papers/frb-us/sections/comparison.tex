@@ -1,5 +1,8 @@
-\section{Comparison with published FRB/US results}
+\section{Comparison with the reference implementation, the published record and other models}
 \label{sec:comparison}
+
+\subsection{The Fed's pyfrbus and the published FRB/US record}
+\label{sec:cmp-published}
 
 This section consolidates the paper's headline numbers against the published record in one place. Two kinds of comparison must be kept apart. The first is \emph{like-for-like}: the Fed's own \texttt{pyfrbus} reference implementation runs on this machine, on the same \texttt{model.xml}, the same LONGBASE vintage and the identical shock, so the two implementations should agree --- and they do, exactly. Re-running the Board's demo experiment (a 100-basis-point add-factor to \texttt{rffintay} under surplus-ratio fiscal targeting) in both codes gives a maximum absolute difference of $6.0\times10^{-9}$ across all 284 endogenous variables and all twenty quarters, i.e.\ solver-tolerance noise. The second kind of comparison is against \emph{published} FRB/US output --- most usefully the 2014 FEDS Note responses under VAR expectations \citep{brayton2014note} and the cross-model fiscal ranges of \citet{coenen2012effects} and \citet{whalen2015fiscal}. There the numbers can only be close, not identical: the published simulations were produced on earlier model and database vintages, from different baselines, and with shock designs (e.g.\ persistence of the funds-rate innovation) that the notes do not fully pin down. Table~\ref{tab:published-comparison} shows both kinds side by side.
 
@@ -20,7 +23,7 @@ Quantity & Ours & Published & Deviation and reading \\
 \quad vs.\ vendor pyfrbus (like-for-like) & \multicolumn{2}{l}{identical to $6.0\times10^{-9}$ (284 vars)} & exact by construction \citep{fedfrbuspython} \\
 \addlinespace
 \multicolumn{4}{l}{\emph{Government purchases, 1\% of GDP}}\\
-\quad Multiplier, yr~1, Taylor rule & $0.73$ & $0.7$--$1.0$ (no accommodation) & inside range \citep{coenen2012effects} \\
+\quad Multiplier, yr~1, Taylor rule & $0.72$ & $0.7$--$1.0$ (no accommodation) & inside range \citep{coenen2012effects} \\
 \quad Multiplier, yr~2, fixed funds rate & $0.99$ & ``roughly one'' pegged; $1.1$--$1.2$ with 2-yr accommodation & matches the Board's characterisation; just below cross-model accommodation range \citep{brayton2014note, coenen2012effects} \\
 \addlinespace
 \multicolumn{4}{l}{\emph{Personal tax cut, 1\% of GDP ex ante}}\\
@@ -31,6 +34,44 @@ Quantity & Ours & Published & Deviation and reading \\
 \medskip
 \parbox{0.97\textwidth}{\footnotesize ``Ours'' entries are computed from \texttt{figures/results.json}. The pyfrbus row re-runs the Board's demo shock in the vendor package (relaxed dependency pins, Newton solver at \texttt{xtol}$=10^{-8}$) and in this implementation on the identical baseline. Published 100bp responses are read from the 2014 FEDS Note charts (VAR expectations) and are therefore approximate.}
 \end{table}
+
+\subsection{Recent Federal Reserve work with FRB/US}
+\label{sec:cmp-recent}
+
+The published record did not stop in 2014, and the more recent Board literature provides two further, if less directly numerical, checks. First, \citet{brayton2022linver} build their linearised LINVER model precisely around the experiment run here --- a 100-basis-point shock to the inertial Taylor rule --- and report goodness-of-fit statistics of $0.999$--$1.000$ between LINVER and full FRB/US for the output-gap, inflation and funds-rate responses to that shock; the impulse-response \emph{shapes} they plot (hump-shaped activity decline, small inflation response) are the shapes in Figure~\ref{fig:mp100}, though the paper quantifies magnitudes only graphically. Second, the framework-review literature quantifies how much the expectations option matters, in a way that brackets our VAR-only results: \citet{hebden2020makeup} report that, relative to full model-consistent expectations, inflation expectations respond to policy news two years ahead by approximately zero under VAR expectations, 40 per cent with model-consistent financial markets only, and 80 per cent when wage--price setters are also model-consistent. Our implementation sits at the ``approximately zero'' end of that spectrum by construction, which is why forward-guidance-style exercises are out of scope (Section~\ref{sec:limitations}) and why our funds-rate-shock responses should be (and are) at the large end of the published range. \citet{kiley2025anchoring}, the most recent Board research use of FRB/US at the time of writing, likewise runs its policy-rule comparisons across expectations settings rather than publishing a canonical funds-rate IRF; no 2024--2026 Board publication does, leaving the 2014 FEDS Note and LINVER as the reference points used above.
+
+\subsection{Situating FRB/US among other U.S.\ benchmarks}
+\label{sec:cmp-crossmodel}
+
+A different question from implementation fidelity is where FRB/US's responses sit relative to \emph{other} models and to the reduced-form evidence. Table~\ref{tab:crossmodel} collects benchmarks for the effect of a 100-basis-point policy-rate shock on activity. Three caveats govern the reading. The response variable differs (GDP here; industrial production, a far more cyclical series, in most of the VAR literature); the shock designs differ (our shock decays with the inertial rule, VAR shocks are typically one-off innovations); and the CBO row is deliberately a non-comparison --- CBO's published interest-rate ``rule of thumb'' holds GDP fixed by design and prices out only the budgetary cost, so it cannot be read as a macro response at all.
+
+\begin{table}[htbp]
+\centering
+\caption{Effect of a 100bp policy-rate shock on activity: FRB/US versus other U.S.\ benchmarks}
+\label{tab:crossmodel}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.30\textwidth}>{\raggedright\arraybackslash}p{0.30\textwidth}>{\raggedright\arraybackslash}X}
+\toprule
+Model / evidence & Activity response & Notes \\
+\midrule
+This implementation (FRB/US, VAR expectations) & GDP $-0.55\%$, trough at 8 quarters & unemployment $+0.26$pp; core inflation $-0.034$pp \\
+FRB/US, MCE \citep{brayton2014note} & output gap $\approx-0.1$pp & same shock, model-consistent expectations \\
+NY Fed DSGE \citep{delnegro2023lagged} & output $\approx-1.25\%$ below counterfactual at peak & cumulative effect of two $\approx$100bp shocks (2022Q4, 2023Q1); per shock roughly comparable to FRB/US; inflation response ``small'' (flat Phillips curve) \\
+FAVAR, post-1984 sample \citep{ramey2016shocks} & industrial production $-0.7\%$, trough at 24 months & Boivin--Kiley--Mishkin estimates as tabulated by Ramey \\
+CEE-style VAR \citep{ramey2016shocks} & industrial production $-0.2\%$ to $-0.5\%$ at trough & sample-dependent; monetary shocks explain $<$7\% of IP variance at 24 months \\
+Romer--Romer narrative / proxy-SVAR \citep{ramey2016shocks} & industrial production $-1$ to $-3\%$, trough $\approx$18 months & the ``medium effects'' end of the evidence; one variant: unemployment $+0.2$pp at month 30 \\
+ECB-BASE \citep{angelini2019ecbbase} & hump-shaped decline, stated to be ``in the quantitative ballpark'' of FRB/US & euro-area sibling of the FRB/US design; magnitudes shown only graphically \\
+CBO rule of thumb \citep{cbo2022rules} & none published (GDP held fixed) & $+10$bp on all rates $\Rightarrow$ deficits $+\$285$bn over 2023--32; budgetary costing only \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\parbox{0.97\textwidth}{\footnotesize ``This implementation'' from Table~\ref{tab:irf}. VAR-literature entries are trough responses of industrial production to a shock normalised to a 100bp funds-rate movement, as surveyed in \citet{ramey2016shocks}; industrial production is roughly three times as cyclical as GDP, so these are not directly convertible into GDP units.}
+\end{table}
+
+The placement is comfortable: FRB/US under VAR expectations delivers activity effects at the moderate end of the empirical range --- above the smallest CEE-style VAR estimates, close to the post-1984 FAVAR evidence once industrial production's greater cyclicality is taken into account, and well below the ``medium effects'' narrative-identification numbers --- with a peak-effect timing (about two years) shared by nearly every entry. The NY Fed DSGE attributes a somewhat larger per-shock output effect but the same flat-Phillips-curve property of small inflation responses. On the fiscal side, the CBO comparison is already embedded in Table~\ref{tab:published-comparison}: CBO's published ranges are wide (0.5--2.5 for federal purchases, 0.3--1.5 for broad two-year tax cuts, with the central individual-tax multiplier around 0.3), and every multiplier in Table~\ref{tab:multipliers} lies inside them \citep{whalen2015fiscal, cbo2022rules}.
+
+\subsection{Reading the comparisons}
 
 The like-for-like agreement is the decisive test: on identical inputs the two codebases are the same model to solver precision, so the residual gaps against the 2014 FEDS Note --- a slightly deeper output-gap trough and a roughly half-as-large inflation response --- reflect model vintage and shock design, not implementation error. Both deltas move in the direction expected from documented vintage changes, most notably the progressive flattening of the estimated price Phillips curve between the 2014 public release and the current one. Figure~\ref{fig:cmp-multipliers} summarises the fiscal comparison graphically, Figure~\ref{fig:cmp-irf-feds} overlays the published peak responses on our impulse responses, and Figure~\ref{fig:cmp-pyfrbus} shows the ours-versus-pyfrbus overlay, in which the two lines are visually indistinguishable.
 

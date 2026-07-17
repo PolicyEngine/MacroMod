@@ -1,7 +1,7 @@
 \section{Comparison with published results}
 \label{sec:comparison}
 
-Unlike the suite's OBR-emulator and SVAR members, the OLG member has no published ground truth to replicate (Section~\ref{sec:limitations}), so this section makes the honest comparisons that \emph{are} available, in three parts: (i) the deployed calibration's targets against the current official UK aggregates; (ii) the deployed parameter choices against the OG-Core/OG-USA defaults and the published \citet{DeBackerEvansPhillips2019} tax-function estimates the framework descends from; and (iii) the model's structure and headline behaviour against the OBR's own UK overlapping-generations model, published as Working Paper 22 \citep{OBR2025OLG}. Throughout, where a match is anchoring by construction rather than an independent validation, the tables say so.
+Unlike the suite's OBR-emulator and SVAR members, the OLG member has no published ground truth to replicate (Section~\ref{sec:limitations}), so this section makes the honest comparisons that \emph{are} available, in four parts: (i) the deployed calibration's targets against the current official UK aggregates; (ii) the deployed parameter choices against the OG-Core/OG-USA defaults and the published \citet{DeBackerEvansPhillips2019} tax-function estimates the framework descends from, including the published fit statistics; (iii) the model's structure, calibration, and full published scenario results against the OBR's own UK overlapping-generations model, published as Working Paper 22 \citep{OBR2025OLG}; and (iv) the published record of OG-USA policy simulations, which brackets the plausible range of long-run responses the UK wiring should produce. Throughout, where a match is anchoring by construction rather than an independent validation, the tables say so.
 
 \subsection{Calibration targets against official UK aggregates}
 \label{subsec:targets}
@@ -39,7 +39,7 @@ Household saving ratio & 8.9\% (2026 Q1, down from 9.6\%) & ONS quarterly sector
 \label{fig:targets}
 \end{figure}
 
-The distinction in the treatment column matters for interpretation. Imposed quantities (depreciation, growth, the debt target) cannot disagree with the data; the genuinely over-identifying checks are the ones the steady state must \emph{deliver} --- the capital--output ratio and the interest rate consistent with the calibrated $(\gamma,\delta,\beta)$ triple. In the deployed fast configuration these emerge in an economically sensible range (a baseline steady-state real interest rate in low single digits, reported by \texttt{og-baseline} alongside the model-unit aggregates), but no systematic published reconciliation of achieved-versus-target moments exists for OG-UK 0.3.0, and this paper does not manufacture one: producing that reconciliation table from logged solves is the single most valuable next step for this member (Section~\ref{sec:limitations}). Two dating caveats on Table~\ref{tab:targets}: the official column reports the figures current at writing (mid-2026), while the deployed calibration was frozen against slightly earlier vintages; and the saving ratio is volatile quarter to quarter, so $\beta$ is matched to a smoothed level, not the latest print.
+The distinction in the treatment column matters for interpretation. Imposed quantities (depreciation, growth, the debt target) cannot disagree with the data; the genuinely over-identifying checks are the ones the steady state must \emph{deliver} --- the capital--output ratio and the interest rate consistent with the calibrated $(\gamma,\delta,\beta)$ triple. In the deployed fast configuration these emerge in an economically sensible range (a baseline steady-state real interest rate in low single digits, reported by \texttt{og-baseline} alongside the model-unit aggregates), but no systematic published reconciliation of achieved-versus-target moments exists for OG-UK 0.3.0, and this paper does not manufacture one: producing that reconciliation table from logged solves is the single most valuable next step for this member (Section~\ref{sec:limitations}). Two dating caveats on Table~\ref{tab:targets}: the official column reports the figures current at writing (mid-2026), while the deployed calibration was frozen against slightly earlier vintages; and the saving ratio is volatile quarter to quarter, so $\beta$ is matched to a smoothed level, not the latest print. The official column was re-verified against the releases available on 17 July 2026: the May 2026 public sector finances bulletin (debt at 95.1\% of GDP, itself 0.7 percentage points above the OBR's March 2026 forecast of 94.4\%) and the 2026 Q1 sector accounts (saving ratio 8.9\%) remain the latest published prints, with the June 2026 finances bulletin due later in the month.
 
 \subsection{Parameter choices against the OG-Core/OG-USA published defaults}
 \label{subsec:paramcompare}
@@ -75,6 +75,29 @@ The deviations follow a single logic: quantities that describe the \emph{economy
 
 On the tax-function side, the published reference point is the DEP fit that \citet{DeBackerEvansPhillips2019} and the OG-USA documentation report for baseline US current law at age 42 in 2017: asymptotic maximum rates $max_x = 0.80$ ($max_x = 0.71$ for MTRx), fitted minimum rates of $-0.14$ to $-0.17$ (net transfer recipients), and a Cobb--Douglas income weight $\phi = 0.84$--$0.96$, estimated on 3{,}105 filer observations per rate. Figure~\ref{fig:depcompare} draws the schedules those published parameters imply and lays the paper's illustrative UK Gouveia--Strauss curve (the deployed functional form) alongside. The comparison is between \emph{published US fits} and an \emph{illustrative UK-shaped curve} --- no fitted UK parameter vector is published for OG-UK 0.3.0, and this paper does not manufacture one --- but it makes the structural point: both pipelines produce the same qualitative object, a smooth bounded schedule rising from near (or below) zero through the progressive range towards an asymptotic maximum, with the UK curve's faster early rise reflecting the personal-allowance taper and NICs arriving lower in the income distribution than the corresponding US thresholds.
 
+\paragraph{Published fit statistics.} \citet{DeBackerEvansPhillips2019} also publish the fit diagnostics for their DEP estimation on US IRS-based microdata --- the same weighted-NLLS objective \eqref{eq:txobjective} that the deployed pipeline minimises --- and these give the only published yardstick for how well functions of this family fit microsimulation output. Table~\ref{tab:depfit} reproduces the diagnostics for their illustrative age-43, year-2018 cell (a neighbouring cell to the age-42, 2017 parameter vector drawn in Figure~\ref{fig:depcompare}; the published materials report different reference cells across vintages) under both 2017 law and the TCJA reform: roughly 3{,}500 weighted filer observations per rate type per cell, with root-mean-squared errors of 1.8--2.4 \emph{percentage points} of tax rate, largest for the capital-income marginal rate (whose micro cloud is noisiest) and essentially unchanged between baseline and reform law. Two lessons carry over to the UK wiring. First, a well-behaved fit of this family leaves residual within-cell dispersion of around two percentage points --- the parametric smoothing is a genuine compression, not an interpolation --- so reforms whose effects live in fine distributional detail below that resolution should be scored with the microsimulation member, not this one. Second, no comparable fit table is yet published for the deployed UK Gouveia--Strauss estimation: OG-Core's \texttt{txfunc} reports the weighted SSE and observation count for every fitted cell at run time, but OG-UK 0.3.0 publishes no reference values, and producing that table from logged UK estimations belongs to the same validation agenda as the achieved-versus-target moments (Section~\ref{sec:limitations}).
+
+\begin{table}[t]
+\centering
+\caption{Published DEP tax-function fit diagnostics, US age-43 cell, tax year 2018 \citep{DeBackerEvansPhillips2019}}
+\label{tab:depfit}
+\footnotesize
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{3}{c}{2017 law (baseline)} & \multicolumn{3}{c}{TCJA (reform)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+ & ETR & MTRx & MTRy & ETR & MTRx & MTRy \\
+\midrule
+Observations $N$ & 3{,}469 & 3{,}469 & 3{,}469 & 3{,}480 & 3{,}480 & 3{,}480 \\
+Weighted SSE & 10{,}861 & 12{,}614 & 20{,}736 & 11{,}406 & 11{,}472 & 18{,}626 \\
+RMSE (pp of tax rate) & 1.77 & 1.91 & 2.45 & 1.81 & 1.82 & 2.31 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.86\textwidth}
+\vspace{2pt}\footnotesize One of $3{,}600$ estimated cells (3 rate types $\times$ 60 ages $\times$ 10 budget-window years $\times$ 2 policies); the authors present this cell as illustrative of the full set. Rates are measured in percentage points, so RMSE is directly interpretable as tax-rate dispersion around the fitted schedule.
+\end{minipage}
+\end{table}
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_dep_compare.pdf}
@@ -108,10 +131,79 @@ Debt-to-GDP target & 100\% & ONS-anchored ($\approx$ 95\%) \\
 Tax detail & statutory rates and thresholds (March 2024) coded directly & smooth tax functions estimated from PolicyEngine microdata \\
 Openness & closed baseline; open variant with $r^{*} = 5\%$ & closed baseline; open-economy features gilt-anchored \\
 Bequests & warm glow, target \pounds 107,000, received at 55--75 & warm-glow intensity $\chi^b_j$, accidental bequests redistributed \\
+Consumption tax & effective VAT rate 9.3\% (receipts / consumption) & VAT-anchored $\tau^c$ \\
+Population growth & 0.75\%/yr (16+, March 2024 EFO) & UN WPP profiles, immigration residual \\
+Solution method & value-function iteration on a discretised state space; core solve $<$2 minutes & Newton root-finding on Euler equations + time-path iteration; steady state $\approx$17 minutes \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 The calibrations agree closely where both anchor to the same official sources (productivity growth 1.2\% vs 1.1\%; debt targets within a few points of current PSND) and differ where modelling philosophy differs: the OBR codes the statutory tax schedule directly and generates within-cohort inequality from earnings shocks, where OG-UK summarises the \emph{simulated} tax system --- benefit withdrawal included --- as smooth estimated functions and carries inequality through deterministic ability types. Neither is dominant: the OBR's shock-based heterogeneity produces precautionary saving that the deterministic-types model cannot, while the microdata-estimated tax functions capture effective-rate detail (the UC taper, the \pounds 100,000 allowance withdrawal) that coded statutory schedules of the marginal-rate-and-threshold kind omit.
 
-On results, the overlap currently available is qualitative. WP 22's headline policy experiment is exactly the reform class this paper uses as its running example --- a 1 percentage point change in the basic rate of income tax --- for which the OBR model delivers a long-run GDP fall of 0.1\%, a 0.2\% fall in total hours (concentrated at ages above 50), and an income-tax yield of roughly \pounds 8bn ($\approx$ 0.3\% of GDP), with a near-symmetric response to a cut. Those are steady-state, closed-economy, full-anticipation numbers --- the same experiment type as this member's CLI scoring --- and they provide the natural external benchmark: an OG-UK basic-rate score whose signs match (output and hours down, revenue up by somewhat less than the static yield) and whose magnitudes fall in the same sub-half-percent range would be corroborating; a materially larger response would point first at the Frisch calibration and the estimated MTR schedules. WP 22 publishes no steady-state capital--output ratio or long-run elasticity table beyond these scenario results, so a full quantitative reconciliation is not yet possible from published numbers alone; producing the OG-UK side of this comparison from logged solves is part of the validation agenda of Section~\ref{sec:limitations}.
+\paragraph{The OBR model's own fit to UK data.} WP 22 also publishes the comparison between its calibrated baseline and the UK data (its Table 4.2), which is worth recording here because it shows how far even a carefully calibrated official OLG model sits from the aggregates: in the closed-economy baseline the consumption-to-GDP ratio is 74.6\% against an outturn of 61.5\% (the model has no net trade, housing, or government-consumption components of expenditure), private assets-to-GDP is 376\% against 443\% (the model under-generates peak retirement wealth), and the equilibrium real interest rate is 7.1\% against an outturn near 3.9\% --- while income tax (9.9\% vs 9.8\% of GDP) and VAT (6.9\% vs 7.3\%) receipts match closely. The open-economy variant, which pins the interest rate at the assumed world rate of 5\%, brings assets and debt interest nearer the data. This is the appropriate standard against which to judge the OG-UK member's emergent moments when its own reconciliation table is produced: close on the fiscal ratios that are effectively anchored, materially off on the equilibrium price and wealth moments that are not --- a pattern to be expected of this model class, not a defect peculiar to either codebase.
+
+\paragraph{Published scenario results.} On results, WP 22 publishes one long-run scenario table (its Table 5.1), and its headline experiment is exactly the reform class this paper uses as its running example --- a 1 percentage point change in the basic rate of income tax. Table~\ref{tab:obrscenarios} reproduces the published results in full for all four scenarios. For the basic-rate rise (A1), GDP per person falls 0.1\%, total hours fall 0.2\% (concentrated above age 50, peaking at about 10 minutes a week less for those aged 72), productivity \emph{rises} 0.1\% through composition as the least-productive workers reduce hours most, the consumption share falls 0.4 points, and income tax raises just over \pounds 8bn in real terms ($\approx$ 0.3\% of GDP) --- against the \pounds 6--8bn ($\approx$ 0.2\% of GDP) short-run static yield in HMRC's ready reckoner, with WP 22 noting its own model overstates the yield somewhat because it under-represents incomes below the personal allowance. The cut (A2) is near-symmetric, with the residual budget item worsening 0.3\% of GDP against the rise's 0.4\% gain (a rounding artefact, per WP 22). The state-pension scenario (B) raises GDP per person 0.1\% on a 0.2\% labour-supply rise; the ageing scenario (C) lowers GDP per person 0.2\% as a 0.5\% labour-supply fall outweighs capital deepening, with assets-to-GDP up nearly 2 points and the real interest rate down 0.1 points.
+
+\begin{table}[t]
+\centering
+\caption{OBR UK OLG published long-run scenario results (WP 22, Table 5.1; differences from baseline)}
+\label{tab:obrscenarios}
+\footnotesize
+\begin{tabular}{lcccc}
+\toprule
+ & A1: basic rate & A2: basic rate & B: state-pension & C: ageing \\
+ & +1pp & $-$1pp & profile +1 year & (survival +1pp) \\
+\midrule
+GDP per capita (\%) & $-$0.1 & $+$0.1 & $+$0.1 & $-$0.2 \\
+Labour supply (\%) & $-$0.2 & $+$0.2 & $+$0.2 & $-$0.5 \\
+Labour productivity (\%) & $+$0.1 & $-$0.1 & $-$0.1 & $+$0.2 \\
+Real wage (\%) & 0.0 & 0.0 & 0.0 & $+$0.3 \\
+Real interest rate (pp) & 0.0 & 0.0 & 0.0 & $-$0.1 \\
+Saving rate (pp) & 0.0 & 0.0 & 0.0 & $-$0.1 \\
+Consumption / GDP (pp) & $-$0.4 & $+$0.4 & $-$0.3 & $+$0.1 \\
+Private assets / GDP (pp) & $-$0.2 & $-$0.2 & $-$0.2 & $+$1.9 \\
+Residual budget item / GDP (pp) & $+$0.4 & $-$0.3 & $+$0.3 & $-$0.1 \\
+Income tax / GDP (pp) & $+$0.3 & $-$0.3 & $-$0.1 & 0.0 \\
+Welfare spending / GDP (pp) & 0.0 & 0.0 & $-$0.3 & $+$0.2 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.88\textwidth}
+\vspace{2pt}\footnotesize Closed-economy, full-anticipation, long-run (new steady state) results; WP 22 stresses these are ``generic unit sensitivities, not policy costings''. The A1 income-tax yield corresponds to just over \pounds 8bn in real terms.
+\end{minipage}
+\end{table}
+
+These are steady-state, closed-economy, full-anticipation numbers --- the same experiment type as this member's CLI scoring --- and they provide the natural external benchmark: an OG-UK basic-rate score whose signs match (output and hours down, revenue up by somewhat less than would be suggested by a static costing of the same statute) and whose magnitudes fall in the same sub-half-percent range would be corroborating; a materially larger response would point first at the Frisch calibration and the estimated MTR schedules. Beyond Table~\ref{tab:obrscenarios} and its baseline-fit table, WP 22 publishes no steady-state capital--output ratio or long-run elasticity schedule, so a full quantitative reconciliation is not yet possible from published numbers alone; producing the OG-UK side of this comparison from logged solves is part of the validation agenda of Section~\ref{sec:limitations}.
+
+\subsection{Published OG-USA policy simulations: the plausible range of long-run responses}
+\label{subsec:ogusarange}
+
+The final comparison uses the published record of policy simulations run with OG-USA --- the same OG-Core engine and tax-function pipeline as the UK wiring, applied by its own authors and by third-party institutions --- to bracket the magnitude of long-run GDP responses this model family produces for tax reforms of stated size. Table~\ref{tab:ogusarange} collects the published numbers alongside the OBR UK OLG basic-rate experiment.
+
+\begin{table}[t]
+\centering
+\caption{Published long-run GDP effects from OG-Core-family and comparable OLG simulations}
+\label{tab:ogusarange}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lllll}
+\toprule
+Study & Model & Policy simulated & Long-run GDP effect & Budget-window effect \\
+\midrule
+\citet{DeBackerEvansPhillips2019} & OG-USA + Tax-Calculator & TCJA (2017 US tax act) vs prior law & $+$0.07\% steady state$^{a}$ & $+$0.56\% avg.\ 2018--27; $+$1.2\% peak \\
+\citet{PomerleauDeBackerEvans2020} & OG-USA + Tax-Calculator & Biden 2020 platform (tax rises $\approx$ 1\% of GDP) & $-$0.2\% & $-$0.06\% first decade; $+$0.07\% second \\
+\citet{TPCBiden2020} & OG-USA + TPC microsim & Biden 2020 campaign proposals & positive after 2038 (crowding-in)$^{b}$ & $-$0.37\%/yr avg.\ first decade \\
+\citet{OBR2025OLG} & OBR UK OLG (independent code) & UK basic rate $\pm$1pp ($\approx$ 0.3\% of GDP) & $\mp$0.1\% & not published (long-run only) \\
+\bottomrule
+\end{tabular}}
+\begin{minipage}{\textwidth}
+\vspace{2pt}\footnotesize $^{a}$ Preferred (age-varying DEP) specification; across the six tax-function specifications the steady-state effect spans $+$0.03\% to $+$0.15\%, with steady-state revenue about 3\% lower --- the choice of functional form moves the answer by roughly a factor of five even within one model. $^{b}$ Deficit-reducing packages raise long-run output in closed-economy OG models through reduced crowding-out, which is why the sign flips between horizons.
+\end{minipage}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/fig_gdp_range.pdf}
+\caption{Published long-run GDP effects of tax reforms in OG-family simulations, as reported in the source documents (Table~\ref{tab:ogusarange}). The whisker on the TCJA bar is the published $+$0.03\% to $+$0.15\% spread across the six tax-function specifications of \citet{DeBackerEvansPhillips2019} --- the within-model sensitivity to the tax-function form alone. The TPC first-decade path ($-$0.37\%/yr average, turning positive after 2038) is omitted because it is not a steady-state number.}
+\label{fig:gdprange}
+\end{figure}
+
+Three regularities emerge (Figure~\ref{fig:gdprange}), and they define the plausibility corridor for the UK wiring. First, \emph{long-run GDP responses are small relative to the static size of the reform}: reforms moving of the order of 0.3--1\% of GDP in revenue move long-run GDP by 0.1--0.4\% across every published exercise, whether the model is OG-USA or the OBR's independent codebase. An OG-UK basic-rate score implying a multi-percent long-run GDP effect would therefore be presumptively wrong, whatever its internal convergence diagnostics say. Second, \emph{the sign of the long-run effect can differ from the impact effect} for debt-changing reforms, because the closure rule and crowding-out dominate at long horizons --- the TCJA's near-1\% budget-window stimulus decays to $+$0.07\% in the steady state, and the Biden package's first-decade drag turns positive once lower debt crowds capital back in. Steady-state-only scores (this member's CLI output) must therefore never be read as budget-window costings, exactly as Section~\ref{sec:limitations} states. Third, \emph{specification choices internal to the pipeline matter at the same order as the estimate itself}: the factor-of-five spread across tax-function forms in the TCJA exercise is the published quantification of a sensitivity the deployed UK configuration inherits, and it is the concrete reason this paper reports the deployed form (pooled Gouveia--Strauss) explicitly rather than treating the tax-function step as settled plumbing.

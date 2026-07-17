@@ -143,6 +143,13 @@ results["taxcut"]["drev_pctgdp"] = (
     / base.loc[START:END40, "xgdpn"]
 ).tolist()
 
+# --- (f) cost-push price shock: +1pp to core PCE inflation for 4 quarters --
+cdata = base.copy()
+CP_END = pd.Period("2026Q4")
+cdata.loc[START:CP_END, "picxfe_aerr"] += 1
+sim_cp = model.solve(START, END40, cdata)
+results["costpush"] = dev(sim_cp, base)
+
 results["quarters"] = QLAB40
 
 with open(HERE / "results.json", "w") as fh:
@@ -179,6 +186,7 @@ panels = [
 ]
 
 panelfig("fig_mp100.pdf", [results["mp100"]], ["100bp shock"], panels)
+panelfig("fig_costpush.pdf", [results["costpush"]], ["cost-push shock"], panels)
 panelfig(
     "fig_fiscal_rules.pdf",
     [results["gov_taylor"], results["gov_fixed"]],
