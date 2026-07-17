@@ -10,3 +10,12 @@ __pycache__/
 .env*.local
 .env.local
 .vercel/
+
+# LaTeX build artifacts (papers/)
+papers/**/*.aux
+papers/**/*.bbl
+papers/**/*.blg
+papers/**/*.fdb_latexmk
+papers/**/*.fls
+papers/**/*.log
+papers/**/*.out
