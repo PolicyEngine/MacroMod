@@ -217,12 +217,21 @@ def test_score_reform_og_is_uk_only(fake_oguk):
         core.score_reform("us", {"x": 1}, model="og")
 
 
-def test_score_reform_obr_pending_points_to_escape_hatch():
-    with pytest.raises(NotImplementedError) as exc:
-        core.score_reform("uk", {"x": 1}, model="obr")
+def test_score_reform_obr_is_uk_only():
+    with pytest.raises(ValueError, match="UK-only"):
+        core.score_reform("us", {"x": 1}, model="obr")
+
+
+def test_score_reform_obr_corp_tax_points_to_escape_hatch():
+    """Corporation tax is not household-borne in the microsim: the bridge must
+    refuse it (before any heavy import) and point at the TCPRO lever."""
+    with pytest.raises(ValueError) as exc:
+        core.score_reform(
+            "uk", {"gov.hmrc.corporation_tax.main_rate": 0.20}, model="obr"
+        )
     msg = str(exc.value)
     assert "obr_shock" in msg
-    assert "issues/9" in msg
+    assert "TCPRO" in msg
 
 
 def test_score_reform_validates_reform_and_model():

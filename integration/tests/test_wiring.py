@@ -121,7 +121,7 @@ def _json_ok(result):
 def test_cli_help_lists_all_commands(runner):
     out = runner.invoke(main, ["--help"]).output
     for cmd in [
-        "score", "obr-shock", "variables", "forecast", "shocks", "summary",
+        "score", "compare", "obr-shock", "variables", "forecast", "shocks", "summary",
         "parameters", "household", "household-impact", "population-impact",
         "og-score", "og-baseline",
     ]:
@@ -174,10 +174,25 @@ def test_cli_score_requires_reform_and_model(runner):
     assert "model" in res.output.lower()
 
 
-def test_cli_score_obr_pending_is_clear_error(runner):
-    res = runner.invoke(main, ["score", "--reform", '{"x": 1}', "--model", "obr"])
+def test_cli_score_obr_corp_tax_is_clear_error(runner):
+    """A corporation-tax reform must be refused with a pointer to the direct
+    TCPRO lever, before any heavy model import."""
+    res = runner.invoke(main, [
+        "score", "--reform", '{"gov.hmrc.corporation_tax.main_rate": 0.2}',
+        "--model", "obr",
+    ])
     assert res.exit_code != 0
-    assert "obr-shock" in res.output
+    assert "Traceback" not in res.output
+    assert "TCPRO" in res.output
+
+
+def test_cli_compare_bad_model_is_clean_error(runner):
+    res = runner.invoke(main, [
+        "compare", "--reform", '{"x": 1}', "--models", "svar",
+    ])
+    assert res.exit_code != 0
+    assert "Traceback" not in res.output
+    assert "model must be one of" in res.output
 
 
 def test_cli_obr_shock_requires_var(runner):

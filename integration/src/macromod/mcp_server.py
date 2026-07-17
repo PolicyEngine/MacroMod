@@ -21,35 +21,51 @@ def score_reform(
     model: str,
     start_year: int = 2026,
     max_iter: int = 250,
+    years: int = 5,
+    dataset: str | None = None,
 ) -> dict:
-    """Score a tax/benefit reform with one of the suite's macro models, using
-    the SAME PolicyEngine reform dict as the microsimulation tools.
+    """Score a tax/benefit reform with one of the suite's scoring models, using
+    the SAME PolicyEngine reform dict as the microsimulation tools. Every
+    result carries a common `score` block (ScoreResult: model class, horizon,
+    per-quantity deltas with units and basis, assumptions, caveats) so results
+    from different model classes are comparable side by side.
 
     Args:
-        country: 'uk' (the macro members are UK models for now).
+        country: 'uk' (macro members are UK models; 'us' works for microsim).
         reform: Flat {parameter_path: value} dict — the same shape as
             population_reform_impact / household_reform_impact, e.g.
             {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}. Call
             list_reform_parameters for verified paths and units.
-        model: Which macro model consumes the reform, via its contract:
+        model: Which model consumes the reform, via its contract:
             'og'  — OG-UK overlapping-generations model: long-run steady-state
                     general-equilibrium comparison; the reform enters through
                     PolicyEngine-estimated tax functions. VERY SLOW (tens of
                     minutes) and excluded from the hosted server — run it
                     locally via `macromod score --model og`; calling it here
                     returns install/CLI instructions.
-            'obr' — OBR macroeconometric emulator: NOT WIRED YET. The
-                    microsim-static-costing bridge is tracked in PolicyEngine/macro#9;
-                    until it lands, use obr_shock for raw variable shocks.
+            'obr' — OBR macroeconometric emulator via the microsim
+                    static-costing bridge: the reform is costed per year with
+                    the PolicyEngine population microsimulation, the annual
+                    budgetary impacts enter the emulator as a quarterly
+                    household-disposable-income (HHDI) shock path
+                    (sign-corrected: revenue raised lowers HHDI), and the
+                    second-round demand effects on GDP/consumption/investment
+                    come out. Demand-side incidence only; corporation-tax
+                    reforms are refused (use obr_shock var='TCPRO'). Takes a
+                    few minutes (one microsim run per year + two OBR solves).
+            'microsim' — the PolicyEngine population costing itself (static,
+                    no macro feedback), wrapped in the same ScoreResult.
         start_year: Reform start year (default 2026).
-        max_iter: OG steady-state solver iteration cap (default 250).
+        max_iter: og only — steady-state solver iteration cap (default 250).
+        years: obr only — costing window length in years (default 5).
+        dataset: obr/microsim only — microdata dataset name override.
 
     For population-level budget/distributional impacts WITHOUT macro feedback,
-    use population_reform_impact (fast).
+    population_reform_impact is the direct (equivalent, faster) tool.
     """
     return core.score_reform(
         country=country, reform=reform, model=model, start_year=start_year,
-        max_iter=max_iter,
+        max_iter=max_iter, years=years, dataset=dataset,
     )
 
 

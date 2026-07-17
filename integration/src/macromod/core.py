@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict
 
 # Fallback checkout of boe-var-model for svar_summary when the boe_var
 # package is not installed; unset means no fallback.
@@ -86,6 +87,20 @@ def obr_list_variables() -> list[dict]:
     return [dict(v) for v in OBR_VARIABLES]
 
 
+def _obr_result_rows(df) -> list[dict]:
+    """run_reform results DataFrame -> plain per-quarter row dicts."""
+    return [
+        {
+            "period": str(r.period),
+            "delta_gdp_bn": round(float(r.delta_gdp_bn), 4),
+            "pct_gdp": round(float(r.pct_gdp), 4),
+            "delta_cons_m": round(float(r.delta_cons_m), 1),
+            "delta_if_m": round(float(r.delta_if_m), 1),
+        }
+        for r in df.itertuples()
+    ]
+
+
 def obr_shock(
     var: str,
     shock: float,
@@ -118,16 +133,7 @@ def obr_shock(
         periods=int(periods),
         investment_closure=bool(investment_closure),
     )
-    rows = [
-        {
-            "period": str(r.period),
-            "delta_gdp_bn": round(float(r.delta_gdp_bn), 4),
-            "pct_gdp": round(float(r.pct_gdp), 4),
-            "delta_cons_m": round(float(r.delta_cons_m), 1),
-            "delta_if_m": round(float(r.delta_if_m), 1),
-        }
-        for r in df.itertuples()
-    ]
+    rows = _obr_result_rows(df)
     shocked = rows[: int(periods)]
     peak = max(rows, key=lambda r: abs(r["pct_gdp"]))
     return {
@@ -828,7 +834,7 @@ def pe_population_impact(
         losers += d.count_worse_off
 
     sym = "£" if country == "uk" else "$"
-    return {
+    out = {
         "model": "PolicyEngine population microsimulation",
         "country": country,
         "year": int(year),
@@ -847,6 +853,8 @@ def pe_population_impact(
         "winners": int(winners),
         "losers": int(losers),
     }
+    out["score"] = _pop_score_block(out)
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -983,7 +991,7 @@ def og_score_reform(
     )
     impact = map_to_real_world(baseline_ss, reform_ss)
     imp = impact.model_dump()
-    return {
+    out = {
         "model": "OG-UK overlapping generations (steady state)",
         "assumptions": "pooled ages, single representative sector, "
                        "long-run steady-state comparison (not a budget-window "
@@ -1002,13 +1010,315 @@ def og_score_reform(
         "baseline_steady_state_model_units": _og_ss_dict(baseline_ss),
         "reform_steady_state_model_units": _og_ss_dict(reform_ss),
     }
+    out["score"] = _og_score_block(out)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Common ScoreResult schema across all scoring adapters (issue #10)
+# ---------------------------------------------------------------------------
+#
+# Every scoring entry point (og_score_reform, obr_score_reform,
+# pe_population_impact) returns its existing model-specific dict UNCHANGED
+# plus a "score" key holding this common, pydantic-validated shape — additive,
+# so existing consumers keep working while comparisons across model classes
+# ("the same reform through different models, side by side") have one
+# programmatic object. Emitted as .model_dump() dicts, per this module's
+# plain-dicts-out convention.
+
+SCORE_QUANTITIES = (
+    "gdp", "consumption", "investment", "government", "revenue", "debt"
+)
+
+
+class ScoreQuantity(BaseModel):
+    """One comparable macro quantity. A model fills only what it produces:
+    e.g. the microsim fills revenue only; the OG member has no uncertainty."""
+
+    level_bn: float | None = None
+    delta_bn: float | None = None
+    delta_pct: float | None = None
+    units: str
+    basis: str
+
+
+class ScoreDistribution(BaseModel):
+    """Distributional block; only the microsim fills it today."""
+
+    decile_impacts: list[dict]
+    winners: int
+    losers: int
+
+
+class ScoreResult(BaseModel):
+    """The common result shape for every scoring adapter (issue #10)."""
+
+    model_config = ConfigDict(protected_namespaces=())
+
+    model: str        # adapter id, e.g. "og-uk", "obr-emulator", "pe-microsim"
+    model_class: str  # "microsim" | "semi-structural" | "olg-ge"
+    country: str
+    reform: dict
+    horizon: str      # "steady-state" | "quarterly window ..." | "annual ..."
+    quantities: dict[str, ScoreQuantity]
+    assumptions: list[str] = []
+    caveats: list[str] = []
+    uncertainty: dict | None = None      # bands where the model produces them
+    distributional: ScoreDistribution | None = None
+
+
+def _og_score_block(res: dict) -> dict:
+    """Common ScoreResult from an og_score_reform payload."""
+    imp = res["impact"]
+    units = "GBP bn per year, long-run steady state"
+    q = {}
+    for k in ("gdp", "consumption", "investment", "government",
+              "tax_revenue", "debt"):
+        name = "revenue" if k == "tax_revenue" else k
+        q[name] = ScoreQuantity(
+            level_bn=imp["levels_bn"][k],
+            delta_bn=imp["changes_bn"][f"{k}_change"],
+            delta_pct=imp["changes_pct"][f"{k}_pct"],
+            units=units,
+            basis="oguk.map_to_real_world baseline-vs-reform steady states",
+        )
+    return ScoreResult(
+        model="og-uk",
+        model_class="olg-ge",
+        country="uk",
+        reform=res["reform"],
+        horizon="steady-state",
+        quantities=q,
+        assumptions=[res["assumptions"]],
+        caveats=[
+            "long-run steady-state comparison, not a budget-window costing",
+        ],
+    ).model_dump()
+
+
+def _pop_score_block(res: dict) -> dict:
+    """Common ScoreResult from a pe_population_impact payload."""
+    cur = res["currency"]
+    return ScoreResult(
+        model="pe-microsim",
+        model_class="microsim",
+        country=res["country"],
+        reform=res["reform"],
+        horizon=f"annual {res['year']}",
+        quantities={
+            "revenue": ScoreQuantity(
+                delta_bn=res["budgetary_impact_bn"],
+                units=f"{cur} bn per year",
+                basis=res["budgetary_impact_basis"],
+            ),
+        },
+        assumptions=[
+            "static microsimulation: no behavioural or macro feedback",
+            f"dataset {res['dataset']} ({res['n_households']} households)",
+        ],
+        caveats=["GDP/consumption/investment are out of scope for a "
+                 "static microsim; only the budgetary impact is filled"],
+        distributional=ScoreDistribution(
+            decile_impacts=res["decile_impacts"],
+            winners=res["winners"],
+            losers=res["losers"],
+        ),
+    ).model_dump()
+
+
+# ---------------------------------------------------------------------------
+# OBR bridge: microsim static costing in, second-round effects out (issue #9)
+# ---------------------------------------------------------------------------
+
+# Injection variable for externally costed household reforms: nominal
+# household disposable income, £m per quarter. Chosen because it is the OBR's
+# own demand-side incidence channel — HHDI -> RHHDI (= 100*HHDI/PCE) -> the
+# anchored CONS equation -> the GDPM expenditure identity — so a static
+# costing enters exactly where a household tax/benefit change first bites.
+OBR_BRIDGE_VAR = "HHDI"
+
+_OBR_CORP_TAX_MARKERS = ("corporation_tax", "corporate_tax")
+
+
+def _obr_corp_tax_paths(reform: dict) -> list[str]:
+    return [p for p in reform
+            if any(m in p for m in _OBR_CORP_TAX_MARKERS)]
+
+
+def obr_costing_to_shock(annual_budget_bn) -> list[float]:
+    """Pure translation: annual static costings -> the OBR HHDI shock path.
+
+    Takes the microsim's annual budgetary impacts (£bn per year, positive =
+    the reform raises revenue) and returns the quarterly additive shock on
+    ``OBR_BRIDGE_VAR`` (HHDI, £m per quarter) that run_reform consumes:
+
+    - Sign: revenue raised means households keep less, so disposable income
+      falls — the shock is the NEGATIVE of the costing.
+    - Units: £bn/year -> £m/quarter is * 1000 / 4.
+    - Interpolation: flat within each year (deliberately crude and declared;
+      the microsim only produces annual numbers).
+
+    Pure arithmetic — no model imports — so it is unit-testable everywhere.
+    """
+    path: list[float] = []
+    for bn in annual_budget_bn:
+        quarterly_m = -float(bn) * 1000.0 / 4.0
+        path.extend([round(quarterly_m, 4)] * 4)
+    return path
+
+
+def obr_score_reform(
+    reform: dict,
+    start_year: int = 2026,
+    years: int = 5,
+    dataset: str | None = None,
+) -> dict:
+    """Score a PolicyEngine reform through the OBR emulator (issue #9).
+
+    The OBR's own workflow: static costing in, second-round effects out.
+
+    Pipeline:
+      1. pe_population_impact(country="uk", reform=..., year=y) for each year
+         in [start_year, start_year+years) -> annual budgetary_impact_bn path
+         (needs the private UK microdata; set HUGGING_FACE_TOKEN).
+      2. obr_costing_to_shock: annual £bn -> quarterly £m on HHDI, flat within
+         each year, sign-corrected (revenue raised => disposable income falls).
+      3. run_reform(var="HHDI", shock=[path]) -> per-quarter GDP, consumption
+         and investment deltas: the second-round demand effects of the reform.
+
+    What the translation assumes (be honest):
+    - The costing lands on nominal household disposable income (HHDI) because
+      that is where a household tax/benefit change first bites; it propagates
+      HHDI -> RHHDI -> CONS -> GDP. run_reform exogenises HHDI identically in
+      the baseline and the shocked run, so the delta isolates the shock — at
+      the declared cost that the economy's feedback onto disposable income
+      itself (second-round income -> tax -> income) is not recycled.
+    - Demand-side incidence only. Supply-side channels (participation,
+      savings, capital) are the OG member's job — that division of labour is
+      the point of the suite.
+    - Corporation tax is not household-borne in the microsim, so a
+      corporation-tax reform is refused here with a pointer to
+      obr_shock(var="TCPRO", ...), the direct lever.
+
+    UK only (the OBR is a UK model). Runtime: one microsim run per year in
+    the window (~6s each after the first) plus two OBR solves.
+    """
+    _validate_reform(reform)
+    corp = _obr_corp_tax_paths(reform)
+    if corp:
+        raise ValueError(
+            "corporation tax is not household-borne in the microsim, so the "
+            "static-costing bridge cannot carry it (paths: "
+            f"{', '.join(corp)}). Use the direct lever instead: "
+            "obr_shock(var='TCPRO', shock=<rate change in decimal>)."
+        )
+    years = int(years)
+    if years < 1:
+        raise ValueError(f"years must be >= 1, got {years}")
+    run_reform = _import_obr()
+
+    window = list(range(int(start_year), int(start_year) + years))
+    costings = [
+        pe_population_impact(
+            country="uk", reform=reform, year=y, dataset=dataset
+        )
+        for y in window
+    ]
+    annual_bn = [c["budgetary_impact_bn"] for c in costings]
+    shock_path = obr_costing_to_shock(annual_bn)
+
+    start, end = f"{window[0]}Q1", f"{window[-1]}Q4"
+    name = f"PE static costing via {OBR_BRIDGE_VAR}: {reform}"
+    df = run_reform(
+        name=name,
+        var=OBR_BRIDGE_VAR,
+        shock=shock_path,
+        start=start,
+        end=end,
+        investment_closure=False,
+    )
+    rows = _obr_result_rows(df)
+    shocked = rows[: len(shock_path)]
+    cumulative_gdp_bn = round(sum(r["delta_gdp_bn"] for r in shocked), 3)
+    peak = max(rows, key=lambda r: abs(r["pct_gdp"]))
+    mean_costing_bn = round(sum(annual_bn) / len(annual_bn), 3)
+
+    caveats = [
+        "static costing enters as an exogenous HHDI path: the economy's "
+        "feedback onto disposable income itself is not recycled",
+        "demand-side incidence only; supply-side channels belong to the "
+        "OG member",
+        "annual costings applied flat within each year",
+        "corporation-tax reforms are out of scope (direct TCPRO lever via "
+        "obr_shock)",
+    ]
+    out = {
+        "model": "OBR emulator via PolicyEngine static costing",
+        "country": "uk",
+        "reform": dict(reform),
+        "start_year": int(start_year),
+        "years": years,
+        "window": {"start": start, "end": end},
+        "bridge_variable": OBR_BRIDGE_VAR,
+        "annual_costings_bn": [
+            {"year": y, "budgetary_impact_bn": bn}
+            for y, bn in zip(window, annual_bn)
+        ],
+        "quarterly_shock_path_m": shock_path,
+        "results": rows,
+        "cumulative_delta_gdp_bn_over_shock_periods": cumulative_gdp_bn,
+        "peak_pct_gdp": peak["pct_gdp"],
+        "peak_period": peak["period"],
+        "caveats": caveats,
+    }
+    out["score"] = ScoreResult(
+        model="obr-emulator",
+        model_class="semi-structural",
+        country="uk",
+        reform=dict(reform),
+        horizon=f"quarterly window {start}..{end}",
+        quantities={
+            "gdp": ScoreQuantity(
+                delta_bn=cumulative_gdp_bn,
+                units="GBP bn, cumulative over the shocked quarters",
+                basis="GDPM delta vs baseline, OBR emulator solve",
+            ),
+            "consumption": ScoreQuantity(
+                delta_bn=round(
+                    sum(r["delta_cons_m"] for r in shocked) / 1000.0, 3
+                ),
+                units="GBP bn, cumulative over the shocked quarters",
+                basis="CONS delta vs baseline, OBR emulator solve",
+            ),
+            "investment": ScoreQuantity(
+                delta_bn=round(
+                    sum(r["delta_if_m"] for r in shocked) / 1000.0, 3
+                ),
+                units="GBP bn, cumulative over the shocked quarters",
+                basis="IF delta vs baseline, OBR emulator solve",
+            ),
+            "revenue": ScoreQuantity(
+                delta_bn=mean_costing_bn,
+                units="GBP bn per year, mean over the window",
+                basis="PolicyEngine static costing (the bridge INPUT, not "
+                      "an emulator output)",
+            ),
+        },
+        assumptions=[
+            "microsim static costing injected as an HHDI add path "
+            "(demand-side incidence)",
+            "flat quarterly interpolation within each year",
+        ],
+        caveats=caveats,
+    ).model_dump()
+    return out
 
 
 # ---------------------------------------------------------------------------
 # Unified reform scoring across the suite
 # ---------------------------------------------------------------------------
 
-SCORE_MODELS = ("og", "obr")
+SCORE_MODELS = ("og", "obr", "microsim")
 
 
 def _validate_reform(reform) -> None:
@@ -1024,21 +1334,30 @@ def score_reform(
     reform: dict,
     model: str,
     start_year: int = 2026,
-    **model_kwargs,
+    max_iter: int = OG_DEFAULT_MAX_ITER,
+    years: int = 5,
+    dataset: str | None = None,
 ) -> dict:
-    """Score a PolicyEngine reform with one of the suite's macro models.
+    """Score a PolicyEngine reform with one of the suite's scoring models.
 
     One reform vocabulary across the suite: ``reform`` is the same flat
     {parameter_path: value} dict the microsimulation tools take
     (pe_population_impact, pe_household_impact). Each model consumes it
-    through its declared contract:
+    through its declared contract, and every result carries a common
+    ``"score"`` block (ScoreResult, issue #10) so results are comparable
+    side by side:
 
     - "og": the reform enters through PolicyEngine-estimated tax functions
       (long-run steady-state general-equilibrium comparison; UK only).
-    - "obr": pending the microsim static-costing bridge
-      (https://github.com/PolicyEngine/macro/issues/9). Raw
-      exogenous-variable shocks in model units remain available via
-      obr_shock.
+      Extra arg: max_iter.
+    - "obr": the microsim static-costing bridge (issue #9): PolicyEngine
+      population costing per year in the window enters the OBR emulator as
+      an HHDI shock path; second-round demand effects come out. UK only.
+      Extra args: years (window length), dataset. Raw exogenous-variable
+      shocks in model units remain available via obr_shock.
+    - "microsim": PolicyEngine population microsimulation itself (static
+      annual costing + distribution, no macro feedback). UK or US.
+      Extra arg: dataset.
     """
     country = country.lower()
     _validate_reform(reform)
@@ -1048,15 +1367,19 @@ def score_reform(
                 "the OG member is UK-only (OG-UK); country must be 'uk'"
             )
         return og_score_reform(
-            reform=reform, start_year=start_year, **model_kwargs
+            reform=reform, start_year=start_year, max_iter=max_iter
         )
     if model == "obr":
-        raise NotImplementedError(
-            "The OBR member does not take PolicyEngine reforms yet — the "
-            "microsim static-costing bridge is tracked at "
-            "https://github.com/PolicyEngine/macro/issues/9. For a raw "
-            "exogenous-variable shock in model units use obr_shock (MCP) or "
-            "`macromod obr-shock` (CLI)."
+        if country != "uk":
+            raise ValueError(
+                "the OBR member is UK-only; country must be 'uk'"
+            )
+        return obr_score_reform(
+            reform=reform, start_year=start_year, years=years, dataset=dataset
+        )
+    if model == "microsim":
+        return pe_population_impact(
+            country=country, reform=reform, year=start_year, dataset=dataset
         )
     raise ValueError(f"model must be one of {SCORE_MODELS}, got {model!r}")
 

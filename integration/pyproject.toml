@@ -12,6 +12,7 @@ dependencies = [
     "numpy",
     "pandas",
     "mcp[cli]>=1.0",
+    "pydantic>=2",
 ]
 
 [project.optional-dependencies]

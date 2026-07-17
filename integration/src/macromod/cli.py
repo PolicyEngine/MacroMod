@@ -29,35 +29,116 @@ def main() -> None:
 
 
 @main.command()
-@click.option("--country", type=click.Choice(["uk"]), default="uk", show_default=True)
+@click.option("--country", type=click.Choice(["uk", "us"]), default="uk",
+              show_default=True)
 @click.option("--reform", required=True,
               help='PolicyEngine reform JSON, e.g. \'{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}\' '
                    "(same shape as `macromod population-impact`).")
-@click.option("--model", required=True, type=click.Choice(["og", "obr"]),
-              help="Macro model: og (OG-UK steady state; slow) or obr (pending the "
-                   "static-costing bridge, PolicyEngine/macro#9).")
+@click.option("--model", required=True,
+              type=click.Choice(list(core.SCORE_MODELS)),
+              help="Scoring model: og (OG-UK steady state; slow), obr (OBR "
+                   "emulator via the microsim static-costing bridge) or "
+                   "microsim (PolicyEngine population costing, no macro "
+                   "feedback).")
 @click.option("--year", default=2026, show_default=True, help="Reform start year.")
 @click.option("--max-iter", default=250, show_default=True,
-              help="OG solver iteration cap per steady-state solve.")
+              help="og only: solver iteration cap per steady-state solve.")
+@click.option("--years", default=5, show_default=True,
+              help="obr only: costing window length in years.")
+@click.option("--dataset", default=None,
+              help="obr/microsim only: microdata dataset name override.")
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
-def score(country, reform, model, year, max_iter, as_json):
-    """Score a PolicyEngine reform with a macro model of the suite.
+def score(country, reform, model, year, max_iter, years, dataset, as_json):
+    """Score a PolicyEngine reform with a scoring model of the suite.
 
     One reform vocabulary: the same {parameter_path: value} dict as
-    `macromod population-impact`. For raw OBR variable shocks in model
-    units, use `macromod obr-shock`.
+    `macromod population-impact`. Every result carries a common `score`
+    block for cross-model comparison (`macromod compare`). For raw OBR
+    variable shocks in model units, use `macromod obr-shock`.
     """
     try:
         res = core.score_reform(
             country=country, reform=_json_opt(reform, "reform"), model=model,
-            start_year=year, max_iter=max_iter,
+            start_year=year, max_iter=max_iter, years=years, dataset=dataset,
         )
-    except (NotImplementedError, ValueError) as e:
+    except (NotImplementedError, ValueError, ImportError, RuntimeError) as e:
         raise click.ClickException(str(e)) from e
     if as_json:
         _emit_json(res)
         return
-    _echo_og_impact(res)
+    if model == "og":
+        _echo_og_impact(res)
+    else:
+        _echo_score_block(res["score"])
+
+
+def _echo_score_block(score: dict) -> None:
+    """Render one common ScoreResult block as a table."""
+    click.echo(f"{score['model']} ({score['model_class']}, "
+               f"{score['country'].upper()}, {score['horizon']})")
+    click.echo(f"Reform: {score['reform']}\n")
+    rows = []
+    for name, q in score["quantities"].items():
+        rows.append({
+            "quantity": name,
+            "delta_bn": q.get("delta_bn"),
+            "delta_pct": q.get("delta_pct"),
+            "units": q["units"],
+        })
+    click.echo(_table(rows, ["quantity", "delta_bn", "delta_pct", "units"]))
+    for label, items in (("Assumptions", score.get("assumptions") or []),
+                         ("Caveats", score.get("caveats") or [])):
+        if items:
+            click.echo(f"\n{label}:")
+            for it in items:
+                click.echo(f"  - {it}")
+
+
+@main.command()
+@click.option("--country", type=click.Choice(["uk", "us"]), default="uk",
+              show_default=True)
+@click.option("--reform", required=True,
+              help='PolicyEngine reform JSON (same shape as `macromod score`).')
+@click.option("--models", default="microsim,obr", show_default=True,
+              help="Comma-separated scoring models (og, obr, microsim).")
+@click.option("--year", default=2026, show_default=True, help="Reform start year.")
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON list of ScoreResults.")
+def compare(country, reform, models, year, as_json):
+    """Score the SAME reform through several model classes, side by side.
+
+    Runs `score` once per model and renders one table from the common
+    ScoreResult blocks (PolicyEngine/macro#10)."""
+    reform_dict = _json_opt(reform, "reform")
+    scores = []
+    for model in [m.strip() for m in models.split(",") if m.strip()]:
+        try:
+            res = core.score_reform(
+                country=country, reform=reform_dict, model=model,
+                start_year=year,
+            )
+        except (NotImplementedError, ValueError, ImportError, RuntimeError) as e:
+            raise click.ClickException(f"{model}: {e}") from e
+        scores.append(res["score"])
+    if as_json:
+        _emit_json(scores)
+        return
+    click.echo(f"Reform: {reform_dict}  ({country.upper()}, from {year})\n")
+    rows = []
+    for s in scores:
+        for name, q in s["quantities"].items():
+            rows.append({
+                "model": s["model"],
+                "class": s["model_class"],
+                "horizon": s["horizon"],
+                "quantity": name,
+                "delta_bn": q.get("delta_bn"),
+                "delta_pct": q.get("delta_pct"),
+            })
+    click.echo(_table(rows, ["model", "class", "horizon", "quantity",
+                             "delta_bn", "delta_pct"]))
+    click.echo("\nDeltas are each model's own concept (see `score --json` "
+               "for units/basis per quantity): steady-state vs budget-window "
+               "numbers are NOT directly additive.")
 
 
 @main.command("obr-shock")

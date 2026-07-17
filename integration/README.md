@@ -17,10 +17,27 @@ one CLI and one MCP server:
 
 `score_reform` is the one reform vocabulary across the suite: the same flat
 `{parameter_path: value}` dict as the microsimulation tools, dispatched to a
-macro model by its declared contract (OG via PolicyEngine-estimated tax
-functions; the OBR static-costing bridge is
-[#9](https://github.com/PolicyEngine/macro/issues/9) — until it lands the
-OBR arm errors with a pointer to `obr_shock`).
+scoring model by its declared contract:
+
+- `og` — the reform enters through PolicyEngine-estimated tax functions
+  (long-run steady-state general equilibrium).
+- `obr` — the microsim static-costing bridge
+  ([#9](https://github.com/PolicyEngine/macro/issues/9)): the reform is
+  costed per year with the PolicyEngine population microsimulation, the
+  annual budgetary impacts enter the OBR emulator as a quarterly household
+  disposable income (`HHDI`) shock path (sign-corrected: revenue raised
+  lowers HHDI, flat within each year), and the second-round demand effects
+  come out. Demand-side incidence only; corporation-tax reforms are refused
+  with a pointer to the direct `obr_shock --var TCPRO` lever.
+- `microsim` — the PolicyEngine population costing itself (static, no macro
+  feedback).
+
+Every scoring result also carries a common `score` block — the `ScoreResult`
+schema ([#10](https://github.com/PolicyEngine/macro/issues/10)): model id and
+class, horizon, per-quantity deltas with units and basis, assumptions,
+caveats, and an optional distributional block — so `macromod compare
+--reform '...' --models microsim,obr` renders the same reform through
+different model classes in one table.
 
 `src/macromod/core.py` holds the model adapters (single source of truth);
 `cli.py` and `mcp_server.py` are thin wrappers over the same functions.
@@ -65,6 +82,10 @@ package pins no policyengine version, so OG-UK's own pins win there.)
 macromod variables                                    # OBR shock variables + units
 macromod score --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
     --model og                                        # PolicyEngine reform -> OG-UK (slow)
+macromod score --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
+    --model obr --years 5                             # static costing -> OBR second-round effects
+macromod compare --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
+    --models microsim,obr                             # same reform, model classes side by side
 macromod obr-shock --var CGG --shock 1250 --periods 4 # £5bn/yr spending, 1 year
 macromod obr-shock --var TCPRO --shock -0.05          # 5pp corp tax cut (closure auto-on)
 macromod forecast --horizons 12 --draws 500           # YoY GDP & CPI, 68/90 bands
