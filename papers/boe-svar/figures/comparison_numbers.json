@@ -1,0 +1,19 @@
+{
+ "fast_config": {
+  "n_draws": 600,
+  "sample_seed": 1,
+  "ident_seed": 2,
+  "accepted": 51,
+  "gdp_global_share_pct": 47.44153568154572,
+  "cpi_global_share_pct": 42.41781049077768,
+  "oil_impact_world_supply": 6.056766666829258
+ },
+ "production_artifact": {
+  "gdp": 40.9,
+  "cpi": 50.1
+ },
+ "paper": {
+  "gdp": 40.0,
+  "cpi": 50.0
+ }
+}

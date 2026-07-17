@@ -58,7 +58,7 @@ is encoded as artificial data $(Y_d, X_d)$ appended to the sample. The replicati
 \item \emph{Inverse-Wishart scale.} A block $Y_d = \operatorname{diag}(s_i)$, $X_d = 0$ centres $\Sigma$ on $\operatorname{diag}(s_i^2)$.
 \item \emph{Sum-of-coefficients (no-cointegration) prior} \citep{doan1984}: $Y_d = \operatorname{diag}(\delta_i \bar{y}_i)/\mu$ with the same block repeated across all $p$ lag positions of $X_d$, where $\bar{y}$ is the mean of the $p$ initial observations. As $\mu \to 0$ this forces unit sums of own-lag coefficients (one unit root per variable); $\mu = 1$ applies it loosely.
 \item \emph{Single-unit-root (dummy-initial-observation) prior} \citep{sims1998}: one row $Y_d = \bar{y}'/\theta$, $X_d = [\bar{y}' \cdots \bar{y}'\; 1/\theta\; 0']$, active at $\theta = 1$, pulling the system towards a common stochastic trend passing through the initial conditions.
-\item \emph{Deterministic block.} The constant and the six Covid dummies receive a near-flat prior (dummy weight $10^{-3}$), so the pandemic quarters are absorbed by essentially unrestricted dummy coefficients --- the exogenous-dummy simplification of the pandemic prior of \citet{cascaldigarcia2022}.
+\item \emph{Deterministic block.} The constant and the six Covid dummies receive a near-flat prior (dummy weight $10^{-3}$), so the pandemic quarters are absorbed by essentially unrestricted dummy coefficients --- the exogenous-dummy simplification of the \citet{cascaldigarcia2022} pandemic prior.
 \end{itemize}
 With augmented data $(Y_*, X_*) = ([Y; Y_d], [X; X_d])$, the posterior is again NIW:
 \begin{equation}
@@ -160,7 +160,11 @@ so that $\Psi_h = J F^h J'$ is the reduced-form moving-average coefficient at ho
 \end{equation}
 reported as pointwise posterior medians with 68 and 90 per cent credible bands across accepted $(\Pi,\Sigma,Q)$ triples (importance-weighted quantiles where the weights are computed).
 
-\paragraph{Forecast-error variance decomposition.} The $H$-step-ahead forecast error is $y_{t+H} - \mathbb{E}_t y_{t+H} = \sum_{h=0}^{H} \Psi_h B\, \varepsilon_{t+H-h}$; because the structural shocks are orthonormal, its variance for variable $i$ splits additively across shocks, giving the FEVD at horizon $H$:
+\paragraph{Forecast-error variance decomposition.} The forecast error at horizon $H$ is
+\begin{equation*}
+y_{t+H} - \mathbb{E}_t y_{t+H} = \sum_{h=0}^{H} \Psi_h B\, \varepsilon_{t+H-h};
+\end{equation*}
+because the structural shocks are orthonormal, its variance for variable $i$ splits additively across shocks, giving the FEVD at horizon $H$:
 \begin{equation}
 \operatorname{FEVD}_{ij}(H) \;=\;
 \frac{\sum_{h=0}^{H}\big[\Psi_h B\big]_{ij}^{2}}
@@ -188,7 +192,11 @@ an additive identity that must reconstruct the data exactly --- a property Secti
 \qquad \hat{y}_{T+s \mid T} = y_{T+s} \text{ for } s \le 0 .
 \label{eq:pointfc}
 \end{equation}
-The predictive \emph{distribution} adds both sources of uncertainty: across accepted posterior draws (parameter uncertainty) and, within each draw, stochastic paths $y_{T+h} = \hat{y}_{T+h\mid T} + \sum_{s=0}^{h-1}\Psi_s u_{T+h-s}$ with $u_{T+h} \sim \mathcal{N}(0, \Sigma)$ (future-shock uncertainty). The replication simulates five stochastic paths per accepted draw and reports weighted pointwise medians with 68 and 90 per cent bands; growth variables are converted to year-on-year rates as $y_{t} - y_{t-4}$, exact in the $100\cdot\log$ parameterisation. This is precisely the construction of the fan charts in Section~\ref{sec:results}.
+The predictive \emph{distribution} adds both sources of uncertainty: across accepted posterior draws (parameter uncertainty) and, within each draw, stochastic paths
+\begin{equation*}
+y_{T+h} = \hat{y}_{T+h\mid T} + \sum_{s=0}^{h-1}\Psi_s u_{T+h-s}
+\end{equation*}
+with $u_{T+h} \sim \mathcal{N}(0, \Sigma)$ (future-shock uncertainty). The replication simulates five stochastic paths per accepted draw and reports weighted pointwise medians with 68 and 90 per cent bands; growth variables are converted to year-on-year rates as $y_{t} - y_{t-4}$, exact in the $100\cdot\log$ parameterisation. This is precisely the construction of the fan charts in Section~\ref{sec:results}.
 
 \paragraph{The structural reading at the data edge.} Because the model is linear, the reduced-form innovation at the most recent observation $T$ maps into that quarter's structural shocks, $\hat{\varepsilon}_T = B^{-1}\big(y_T - \hat{c} - \textstyle\sum_l \hat{\Pi}_l y_{T-l}\big)$, one vector per accepted draw. The posterior distribution of $\hat{\varepsilon}_T$ across draws --- summarised by weighted sign probabilities $P(\varepsilon_{j,T} > 0)$ and magnitude quantiles --- is the \texttt{latest\_shocks} output: a probabilistic statement about what hit the economy in the latest quarter.
 

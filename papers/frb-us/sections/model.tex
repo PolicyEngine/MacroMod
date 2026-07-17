@@ -86,9 +86,10 @@ The change in $y$ error-corrects on the lagged gap to target with speed $a_0=A(1
 
 \paragraph{Target decomposition and $Z$ variables.} In FRB/US the target is decomposed as $y^{*}=y^{1*}+\gamma\,y^{0*}$: a trending I(1) component $y^{1*}$ (denoted by ``Q'' variables such as \texttt{qeco}, specified before estimation from theory or cointegrating regressions) and a stationary component $y^{0*}$ whose loading $\gamma$ is estimated inside the PAC equation. The two expected-future sums are assigned to explicit expectations variables,
 \begin{equation}
-\Delta y_t \;=\; a_0\big(y^{1*}_{t-1}-y_{t-1}\big) \;+\; \sum_{k=1}^{m-1} a_k\,\Delta y_{t-k} \;+\; Z^{1}_t \;+\; Z^{0}_t,
-\qquad
-Z^{1}_t = \sum_{i} d_i\, E\,\Delta y^{1*}_{t+i},\;\; Z^{0}_t = \sum_i h_i\, E\, y^{0*}_{t+i},
+\begin{gathered}
+\Delta y_t \;=\; a_0\big(y^{1*}_{t-1}-y_{t-1}\big) \;+\; \sum_{k=1}^{m-1} a_k\,\Delta y_{t-k} \;+\; Z^{1}_t \;+\; Z^{0}_t,\\
+Z^{1}_t = \sum_{i} d_i\, E\,\Delta y^{1*}_{t+i},\qquad Z^{0}_t = \sum_i h_i\, E\, y^{0*}_{t+i},
+\end{gathered}
 \label{eq:pac-z}
 \end{equation}
 with weights $h_i = A(1)A(\beta)\,\iota' G^{i}\iota$ and $d_i = A(1)A(\beta)\,\iota'[I-G]^{-1}G^{i}\iota$. On a balanced-growth path with $\Delta y=\Delta y^{1*}=g$, the rule delivers $y=y^{1*}$ only if $\sum_k a_k + \sum_i d_i = 1$; the current vintage imposes this \emph{growth-neutrality restriction} directly in estimation (earlier vintages instead added the correction term $[1-\sum_k a_k-\sum_i d_i]\,g$ to $Z^1$). Finally, most spending equations aggregate optimising agents with rule-of-thumb agents whose spending tracks income or output $x$:

@@ -38,12 +38,11 @@ OG-Core's richest specification is the \emph{DEP} (DeBacker--Evans--Phillips) fo
 \tau(x,y) \;=\; \Bigl[\tau^{x}(x) + shift_x\Bigr]^{\phi}\,\Bigl[\tau^{y}(y) + shift_y\Bigr]^{1-\phi} + shift,
 \end{equation}
 where each univariate component is a bounded, monotone ratio of quadratics,
-\begin{equation}
+\begin{align}
 \label{eq:depuni}
-\tau^{x}(x) \;=\; \bigl(max_x - min_x\bigr)\,\frac{A x^2 + B x}{A x^2 + B x + 1} \;+\; min_x,
-\qquad
-\tau^{y}(y) \;=\; \bigl(max_y - min_y\bigr)\,\frac{C y^2 + D y}{C y^2 + D y + 1} \;+\; min_y,
-\end{equation}
+\tau^{x}(x) &\;=\; \bigl(max_x - min_x\bigr)\,\frac{A x^2 + B x}{A x^2 + B x + 1} \;+\; min_x,\\
+\tau^{y}(y) &\;=\; \bigl(max_y - min_y\bigr)\,\frac{C y^2 + D y}{C y^2 + D y + 1} \;+\; min_y,\nonumber
+\end{align}
 with $A,B,C,D>0$. The twelve parameters per rate type are, explicitly:
 \begin{center}
 \begin{tabular}{clcl}
@@ -102,7 +101,7 @@ Here $\phi_0\in(0,1)$ is the asymptotic top rate approached by both schedules, $
 \centering
 \caption{Tax functional forms supported by OG-Core's \texttt{txfunc}}
 \label{tab:txforms}
-\small
+\footnotesize
 \begin{tabular}{lccccc}
 \toprule
 Form & Parameters & Arguments & $x$/$y$ asymmetry & ETR--MTR consistent & Deployed \\

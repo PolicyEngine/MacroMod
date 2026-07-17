@@ -6,9 +6,9 @@
 The replication is a small, dependency-light Python package (\texttt{boe\_var}, src layout; NumPy, SciPy, pandas, matplotlib) with a module per stage of the pipeline:
 
 \begin{itemize}
-\item \texttt{data.py} --- \texttt{load\_data()} returns the transformed quarterly panel (a \texttt{PeriodIndex} DataFrame in the Table~\ref{tab:variables} ordering, $100\cdot\log$ except Bank Rate), assembled by a separate download script from public sources;
+\item \texttt{data.py} --- \texttt{load\_data()} returns the transformed quarterly panel --- a \texttt{PeriodIndex} DataFrame in the ordering of Table~\ref{tab:variables}, $100\cdot\log$ except Bank Rate --- assembled by a separate download script from public sources;
 \item \texttt{bvar.py} --- the \texttt{BVAR} class: NIW posterior sampling of $(\Pi, \Sigma)$ with Minnesota and sum-of-coefficients priors and exogenous Covid dummies, plus companion-form and residual helpers;
-\item \texttt{identification.py} --- the Table~\ref{tab:restrictions} restrictions as machine-readable constants (\texttt{ZERO\_RESTRICTIONS}, \texttt{SIGN\_RESTRICTIONS}), the \citet{arias2018} \texttt{draw\_Q} routine, and \texttt{identify()}, which pairs posterior draws with accepted rotations;
+\item \texttt{identification.py} --- the restrictions of Table~\ref{tab:restrictions} as machine-readable constants (\texttt{ZERO\_\allowbreak RESTRICTIONS} and \texttt{SIGN\_\allowbreak RESTRICTIONS}), the \citet{arias2018} \texttt{draw\_Q} routine, and \texttt{identify()}, which pairs posterior draws with accepted rotations;
 \item \texttt{analysis.py} --- IRFs, FEVDs, estimated shocks, historical decompositions, forecast bands and the composite (forecast-revision) impulse response, with plotting helpers.
 \end{itemize}
 
@@ -16,7 +16,7 @@ An end-to-end script reproduces the paper's Figures 2--6 and writes a numerical 
 
 \subsection{Estimation and identification runs}
 
-The production configuration draws \textbf{10{,}000} posterior draws, of which \textbf{751} pass the sign-restriction accept/reject step (a 7.5 per cent acceptance rate), with $p=4$ lags and hyperparameters $\lambda = 0.2$, $\mu = 1$. Zero restrictions are satisfied by construction on every draw; sign restrictions are enforced by rejection, so they too hold exactly on every accepted draw. Because the \citet{arias2018} zero-restriction sampler does not draw $Q$ uniformly from the restricted set, the slow validation path additionally computes the algorithm's importance weights (each requiring a numerical Jacobian per accepted draw); the importance-weighted effective sample size is \textbf{350.3}, and weighted and unweighted results are compared in Section~\ref{sec:validation}. The forecast-revision exercise re-estimates through 2024Q2 with 6{,}000 draws (487 accepted, weighted ESS 207.5).
+The production configuration takes \textbf{10{,}000} posterior draws, of which \textbf{751} survive the sign-restriction accept/reject step (a 7.5 per cent acceptance rate), with $p=4$ lags and hyperparameters $\lambda = 0.2$, $\mu = 1$. Zero restrictions are satisfied by construction on every draw; sign restrictions are enforced by rejection, so they too hold exactly on every accepted draw. Because the \citet{arias2018} zero-restriction sampler does not draw $Q$ uniformly from the restricted set, the slow validation path additionally computes the algorithm's importance weights (each requiring a numerical Jacobian per accepted draw); the importance-weighted effective sample size is \textbf{350.3}, and weighted and unweighted results are compared in Section~\ref{sec:validation}. The forecast-revision exercise re-estimates through 2024Q2 with 6{,}000 draws (487 accepted, weighted ESS 207.5).
 
 \subsection{Hosted MCP tools}
 

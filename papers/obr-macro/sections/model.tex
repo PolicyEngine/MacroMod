@@ -59,8 +59,8 @@ where $MSGVA$ is market-sector gross value added, $CBIUD$ a CBI capacity-utilisa
 The labour-market block combines one estimated equation---market-sector employment---with a set of identities that convert employment into unemployment and participation. Market-sector employees ($EMS$) follow a labour-demand ECM on market-sector output and the real producer wage:
 \begin{equation}
 \begin{aligned}
-\Delta \ln EMS \;=\;& -0.0113 \;+\; 0.4370\,\Delta \ln EMS_{-1} \;+\; 0.1932\,\Delta \ln EMS_{-2} \;+\; 0.1714\,\Delta \ln MSGVA_{-1} \\
-&-\; 0.0062\,\Big[ \ln\!\big(\tfrac{EMS_{-1}}{MSGVA_{-1}}\big) + 0.4 \ln\!\big(\tfrac{PSAVEI_{-1}}{PMSGVA_{-1}}\big) \Big],
+\Delta \ln EMS \;=\;& -0.0113 \;+\; 0.4370\,\Delta \ln EMS_{-1} \;+\; 0.1932\,\Delta \ln EMS_{-2} \\
+&+\; 0.1714\,\Delta \ln MSGVA_{-1} \;-\; 0.0062\,\Big[ \ln\!\big(\tfrac{EMS_{-1}}{MSGVA_{-1}}\big) + 0.4 \ln\!\big(\tfrac{PSAVEI_{-1}}{PMSGVA_{-1}}\big) \Big],
 \end{aligned}
 \label{eq:ems}
 \end{equation}
@@ -77,8 +77,9 @@ which build LFS employment from total hours worked ($HWA$) over average hours ($
 Private-sector average earnings ($PSAVEI$) are set by an estimated wage ECM:
 \begin{equation}
 \begin{aligned}
-\Delta \ln PSAVEI \;=\;& -0.0282 \;+\; 0.575\,\Delta \ln PMSGVA + 0.250\,\Delta \ln PMSGVA_{-1} + 0.105\,\Delta \ln PMSGVA_{-2} \\
-&+\; 0.070\,\Delta \ln PMSGVA_{-3} \;-\; 0.0096\,\Delta LFSUR \;+\; 0.264\,\big(\Delta \ln MSGVA - \Delta \ln EMS\big) \\
+\Delta \ln PSAVEI \;=\;& -0.0282 \;+\; 0.575\,\Delta \ln PMSGVA + 0.250\,\Delta \ln PMSGVA_{-1} \\
+&+\; 0.105\,\Delta \ln PMSGVA_{-2} \;+\; 0.070\,\Delta \ln PMSGVA_{-3} \;-\; 0.0096\,\Delta LFSUR \\
+&+\; 0.264\,\big(\Delta \ln MSGVA - \Delta \ln EMS\big) \\
 &+\; 0.282\,\big(\Delta \ln CPI - \Delta \ln PMSGVA\big) \\
 &-\; 0.0433\,\Big[ \ln PSAVEI_{-1} - \ln\!\big(\tfrac{MSGVA_{-1}}{EMS_{-1}}\big) - \ln PMSGVA_{-1} \\
 &\qquad\qquad +\; \ln\!\big(1 + \tfrac{EMPSC_{-1}}{WFP_{-1}}\big) + 0.0137\,LFSUR_{-1} \Big],
@@ -87,7 +88,10 @@ Private-sector average earnings ($PSAVEI$) are set by an estimated wage ECM:
 \end{equation}
 a bargaining-style wage equation: the long run ties the real product wage to labour productivity ($MSGVA/EMS$) one-for-one, shifted down by employer social contributions (the tax wedge, $EMPSC/WFP$) and by unemployment (a wage curve with semi-elasticity $0.0137$); the short run passes through producer-price inflation (with distributed-lag weights summing to one, so there is no long-run money illusion), productivity growth, the consumer--producer price wedge, and the change in unemployment. Earnings, employment, and public-sector pay then aggregate to the economy-wide wage bill
 \begin{equation}
-WFP = ADJW \cdot PSAVEI \cdot (EMS - ESLFS) + \tfrac{52}{4000}\,CGWADJ \cdot ERCG \cdot ECG + \tfrac{52}{4000}\,LAWADJ \cdot ERLA \cdot ELA,
+\begin{aligned}
+WFP \;=\;& ADJW \cdot PSAVEI \cdot (EMS - ESLFS) \\
+&+ \tfrac{52}{4000}\,CGWADJ \cdot ERCG \cdot ECG + \tfrac{52}{4000}\,LAWADJ \cdot ERLA \cdot ELA,
+\end{aligned}
 \label{eq:wfp}
 \end{equation}
 which is the largest single input to household income~\eqref{eq:hhdi} and to income-tax receipts in the fiscal block: equations \eqref{eq:ems}--\eqref{eq:wfp} are the transmission path by which a demand shock eventually moves PAYE receipts.
@@ -104,7 +108,8 @@ with a services analogue ($MSTFE$; weights $0.081$, $0.030$, $0.059$, $0.012$, $
 \begin{equation}
 \begin{aligned}
 \Delta \ln MS \;=\;& 0.819\,\Delta \ln MSTFE + \cdots - 0.477\,\Delta \ln PMSREL - 0.271\,\Delta \ln MS_{-1} \\
-&-\; 0.171\,\big[\ln MS_{-1} - 1.079 \ln MSTFE_{-1} - 0.662 \ln SPECX_{-1} + 0.874 \ln PMSREL_{-1} + \cdots\big] - 0.032,
+&-\; 0.171\,\big[\ln MS_{-1} - 1.079 \ln MSTFE_{-1} - 0.662 \ln SPECX_{-1} \\
+&\qquad\quad +\; 0.874 \ln PMSREL_{-1} + \cdots\big] - 0.032,
 \end{aligned}
 \label{eq:ms}
 \end{equation}
@@ -112,7 +117,8 @@ whose long run has an expenditure elasticity slightly above one (trade deepening
 \begin{equation}
 \begin{aligned}
 \Delta \ln PXNOG \;=\;& 0.636\,\Delta \ln PPIY_{-1} + 0.103\,\big(\Delta \ln WPG - \Delta \ln RXD\big) - 0.131\,\Delta \ln RX \\
-&-\; 0.161\,\big[\ln PXNOG_{-1} + 0.330 \ln RX_{-1} - 0.921 \ln PPIY_{-1} - 0.079 \ln (WPG_{-1}/RXD_{-1})\big] + \cdots,
+&-\; 0.161\,\big[\ln PXNOG_{-1} + 0.330 \ln RX_{-1} - 0.921 \ln PPIY_{-1} \\
+&\qquad\quad -\; 0.079 \ln (WPG_{-1}/RXD_{-1})\big] + \cdots,
 \end{aligned}
 \label{eq:pxnog}
 \end{equation}
@@ -126,7 +132,7 @@ Government consumption is the model's canonical fiscal lever, and its treatment 
 \Delta \ln CGG \;=\; 0.0007 \;+\; 0.3739\,\Delta \ln CGGPS \;+\; 0.1802\,\Delta \ln CGGPS_{-1} \;-\; 0.4198\,\Delta \ln CGG_{-1},
 \label{eq:cgg}
 \end{equation}
-a distributed lag converting nominal spending plans into real activity, with the implied government-consumption deflator defined residually as $GGFCD = 100\,CGGPS/CGG$. Procurement is the cash residual $CGP = CGGPSPSF - (CGWS + LAWS) - LAPR - (RCGIM + RLAIM)$: central-government procurement is what remains of the spending envelope after central and local pay bills ($CGWS$, $LAWS$), local procurement, and capital-consumption imputations. The split matters for incidence: the pay component feeds the wage bill~\eqref{eq:wfp} and household income directly, while procurement enters demand without a first-round household-income counterpart. Government-sector social contributions scale with the pay bills by ratio links ($CGASC/CGASC_{-1} = CGWS/CGWS_{-1}$, and similarly for $EESCCG$, $LASC$, $EESCLA$), and government investment enters the capital account as nominal $CGIPS$ (a direct lever in the emulator) deflated onto real $GGI$ inside total investment. In the emulator's demand closure a shock to real $CGG$ enters identity~\eqref{eq:gdpid} directly---hence the impact multiplier of approximately one reported in Section~\ref{sec:experiments}---while its cash counterpart flows through the fiscal chain of Section~\ref{sec:fiscal} into borrowing.
+a distributed lag converting nominal spending plans into real activity, with the implied deflator for government consumption defined residually as $GGFCD = 100\,CGGPS/CGG$. Procurement is the cash residual $CGP = CGGPSPSF - (CGWS + LAWS) - LAPR - (RCGIM + RLAIM)$: central-government procurement is what remains of the spending envelope after central and local pay bills ($CGWS$, $LAWS$), local procurement, and capital-consumption imputations. The split matters for incidence: the pay component feeds the wage bill~\eqref{eq:wfp} and household income directly, while procurement enters demand without a first-round household-income counterpart. Government-sector social contributions scale with the pay bills by ratio links (e.g.\ $CGASC$ grows in line with $CGWS$; similarly $EESCCG$, $LASC$, $EESCLA$), and government investment enters the capital account as nominal $CGIPS$ (a direct lever in the emulator) deflated onto real $GGI$ inside total investment. In the emulator's demand closure a shock to real $CGG$ enters identity~\eqref{eq:gdpid} directly---hence the impact multiplier of approximately one reported in Section~\ref{sec:experiments}---while its cash counterpart flows through the fiscal chain of Section~\ref{sec:fiscal} into borrowing.
 
 \subsection{Incomes}
 
@@ -134,7 +140,8 @@ Household disposable income is a pure accounting identity over the sector accoun
 \begin{equation}
 \begin{aligned}
 HHDI \;=\;& MI + FYEMP - EMPSC - EESC - TYWHH + NMTRHH + SBHH \\
-&+ (PIRHH - PIPHH + FSMADJ) - HHSB + HHISC + (EECOMPC - EECOMPD) + OSHH,
+&+ (PIRHH - PIPHH + FSMADJ) - HHSB + HHISC \\
+&+ (EECOMPC - EECOMPD) + OSHH,
 \end{aligned}
 \label{eq:hhdi}
 \end{equation}
@@ -152,7 +159,7 @@ PAYE and self-assessment income tax, council tax, capital gains tax, and other c
 
 \subsection{Prices}
 
-The retail-price block builds the RPI from mortgage-interest and other components, $PR = I7\,[(1-W_4)\,PRXMIP/I9 + W_4\,PRMIP/I4]$, with annual RPI inflation $RPI = 100\,(PR/PR_{-4} - 1)$; the consumption deflator moves with the CPI through $PCE/PCE_{-4} = CPI/CPI_{-4}$. The CPI itself is exogenous in this configuration (the OBR imposes its inflation judgement), so the deflator path is conditioned on the EFO inflation forecast---which also makes an exogenous CPI shock a legitimate lever for price-shock experiments (Section~\ref{sec:experiments}). Rent components ($PRENT$, $CPIRENT$) index to a weighted average of earnings growth, house-rental values, and house prices, tying the price block back to the labour-market and housing equations.
+The retail-price block builds the RPI from mortgage-interest and other items, $PR = I7\,[(1-W_4)\,PRXMIP/I9 + W_4\,PRMIP/I4]$, with annual RPI inflation $RPI = 100\,(PR/PR_{-4} - 1)$; the consumption deflator moves with the CPI through $PCE/PCE_{-4} = CPI/CPI_{-4}$. The CPI itself is exogenous in this configuration (the OBR imposes its inflation judgement), so the deflator path is conditioned on the EFO inflation forecast---which also makes an exogenous CPI shock a legitimate lever for price-shock experiments (Section~\ref{sec:experiments}). Rent components ($PRENT$, $CPIRENT$) index to a weighted average of earnings growth, house-rental values, and house prices, tying the price block back to the labour-market and housing equations.
 
 \subsection{The fiscal block: receipts, spending, and the PSNB chain}
 \label{sec:fiscal}
@@ -168,7 +175,8 @@ PAYE plus self-assessment plus tax on investment income, less accruals adjustmen
 \begin{equation}
 \begin{aligned}
 PUBSTIW \;=\;& TYEM + TSEOP + PRT + TCINV + CT + CGT + FCACA \\
-&+ BETPRF + BETLEVY + OFGEM - NPISHTC - TYPCO + PROV - LAEPS,
+&+ BETPRF + BETLEVY + OFGEM - NPISHTC \\
+&- TYPCO + PROV - LAEPS,
 \end{aligned}
 \label{eq:pubstiw}
 \end{equation}
@@ -176,7 +184,8 @@ PUBSTIW \;=\;& TYEM + TSEOP + PRT + TCINV + CT + CGT + FCACA \\
 \begin{equation}
 \begin{aligned}
 PSCR \;=\;& PUBSTIW + PUBSTPD + OCT + CC + INHT + EENIC + EMPNIC \\
-&+ (RCGIM + RLAIM + OSPC) + PSINTR + (RNCG + HHTCG) + LARENT + PCRENT + \cdots,
+&+ (RCGIM + RLAIM + OSPC) + PSINTR + (RNCG + HHTCG) \\
+&+ LARENT + PCRENT + \cdots,
 \end{aligned}
 \label{eq:pscr}
 \end{equation}
@@ -184,7 +193,10 @@ taxes on income and wealth, taxes on production, council tax, inheritance tax, e
 
 \paragraph{Spending.} Public sector current expenditure ($PSCE$) is the mirror aggregate---pay, procurement, subsidies, net social benefits ($CGSB + LASBHH$), current grants, debt interest, and EU transactions---carried in the listing in inverted form (subsidies as the residual, reflecting the OBR's own solution ordering). Depreciation is $DEP = RCGIM + RLAIM + PCCON$, and gross public-sector investment accumulates as
 \begin{equation}
-PSGI = CGIPS + LAIPS + IPCPS + IBPC + DINVCG + (NPACG + NPALA) + \cdots + ASSETSA,
+\begin{aligned}
+PSGI \;=\;& CGIPS + LAIPS + IPCPS + IBPC + DINVCG \\
+&+ (NPACG + NPALA) + \cdots + ASSETSA,
+\end{aligned}
 \label{eq:psgi}
 \end{equation}
 central and local government investment, public-corporation investment, and asset transactions.
@@ -195,7 +207,8 @@ PSCB &= PSCR - PSCE - DEP && \text{(current balance)} \label{eq:pscb}\\
 PSNI &= PSGI - DEP - ASSETSA && \text{(net investment)} \label{eq:psni}\\
 PSNB &= -PSCB + PSNI && \text{(net borrowing)} \label{eq:psnb}\\
 PSNCR &= PSNB + PSLSFA + PSACADJ && \text{(net cash requirement)} \label{eq:psncr}\\
-\Delta PSND &= PSNCR - ILGAC + \Delta FLEASGG + \Delta FLEASPC + PSNDRES && \text{(net debt)} \label{eq:psnd}
+\Delta PSND &= PSNCR - ILGAC + \Delta FLEASGG \notag\\
+&\qquad + \Delta FLEASPC + PSNDRES && \text{(net debt)} \label{eq:psnd}
 \end{align}
 Current receipts less current spending less depreciation give the current balance; the deficit is the current deficit plus net investment; cash-basis and accruals adjustments ($PSLSFA$, $PSACADJ$) convert borrowing to the cash requirement; and the cash requirement, less index-linked gilt accruals and finance-lease adjustments, cumulates into the net-debt stock. Parallel decompositions attribute borrowing to sub-sectors ($CGNB$, $LANB$, $PCNB$ for central government, local authorities, and public corporations, with $GGNB = CGNB + LANB$), and the sub-sector chain feeds general-government gross debt ($GGGD$) for the international definitions. The one add-factor in this chain sits on $PSNBCY$ (the listing's \texttt{@ADD} on calendar-year borrowing), which is where the OBR's fiscal judgement enters. Every behavioural response elsewhere in the model reaches the public finances through this chain: a consumption shock moves VAT ($VREC$), the wage bill moves PAYE and NICs, profits move corporation tax, and the sum lands mechanically in equations \eqref{eq:pscb}--\eqref{eq:psnd}. In the emulator these identities solve alongside the rest of the system, so scored reforms carry second-round fiscal aggregates on the same accounting basis as the OBR's published tables---subject to the calibration floors on the chain's unpublished input series documented in Section~\ref{sec:calibration}.
 

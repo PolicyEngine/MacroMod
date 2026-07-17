@@ -64,33 +64,5 @@ Tax-function age treatment & --- & pooled & CLI default; \texttt{brackets}/\text
 
 Three remarks on the table. First, the lifetime-ability apparatus ($J$, $\lambda_j$, $e_{j,s}$; Figure~\ref{fig:ability}) is inherited from the OG-Core default calibration, which estimates ability profiles from tax microdata for the United States; a UK-specific re-estimation of $e_{j,s}$ from the enhanced FRS is an open calibration task, and results that depend on the upper tail of the ability distribution should be read with that in mind. Second, the discount factor is not taken from the literature but matched so that the model's steady-state saving behaviour is consistent with the ONS household saving ratio, given the other parameters. Third, the multi-sector option ($M=8$ industries calibrated from ONS Blue Book supply-and-use tables by SIC section) exists for sector-level questions such as energy-price shocks, but the deployed scoring configuration is single-sector.
 
-\subsection{Model targets against official UK aggregates}
-\label{subsec:targets}
-
-Because the \pounds bn mapping is GDP-anchored (Section~\ref{subsec:arch}), the levels the model reports are anchored to ONS series by construction; the informative comparison is between the ratios the calibration \emph{targets} and the corresponding official numbers. Table~\ref{tab:targets} reports the comparison against the most recently published official figures as of mid-2026. Where the deployed configuration anchors a quantity to the official series by construction, the table says so rather than presenting the match as an independent validation --- an honesty rule this suite applies throughout.
-
-\begin{table}[t]
-\centering
-\caption{Calibration targets and current official UK counterparts (as of mid-2026)}
-\label{tab:targets}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{llll}
-\toprule
-Quantity & Current official UK value & Source & Model treatment \\
-\midrule
-Labour share of income & $\approx$ 0.59--0.60, rising in 2024 & ONS labour-share series / Blue Book 2025 \citep{ONSLabourShare} & $1-\gamma$ set from factor shares \\
-Whole-economy net capital stock & \pounds 5.6 trillion (2024), $\approx 2$ $\times$ GDP & ONS capital stocks bulletin \citep{ONSCapitalStocks} & $K/Y$ emerges from $(\gamma,\delta,\beta,g_y)$; \\
-\quad (produced-capital concept) & & & checked, not imposed$^{a}$ \\
-Depreciation / capital & $\approx$ 6--7\% (CFC / net stock) & ONS capital stocks bulletin \citep{ONSCapitalStocks} & imposed, $\delta = 0.065$ \\
-Government debt-to-GDP & 95.1\% (May 2026); 93.8\% at end-FY 2025--26 & ONS public sector finances \citep{ONSPSF2026} & imposed via closure target $\alpha_D$; levels \\
-& (OBR March 2026 forecast: 94.4\%) & & re-anchored to live ONS series \\
-Potential growth & $\approx$ 1.1\% / yr & OBR EFO \citep{OBR2025EFO} & imposed, $g_y = 0.011$ \\
-Household saving ratio & 8.9\% (2026 Q1, down from 9.6\%) & ONS quarterly sector accounts \citep{ONSSaving2026} & targeted through $\beta$ \\
-\bottomrule
-\end{tabular}}
-\begin{minipage}{\textwidth}
-\vspace{2pt}\footnotesize $^{a}$ The ONS whole-economy net stock includes dwellings ($\approx$ one third of the total), which the model's productive $K$ does not correspond to one-for-one; the business-capital concept relevant to the model's $K/Y$ is nearer 2, and the model's emergent ratio should be judged against that, not the headline 5.6/2.8.
-\end{minipage}
-\end{table}
-
-The distinction in the final column matters for interpretation. Imposed quantities (depreciation, growth, the debt target) cannot disagree with the data; the genuinely over-identifying checks are the ones the steady state must \emph{deliver} --- the capital--output ratio and the interest rate consistent with the calibrated $(\gamma,\delta,\beta)$ triple. In the deployed fast configuration these emerge in an economically sensible range (a baseline steady-state real interest rate in low single digits, reported by \texttt{og-baseline} alongside the model-unit aggregates), but no systematic published reconciliation of achieved-versus-target moments exists for OG-UK 0.3.0, and this paper does not manufacture one: producing that reconciliation table from logged solves is the single most valuable next step for this member (Section~\ref{sec:limitations}). Two dating caveats on Table~\ref{tab:targets}: the official column reports the figures current at writing (mid-2026), while the deployed calibration was frozen against slightly earlier vintages; and the saving ratio is volatile quarter to quarter, so $\beta$ is matched to a smoothed level, not the latest print.
+\medskip
+How these targets compare with the current official UK aggregates --- and how the deployed parameter choices compare with the published OG-Core/OG-USA defaults and with the OBR's own UK OLG model --- is consolidated in Section~\ref{sec:comparison}.

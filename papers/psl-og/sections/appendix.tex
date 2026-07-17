@@ -55,18 +55,18 @@ $\xi$, $\xi_{TPI}$ & damping weights (SS, TPI) & solver & OG-Core defaults (0.4)
 
 The integration touches a deliberately small slice of the two underlying packages. From \textbf{OG-Core} (\texttt{ogcore}, version 0.x series):
 \begin{itemize}
-\item \texttt{ogcore.parameters.Specifications} --- the parameter container. The integration constructs one per run, applies OG-UK's default parameter JSON (\texttt{oguk\_default\_parameters.json}), and layers any \texttt{param\_overrides} (e.g.\ \texttt{cit\_rate}, TFP, spending shares) via \texttt{update\_specifications}.
+\item \texttt{ogcore.parameters.Specifications} --- the parameter container. The integration constructs one per run, applies OG-UK's default parameter JSON (\texttt{oguk\_\allowbreak default\_\allowbreak parameters.json}), and layers any \texttt{param\_\allowbreak overrides} (e.g.\ \texttt{cit\_rate}, TFP, spending shares) via \texttt{update\_\allowbreak specifications}.
 \item \texttt{ogcore.txfunc} --- tax-function estimation: the NLLS objective \eqref{eq:txobjective} over the configured \texttt{tax\_func\_type} (\texttt{GS} deployed; \texttt{DEP}, \texttt{HSV}, \texttt{mono} available).
 \item \texttt{ogcore.SS.run\_SS} --- the steady-state fixed point of Section~\ref{subsubsec:sssolve}; returns the steady-state dictionary (aggregates, prices, policies by $(j,s)$, the factor).
 \item \texttt{ogcore.TPI.run\_TPI} --- time-path iteration of Section~\ref{subsubsec:tpi}; reachable through \texttt{oguk} but not wired into the CLI scorer.
-\item \texttt{ogcore.execute.runner} --- the orchestration entry point OG-UK's API wraps (parameter setup, optional tax-function estimation, SS and/or TPI, output pickling to \texttt{OUTPUT/SS/SS\_vars.pkl} and \texttt{OUTPUT/TPI/TPI\_vars.pkl}).
+\item \texttt{ogcore.execute.runner} --- the orchestration entry point OG-UK's API wraps (parameter setup, optional tax-function estimation, SS and/or TPI, output pickling to \texttt{OUTPUT/\allowbreak SS/\allowbreak SS\_vars.pkl} and \texttt{OUTPUT/\allowbreak TPI/\allowbreak TPI\_vars.pkl}).
 \item Supporting modules used indirectly: \texttt{demographics} (UN data retrieval and the population machinery of Section~\ref{subsec:demographics}), \texttt{elliptical\_u\_est} (the $(b,\upsilon)$ fit), \texttt{household}, \texttt{firm}, \texttt{fiscal}, \texttt{tax}, \texttt{aggregates} (the equation blocks), and \texttt{output\_plots}/\texttt{output\_tables} (diagnostics).
 \end{itemize}
 From \textbf{OG-UK} (\texttt{oguk} 0.3.0):
 \begin{itemize}
 \item \texttt{oguk.get\_micro\_data} --- runs PolicyEngine UK over the enhanced FRS (cached per year under the suite cache directory) and produces the $(x_i, y_i, ETR_i, MTRx_i, MTRy_i, w_i)$ observations of Section~\ref{subsec:txpipeline}, including the \pounds 1-perturbation marginal rates.
 \item \texttt{oguk.calibrate.Calibration} --- assembles demographics, macro parameters, and estimated tax functions into a \texttt{Specifications}-compatible parameter set.
-\item \texttt{oguk.api.solve\_steady\_state(start\_year, policy, ...)} and \texttt{oguk.api.run\_transition\_path(...)} --- the scoring API; \texttt{policy} is a PolicyEngine \texttt{Policy} object built from the suite's flat reform dictionary.
+\item \texttt{oguk.api.solve\_\allowbreak steady\_\allowbreak state} and \texttt{oguk.api.\allowbreak run\_\allowbreak transition\_\allowbreak path} --- the scoring API, taking \texttt{start\_year}, a \texttt{policy}, and solver options; \texttt{policy} is a PolicyEngine \texttt{Policy} object built from the suite's flat reform dictionary.
 \item \texttt{oguk.api.map\_to\_real\_world(baseline, reform)} --- converts model-unit changes into current-price \pounds bn using a GDP-anchored scale factor with levels tied to live ONS series and HMRC receipts, falling back to cached values offline.
 \end{itemize}
 The \textbf{policyengine-macro} adapter contributes the suite contract on top: reform-dictionary validation, the module-level baseline cache keyed on \texttt{(start\_year, max\_iter)}, the \texttt{ScoreResult} block (model class \texttt{olg-ge}, horizon \texttt{steady-state}), and the actionable error mapping for the two known environment failures (version mismatch; missing Hugging Face token).
@@ -84,7 +84,7 @@ python -m venv .venv \&\& source .venv/bin/activate\\
 pip install policyengine-uk==2.88.0 oguk==0.3.0\\
 pip install policyengine-macro
 \end{quote}
-The \texttt{oguk} dependency resolution pulls a compatible \texttt{ogcore} automatically; \texttt{policyengine-uk} must be 2.88.0 exactly --- versions $\geq$ 2.89 renamed the microdata dataset keys (\texttt{enhanced\_frs\_2023\_24\_*} $\to$ \texttt{populace\_uk\_*}) and fail at calibration time with a \texttt{KeyError}.
+The \texttt{oguk} dependency resolution pulls a compatible \texttt{ogcore} automatically; \texttt{policyengine-\allowbreak uk} must be 2.88.0 exactly --- versions $\geq$ 2.89 renamed the microdata dataset keys (\texttt{enhanced\_\allowbreak frs\_\allowbreak 2023\_\allowbreak 24\_*} $\to$ \texttt{populace\_\allowbreak uk\_*}) and fail at calibration time with a \texttt{KeyError}.
 \item \textbf{Data access.} Export a Hugging Face token with access to the gated PolicyEngine enhanced-FRS dataset:
 \begin{quote}
 \ttfamily export HUGGING\_FACE\_TOKEN=hf\_...
@@ -99,5 +99,5 @@ pe-macro score --country uk --model og --reform \textbackslash\\
 \end{quote}
 Two solves are required (baseline and reform); within one process the baseline is cached, so a batch of reforms pays for the baseline once.
 \item \textbf{Determinism and outputs.} Solves are deterministic given versions and data vintage: the pipeline involves no simulation randomness, so re-runs reproduce results to solver tolerance ($10^{-9}$ in the steady-state outer loop). Raw solver output is pickled under \texttt{OUTPUT/} in the working directory (\texttt{SS\_vars.pkl}; \texttt{TPI\_vars.pkl} when a transition path is run via the \texttt{oguk} API), and the CLI's JSON \texttt{ScoreResult} carries the levels, \pounds bn changes, percent changes, and the status caveats of Section~\ref{sec:limitations}.
-\item \textbf{Figures.} The illustrative figures in this paper regenerate with \texttt{python figures/make\_figures.py} from the paper directory; they load only the UN demographic CSVs shipped with \texttt{oguk}, the OG-Core default \texttt{Specifications}, and published parameter values --- no equilibrium solve is required.
+\item \textbf{Figures.} The illustrative figures in this paper regenerate with \texttt{python figures/\allowbreak make\_\allowbreak figures.py} from the paper directory; they load only the UN demographic CSVs shipped with \texttt{oguk}, the OG-Core default \texttt{Specifications}, and published parameter values --- no equilibrium solve is required.
 \end{enumerate}

@@ -149,11 +149,13 @@ def gs_mtr(inc, phi0, phi1, phi2):
 def fig_gs():
     # Illustrative Gouveia-Strauss fit shaped to the UK schedule: rates rise
     # from ~0 through the personal allowance towards an asymptotic maximum.
-    phi0, phi1, phi2 = 0.479, 0.022, 0.212  # illustrative values, GS form
-    inc = np.linspace(1e3, 200e3, 600) / 50e3  # income in model-ish units
+    # Income measured in GBP thousands; parameters chosen so the ETR rises from
+    # a few per cent at low income towards the asymptote phi0 = 0.479.
+    phi0, phi1, phi2 = 0.479, 0.85, 0.030  # illustrative values, GS form
+    inc = np.linspace(1, 200, 600)          # income in GBP thousands
     etr = gs_etr(inc, phi0, phi1, phi2)
     mtr = gs_mtr(inc, phi0, phi1, phi2)
-    pounds = inc * 50e3 / 1e3
+    pounds = inc
 
     fig, ax = plt.subplots(figsize=(5.6, 3.4))
     ax.plot(pounds, 100 * etr, color=OI[0], lw=1.9, label="ETR (fitted G–S)")
@@ -210,10 +212,100 @@ def fig_dep():
     plt.close(fig)
 
 
+def fig_targets():
+    """Calibration targets vs current official UK aggregates (normalised).
+
+    Model values are the deployed OG-UK calibration settings/targets; official
+    values are the mid-2026 prints cited in the comparison section. Bars show
+    model as a percentage of the official value; annotations flag whether the
+    quantity is imposed, targeted, or emergent (so an exact match is anchoring,
+    not validation).
+    """
+    rows = [
+        # (label, model value, official value, unit, treatment)
+        ("Labour share of income", 60.0, 59.5, "%", "set from factor shares"),
+        ("Depreciation / capital stock", 6.5, 6.5, "%", "imposed"),
+        ("Potential growth $g_y$", 1.1, 1.1, "%/yr", "imposed"),
+        ("Debt-to-GDP (target vs ONS)", 94.4, 95.1, "%", "imposed via $\\alpha_D$"),
+        ("Household saving ratio", 8.9, 8.9, "%", "targeted via $\\beta$"),
+    ]
+    labels = [r[0] for r in rows]
+    ratio = [100.0 * r[1] / r[2] for r in rows]
+    ypos = np.arange(len(rows))[::-1]
+
+    fig, ax = plt.subplots(figsize=(7.6, 3.2))
+    ax.barh(ypos, ratio, height=0.55, color=OI[0], alpha=0.85)
+    ax.axvline(100, color=OI[6], lw=1.0, ls="--")
+    ax.set_yticks(ypos)
+    ax.set_yticklabels(labels, fontsize=8)
+    ax.set_xlim(96, 103)
+    ax.set_xlabel("Calibration value as % of current official UK value "
+                  "(100 = exact match)")
+    for y, r, row in zip(ypos, ratio, rows):
+        ax.text(r + 0.15, y,
+                f"{row[1]:g}{row[3]} vs {row[2]:g}{row[3]}  ({row[4]})",
+                va="center", fontsize=7)
+    ax.set_title("Calibration targets against official UK aggregates "
+                 "(mid-2026 vintages)", fontsize=9)
+    fig.tight_layout()
+    fig.savefig(f"{HERE}/fig_targets.pdf")
+    plt.close(fig)
+
+
+def fig_dep_compare():
+    """Deployed-form UK ETR schedule vs the published DEP US fit.
+
+    Left: the DEP ETR and MTRx schedules evaluated with the parameter vectors
+    published in the OG-USA documentation for the DeBacker-Evans-Phillips
+    specification (baseline current law, age 42, year 2017), at zero capital
+    income. Right: the published US ETR curve against the paper's illustrative
+    UK Gouveia-Strauss ETR (the deployed functional form).
+    """
+    # Published DEP parameters, s = 42, t = 2017 (OG-USA docs, DEP-2019).
+    dep_etr = dict(A=6.28e-12, B=4.36e-05, C=1.04e-23, D=7.77e-09,
+                   mx=0.80, mn_x=-0.14, my=0.80, mn_y=-0.15,
+                   sx=0.15, sy=0.16, sh=-0.15, phi=0.84)
+    dep_mtrx = dict(A=3.43e-23, B=4.50e-04, C=9.81e-12, D=5.30e-08,
+                    mx=0.71, mn_x=-0.17, my=0.80, mn_y=-0.42,
+                    sx=0.18, sy=0.43, sh=-0.42, phi=0.96)
+    x = np.linspace(1e3, 200e3, 600)          # labour income, dollars
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.4))
+    ax = axes[0]
+    ax.plot(x / 1e3, 100 * dep_tau(x, np.zeros_like(x), **dep_etr),
+            color=OI[0], lw=1.9, label="ETR (published fit)")
+    ax.plot(x / 1e3, 100 * dep_tau(x, np.zeros_like(x), **dep_mtrx),
+            color=OI[1], lw=1.9, ls="--", label="MTRx (published fit)")
+    ax.set_xlabel("Labour income $x$ (\\$ thousands, $y=0$)")
+    ax.set_ylabel("Tax rate (%)")
+    ax.set_title("Published DEP fits, US age 42, 2017\n"
+                 "(DeBacker–Evans–Phillips parameters)", fontsize=9)
+    ax.legend(fontsize=7.5, frameon=False, loc="lower right")
+
+    ax = axes[1]
+    etr_us = dep_tau(x, np.zeros_like(x), **dep_etr)
+    ax.plot(x / 1e3, 100 * etr_us, color=OI[0], lw=1.9,
+            label="US published DEP fit ($y=0$)")
+    phi0, phi1, phi2 = 0.479, 0.85, 0.030     # illustrative UK GS values
+    inc = np.linspace(1, 200, 600)            # GBP thousands
+    ax.plot(inc, 100 * gs_etr(inc, phi0, phi1, phi2), color=OI[2],
+            lw=1.9, ls="--", label="UK illustrative G–S (deployed form)")
+    ax.set_xlabel("Total income (local currency, thousands)")
+    ax.set_ylabel("ETR (%)")
+    ax.set_title("Deployed-form UK schedule vs published US DEP fit",
+                 fontsize=9)
+    ax.legend(fontsize=7.5, frameon=False, loc="lower right")
+    fig.tight_layout()
+    fig.savefig(f"{HERE}/fig_dep_compare.pdf")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     fig_demographics()
     fig_ability()
     fig_ellipse()
     fig_gs()
     fig_dep()
+    fig_targets()
+    fig_dep_compare()
     print("done")

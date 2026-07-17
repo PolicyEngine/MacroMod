@@ -54,6 +54,14 @@ def tex_escape(s):
     )
 
 
+def breakable(s):
+    """Insert break opportunities after operators in long formula codes."""
+    if len(s) > 12:
+        for op in "+*/-":
+            s = s.replace(op, op + "\\allowbreak ")
+    return s
+
+
 def main():
     wb = openpyxl.load_workbook(XLSX, read_only=True)
     ws = wb.active
@@ -88,7 +96,7 @@ def main():
             ons = "" if ons in ("None", "-", "n/a", "N/A") else ons
             lines.append(
                 f"\\texttt{{{tex_escape(code)}}} & {tex_escape(desc)} & "
-                f"\\texttt{{{tex_escape(ons)}}} \\\\"
+                f"\\texttt{{{breakable(tex_escape(ons))}}} \\\\"
             )
         else:
             missing.append(code)

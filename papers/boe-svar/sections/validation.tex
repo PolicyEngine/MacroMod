@@ -13,8 +13,8 @@ Validation is against ground truth --- the restrictions and published figures of
 \centering
 \caption{Model versus paper: validation summary}
 \label{tab:validation}
-\small
-\begin{tabular}{lllc}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xllc@{}}
 \toprule
 Check & Replication & Paper & Verdict \\
 \midrule
@@ -30,7 +30,7 @@ Forecast-revision adding-up identity & $<5.3\times10^{-12}$ & identity & pass \\
 Shock narrative (2008, 2022--23 episodes) & reproduced & Fig.~5 & pass \\
 Largest domestic CPI contributor & UK supply & monetary policy & disclosed miss \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \par\smallskip
 \parbox{0.95\textwidth}{\footnotesize \emph{Notes:} ``In band'' refers to the $[30,60]$\% calibration band around the paper's approximate published shares. Production run: 10{,}000 posterior draws, 751 accepted, importance-weighted ESS 350.3. The final row is a known, documented discrepancy attributed to the proxy world aggregates and the smaller accepted sample; see the repository's sense-check log.}
 \end{table}

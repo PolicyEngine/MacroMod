@@ -1,0 +1,44 @@
+\section{Comparison with the original publication}
+\label{sec:comparison}
+
+This section compares the replication directly with what \citet{brignone2025} publish, side by side and with explicit deviations. It is distinct from the outturn comparison of Section~\ref{sec:results}: Table~\ref{tab:quarterly} there judges the model's forecasts against subsequent ONS data, whereas everything here judges the replication against the \emph{paper's own published numbers and figures}.
+
+\subsection{Published anchors, side by side}
+\label{sec:comparison-table}
+
+The paper publishes two quantitative anchors that the replication's test suite locks against --- the one-year global FEVD shares of UK GDP and UK CPI --- plus a set of qualitative results (restriction patterns, the unrestricted oil-price sign check, the shock narrative, and the ranking of domestic CPI contributors). Table~\ref{tab:pubcompare} collects all of them. Two replication configurations are shown: the CI fast configuration (600 posterior draws, fixed seeds, 51 accepted, unweighted --- exactly the configuration the repository's validation tests run on every commit) and the production configuration (10{,}000 draws, 751 accepted, importance-weighted, ESS 350.3).
+
+\begin{table}[t]
+\centering
+\caption{Replication versus the published values of \citet{brignone2025}}
+\label{tab:pubcompare}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xllll@{}}
+\toprule
+Quantity & Paper & Fast config & Production & Deviation \\
+\midrule
+Global share, UK GDP FEVD, 1 yr & $\sim$40\% & 47.4\% & 40.9\% & $+7.4$ / $+0.9$ pp \\
+Global share, UK CPI FEVD, 1 yr & $\sim$50\% & 42.4\% & 50.1\% & $-7.6$ / $+0.1$ pp \\
+Oil-price impact IRF, world supply shock & positive (Fig.~2) & $+6.06$ & positive & sign matches \\
+Zero restrictions (paper Table~2) & imposed & \multicolumn{2}{l}{hold exactly ($<10^{-9}$), every draw} & none \\
+Sign restrictions (paper Table~2) & imposed & \multicolumn{2}{l}{hold on every draw and median IRF} & none \\
+Shock narrative episodes (paper Fig.~5) & 2008, 2022--23 & \multicolumn{2}{l}{reproduced} & none \\
+CPI inflation surge attribution (paper Fig.~6) & global energy/demand & \multicolumn{2}{l}{reproduced} & none \\
+Largest domestic CPI contributor & monetary policy & \multicolumn{2}{l}{UK supply (16.2\% vs 8.0\%)} & disclosed miss \\
+UK GDP IRF to world shocks, long horizons & persistently positive & \multicolumn{2}{l}{median decays through zero} & inside bands \\
+\bottomrule
+\end{tabularx}
+\par\smallskip
+\parbox{0.97\textwidth}{\footnotesize \emph{Notes:} ``Fast config'': 600 posterior draws, sample seed 1, identification seed 2, 51 accepted, unweighted --- the repository's per-commit CI validation configuration, re-estimated fresh for this table by \texttt{figures/make\_comparison.py}. ``Production'': 10{,}000 draws, 751 accepted, importance-weighted (ESS 350.3), from the repository's production artifact. Deviations are fast~/~production in percentage points against the paper's approximate published shares; both configurations lie inside the $[30,60]$ per cent calibration band. The paper publishes IRFs only as figures --- no numeric values --- so IRF comparisons are of sign and shape; the final two rows are the replication's known, documented discrepancies (attributed to proxy world aggregates and the smaller accepted sample).}
+\end{table}
+
+The headline pattern is reassuring: the importance-weighted production run essentially reproduces the paper's published shares ($40.9$ against $\sim$40 for GDP, $50.1$ against $\sim$50 for CPI --- deviations of one percentage point or less), while the deliberately cheap unweighted CI configuration deviates by $7$--$8$ percentage points in opposite directions for the two variables. The gap between the two configurations is itself informative: the importance weights correct the \citet{arias2018} zero-restriction sampler towards the uniform-over-rotations posterior, and doing so moves both shares onto the published values.
+
+Figure~\ref{fig:comparison} shows the same comparison graphically. No ours-versus-paper IRF overlay is drawn because \citet{brignone2025} publish impulse responses only as figures; neither the paper nor the repository's validation data contains digitised numeric IRF paths, so the IRF comparison is confined to the sign and shape checks in Table~\ref{tab:pubcompare} and Section~\ref{sec:validation}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/fig_comparison.pdf}
+\caption{One-year global FEVD shares of UK GDP and UK CPI: replication versus \citet{brignone2025}. Blue: fresh fixed-seed run of the CI fast configuration (600 draws, 51 accepted, unweighted). Orange: production run (10{,}000 draws, 751 accepted, importance-weighted). Hatched grey: the paper's approximate published values. Shaded region: the $[30,60]$ per cent calibration band used by the validation suite.}
+\label{fig:comparison}
+\end{figure}
