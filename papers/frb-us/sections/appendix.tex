@@ -1,0 +1,78 @@
+\appendix
+
+\section{Variable glossary}
+\label{app:glossary}
+
+Table~\ref{tab:glossary} defines every FRB/US mnemonic reported in the tables and figures of this paper, with definitions quoted from the \texttt{<definition>} fields of the April 2026 \texttt{model.xml}. Type ``B'' denotes a behavioural equation, ``I'' an identity, ``X'' an exogenous variable.
+
+\begin{table}[htbp]
+\centering
+\caption{Glossary of reported FRB/US variables}
+\label{tab:glossary}
+\footnotesize
+\begin{tabular}{llp{9.2cm}}
+\toprule
+Mnemonic & Type & Definition \\
+\midrule
+\texttt{xgdp}   & B & GDP, chain-weighted 2012 dollars \\
+\texttt{xgdpn}  & I & GDP, current dollars \\
+\texttt{xgap2}  & I & Output gap for GDP, $100\,(\text{actual}/\text{potential}-1)$ \\
+\texttt{rff}    & B & Federal funds rate \\
+\texttt{rffintay} & B & Funds rate implied by the inertial Taylor rule \\
+\texttt{rfffix} & X & Funds rate given by a fixed, pre-determined path \\
+\texttt{rffmin} & X & Minimum nominal funds rate (0 imposes the ZLB) \\
+\texttt{rstar}  & B & Equilibrium real funds rate perceived by policymakers \\
+\texttt{pitarg} & X & Target rate of consumption price inflation \\
+\texttt{picxfe} & B & Core PCE inflation (ex.\ food and energy, annual rate) \\
+\texttt{pieci}  & B & Growth of ECI hourly compensation (annual rate) \\
+\texttt{lur}    & B & Civilian unemployment rate (break adjusted) \\
+\texttt{lurnat} & B & Natural rate of unemployment (random walk) \\
+\texttt{lhp}    & B & Aggregate labour hours, business sector \\
+\texttt{leh}    & I & Civilian employment (break adjusted) \\
+\texttt{eco}    & B & Consumer spending, non-durables and non-housing services \\
+\texttt{ecd}    & B & Consumer spending, durable goods \\
+\texttt{eh}     & B & Residential investment \\
+\texttt{ebfi}   & B & Business fixed investment \\
+\texttt{egfe}   & B & Federal government expenditures (CW 2012\$), the purchases instrument \\
+\texttt{trp}    & B & Average personal income tax (and non-tax) rate, the tax instrument \\
+\texttt{trpt}   & B & Trend personal tax rate, moved by the fiscal reaction functions \\
+\texttt{tpn}    & I & Personal income tax receipts, current dollars ($=\texttt{trp}\,(\texttt{ypn}-\texttt{gtn})$) \\
+\texttt{ypn}    & I & Personal income \\
+\texttt{gtn}    & B & Federal government net transfer payments \\
+\texttt{gfsrpn} & I & Federal government budget surplus \\
+\texttt{rg10}   & I & 10-year Treasury bond rate \\
+\texttt{rbbb}   & I & S\&P BBB corporate bond rate \\
+\texttt{wpo}    & I & Household property wealth ex.\ stock market, real \\
+\texttt{wps}    & I & Household stock-market wealth, real \\
+\texttt{dmpintay}, \texttt{dmpex} & X & Monetary policy switches: inertial Taylor rule; exogenous funds rate \\
+\texttt{dfpdbt}, \texttt{dfpsrp} & X & Fiscal closure switches: debt-ratio; surplus-ratio stabilisation \\
+\texttt{*\_aerr} & X & Additive shock term of each behavioural equation \\
+\texttt{*\_trac} & X & Additive tracking residual (add factor), set by \texttt{init\_trac} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Deterministic simulations: caveats}
+\label{app:stochastic}
+
+All experiments in this paper are \emph{deterministic}: a single perturbed path is compared with a single add-factored baseline, with every stochastic term held at zero. Three consequences deserve emphasis.
+
+\paragraph{No shock uncertainty.} The reported responses are point paths, not distributions. Much of the published FRB/US policy literature --- \citet{reifschneider2000three}, \citet{reifschneider2016gauging}, \citet{bernanke2019strategies} --- rests on \emph{stochastic} simulations in which historical residuals are drawn repeatedly and statistics such as the frequency of binding lower bounds are computed across thousands of paths. This implementation does not yet provide a stochastic-simulation driver, so questions of that type (how often does the ZLB bind? what is the variance of inflation under rule X?) are out of reach; the deterministic responses reported here are the impulse-response building blocks such exercises use.
+
+\paragraph{Nonlinearity and state dependence.} Because the model is nonlinear (the lower-bound recode, logs, the threshold switches), deterministic responses depend on the baseline around which they are computed, and the mean of stochastic paths need not equal the deterministic path. In particular, near the effective lower bound the deterministic economy responds asymmetrically to expansionary and contractionary shocks; the multipliers of Section~\ref{sec:results} are computed from a baseline in which the funds rate is comfortably positive (around 3--4 per cent), and would differ at the ELB.
+
+\paragraph{Certainty-equivalent expectations.} Under VAR expectations agents' forecasts come from fixed-coefficient VARs and are unaffected by the experiment's announced future path --- a deliberately boundedly rational assumption. Announced-in-advance policies, credibility effects and forward guidance require the MCE variants, which are not implemented (Section~\ref{sec:limitations}).
+
+\section{Reproduction recipe}
+\label{app:repro}
+
+Every number and figure in this paper regenerates from public artefacts:
+
+\begin{enumerate}
+  \item \textbf{Install.} Python 3.10+; \texttt{uv venv \&\& uv pip install -e ".[dev]"} in the package repository installs \texttt{frbus} and its (unpinned, current) dependencies in a few seconds. The Fed artefacts --- \texttt{model.xml}, \texttt{LONGBASE.TXT} (April 2026 vintage) and the reference \texttt{pyfrbus} --- are vendored unmodified under \texttt{vendor/}, as published in the public domain \citep{fedfrbuspython}.
+  \item \textbf{Validation gates.} \texttt{pytest} runs the tracking-invariant test (baseline reproduced to $<10^{-8}$; observed $5.6\times10^{-17}$) and the cross-validation test against the stored \texttt{pyfrbus} reference (all 284 endogenous variables, 20 quarters, $<10^{-6}$; observed $6.0\times10^{-9}$). \texttt{scripts/generate\_vendor\_reference.sh} documents how the vendor reference was produced in a separate patched environment.
+  \item \textbf{Experiments.} \texttt{figures/run\_experiments.py} (alongside this paper's source) runs all five experiments of Section~\ref{sec:results} --- the 40-quarter monetary shock, the purchases shock under both monetary regimes, and the tax cut --- writing \texttt{results.json} with every reported series and the three colourblind-safe PDF figures. Total runtime is a few seconds; the benchmark numbers of Table~\ref{tab:perf} are printed by the same script.
+  \item \textbf{Paper.} \texttt{latexmk -pdf main.tex} in the paper directory rebuilds this document, pulling tables' source numbers from the committed script output.
+\end{enumerate}
+
+Because the Board revises \texttt{model.xml} and LONGBASE over time, reproductions on later vintages should expect coefficient and baseline differences; re-running the two validation gates after refreshing \texttt{vendor/} is the intended workflow.

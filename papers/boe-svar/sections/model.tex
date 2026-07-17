@@ -45,8 +45,38 @@ B = \operatorname{chol}(\Sigma)\, Q, \qquad Q'Q = I_k .
 Any orthogonal $Q$ delivers the same reduced-form fit; identification consists of restricting the admissible set of $Q$.
 
 \subsection{Prior and posterior}
+\label{sec:estimation}
 
-Estimation is Bayesian in the tradition of \citet{doan1984} and \citet{litterman1986}, implemented as in \citet{giannone2015}: a Minnesota normal-inverse-Wishart (NIW) prior on $(\Pi, \Sigma)$ centred on independent random walks, combined with a sum-of-coefficients prior that disciplines the deterministic component. The conjugate posterior is standard: $\Sigma$ is drawn from an inverse Wishart and the stacked coefficients $\Pi$ from a matrix normal conditional on $\Sigma$. The replication uses overall tightness $\lambda = 0.2$ and sum-of-coefficients weight $\mu = 1$ (the paper does not report its hyperparameters), with the Covid dummies entering as exogenous regressors rather than through the full dummy-observation algebra of \citet{cascaldigarcia2022}.
+Estimation is Bayesian in the tradition of \citet{doan1984} and \citet{litterman1986}, implemented in the conjugate normal-inverse-Wishart (NIW) form of \citet{kadiyala1997} and \citet{giannone2015}, with the prior imposed through dummy observations as in \citet{sims1998}. Stack the system as $Y = X\mathcal{B} + U$, where row $t$ of $X$ is $x_t = (y_{t-1}',\ldots,y_{t-p}',1,d_t')'$ of length $m = kp + 1 + 6$ and $\mathcal{B}$ is $m \times k$ (so $\Pi = \mathcal{B}'$). The NIW prior
+\begin{equation}
+\Sigma \sim \mathcal{IW}(S_0, d_0), \qquad
+\operatorname{vec}(\mathcal{B}) \mid \Sigma \sim \mathcal{N}\!\big(\operatorname{vec}(\mathcal{B}_0),\; \Sigma \otimes \Omega_0\big),
+\end{equation}
+is encoded as artificial data $(Y_d, X_d)$ appended to the sample. The replication's dummy blocks, written for equation scales $s_i$ (the residual standard deviations of univariate AR(1) regressions, a standard pre-sample device), are:
+\begin{itemize}
+\item \emph{Minnesota lag shrinkage.} For each lag $l = 1,\ldots,p$, the block $Y_d^{(l)} = \mathbf{1}\{l{=}1\}\,\operatorname{diag}(\delta_i s_i)/\lambda$, $X_d^{(l)} = [\,0 \cdots \operatorname{diag}(s_i)\, l^{2}/\lambda \cdots 0\,]$ implies prior mean $\delta_i = 1$ on each variable's own first lag (a random walk, appropriate for the log-levels specification) and zero elsewhere, with prior standard deviation $\lambda\, s_i / (l^{2} s_j)$ for the coefficient on variable $j$ at lag $l$ in equation $i$: shrinkage tightens quadratically in the lag and is scale-adjusted across equations.
+\item \emph{Inverse-Wishart scale.} A block $Y_d = \operatorname{diag}(s_i)$, $X_d = 0$ centres $\Sigma$ on $\operatorname{diag}(s_i^2)$.
+\item \emph{Sum-of-coefficients (no-cointegration) prior} \citep{doan1984}: $Y_d = \operatorname{diag}(\delta_i \bar{y}_i)/\mu$ with the same block repeated across all $p$ lag positions of $X_d$, where $\bar{y}$ is the mean of the $p$ initial observations. As $\mu \to 0$ this forces unit sums of own-lag coefficients (one unit root per variable); $\mu = 1$ applies it loosely.
+\item \emph{Single-unit-root (dummy-initial-observation) prior} \citep{sims1998}: one row $Y_d = \bar{y}'/\theta$, $X_d = [\bar{y}' \cdots \bar{y}'\; 1/\theta\; 0']$, active at $\theta = 1$, pulling the system towards a common stochastic trend passing through the initial conditions.
+\item \emph{Deterministic block.} The constant and the six Covid dummies receive a near-flat prior (dummy weight $10^{-3}$), so the pandemic quarters are absorbed by essentially unrestricted dummy coefficients --- the exogenous-dummy simplification of the pandemic prior of \citet{cascaldigarcia2022}.
+\end{itemize}
+With augmented data $(Y_*, X_*) = ([Y; Y_d], [X; X_d])$, the posterior is again NIW:
+\begin{equation}
+\Sigma \mid Y \sim \mathcal{IW}\!\big(S_*,\; T_* - m\big), \qquad
+\operatorname{vec}(\mathcal{B}) \mid \Sigma, Y \sim \mathcal{N}\!\big(\operatorname{vec}(\hat{\mathcal{B}}_*),\; \Sigma \otimes (X_*'X_*)^{-1}\big),
+\label{eq:posterior}
+\end{equation}
+with $\hat{\mathcal{B}}_* = (X_*'X_*)^{-1}X_*'Y_*$, $S_* = (Y_* - X_*\hat{\mathcal{B}}_*)'(Y_* - X_*\hat{\mathcal{B}}_*)$ and $T_*$ the augmented sample size. Sampling is exact and direct (no MCMC): $\Sigma$ from the inverse Wishart, then $\mathcal{B} = \hat{\mathcal{B}}_* + C^{-\prime} Z\, \operatorname{chol}(\Sigma)'$ with $C$ the Cholesky factor of $X_*'X_*$ and $Z$ an $m \times k$ standard normal matrix, so posterior draws are i.i.d.\ and no convergence diagnostics beyond the sign-restriction acceptance statistics of Appendix~\ref{app:diagnostics} are required.
+
+The replication's defaults are $\lambda = 0.2$, $\mu = 1$, $\theta = 1$ (the source paper does not report its hyperparameters). Because the prior is conjugate, the marginal likelihood is available in closed form as a ratio of NIW normalising constants \citep[eq.~5]{giannone2015},
+\begin{equation}
+\log p(Y) = -\tfrac{Tk}{2}\log\pi
++ \log\frac{\Gamma_k(\tfrac{d_1}{2})}{\Gamma_k(\tfrac{d_0}{2})}
++ \tfrac{k}{2}\big(\log|X_d'X_d| - \log|X_*'X_*|\big)
++ \tfrac{d_0}{2}\log|S_0| - \tfrac{d_1}{2}\log|S_1|,
+\label{eq:lml}
+\end{equation}
+with $d_0 = T_d - m$ and $d_1 = T + T_d - m$ the prior and posterior degrees of freedom and $S_0, S_1$ the corresponding scale matrices. The codebase exposes an optional empirical-Bayes step that maximises \eqref{eq:lml} over $(\lambda, \mu, \theta)$ by grid search refined with Nelder--Mead in log space, the \citet{giannone2015} procedure; Appendix~\ref{app:priors} reports the resulting values next to the defaults.
 
 \subsection{Identification: zero and sign restrictions}
 
@@ -77,15 +107,60 @@ Real UK GDP  & $+$ & $+$ & $+$ &  & $+$ & $+$ & $-$ &  \\
 
 The economic content is conventional: a positive world demand shock raises world and UK output and prices; an expansionary (disinflationary) world energy shock raises real activity while lowering oil prices, world CPI and UK CPI including its energy component; a positive world supply shock raises output and lowers prices with a zero energy-price impact; a UK demand shock raises UK GDP, CPI and Bank Rate; a UK supply shock raises GDP and lowers CPI; and a monetary tightening raises Bank Rate while lowering CPI and GDP.
 
-For each posterior draw $(\Pi, \Sigma)$, $Q$ is drawn with the algorithm of \citet{arias2018} so that the \emph{zero} restrictions hold exactly by construction: with $L=\operatorname{chol}(\Sigma)$, column $q_j$ is a standard normal vector projected onto the null space of the zero restrictions on $Lq_j$ and of the previously drawn columns, then normalised. The \emph{sign} restrictions are then checked on $B = LQ$, flipping a column's (unidentified) sign where doing so satisfies its restrictions, and accepting or rejecting the whole draw as in \citet{uhlig2005} and \citet{rubioramirez2010}. Following the source paper's use of the invariance results of \citet{chan2025}, column permutations are also searched before rejecting; the replication conservatively permutes only within groups of shocks that share the same zero-restriction pattern, since with zero restrictions the Haar measure is permutation-invariant only within such groups.
+\subsubsection{The sampling algorithm}
+\label{sec:identification-math}
+
+For each posterior draw $(\Pi, \Sigma)$, $Q$ is drawn with the algorithm of \citet{arias2018} so that the \emph{zero} restrictions hold exactly by construction. Let $L = \operatorname{chol}(\Sigma)$ and let $Z_j$ denote the set of variables restricted to zero on impact for shock $j$; the restriction $B_{vj} = 0$ reads $L_{v\cdot}\, q_j = 0$, a linear constraint on the $j$th column of $Q$. Columns are drawn recursively, most-restricted first, each as a standard normal vector projected onto the intersection of the null space of its zero constraints and the orthogonal complement of the previously drawn columns. The \emph{sign} restrictions are then checked on $B = LQ$ by accept/reject as in \citet{uhlig2005} and \citet{rubioramirez2010}. Algorithm~\ref{alg:arrw} states the procedure as implemented.
+
+\begin{algorithm}[t]
+\caption{Zero-and-sign-restriction sampler (one candidate per posterior draw)}
+\label{alg:arrw}
+\begin{algorithmic}[1]
+\State Draw $(\Pi, \Sigma)$ from the NIW posterior \eqref{eq:posterior}; set $L \gets \operatorname{chol}(\Sigma)$.
+\State Order shocks by number of zero restrictions, most first: $j_1, \ldots, j_k$.
+\For{$n = 1, \ldots, k$}
+  \State Stack $M \gets \big[\{L_{v\cdot} : v \in Z_{j_n}\};\; q_{j_1}', \ldots, q_{j_{n-1}}'\big]$.
+  \State Draw $z \sim \mathcal{N}(0, I_k)$; project $z \gets N N' z$ with $N$ an orthonormal basis of $\operatorname{null}(M)$.
+  \State Normalise $q_{j_n} \gets z / \lVert z \rVert$.
+\EndFor
+\State $B \gets L Q$.
+\State \textbf{Permutation search} \citep{chan2025}: within each block of shocks sharing an identical zero-restriction set --- $\{$WD, WE, U1$\}$, $\{$WS$\}$, $\{$UD, US, MP, U2$\}$ --- enumerate column permutations and $\pm 1$ sign flips; keep a perfect matching in which every sign-restricted shock is assigned a column satisfying its restrictions (chosen uniformly at random if several exist).
+\If{no valid matching exists in some block} \textbf{reject} the entire draw $(\Pi, \Sigma, Q)$.
+\Else\ \textbf{accept}; compute the importance weight $w$ of \eqref{eq:weight}.
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+Three implementation details matter for correctness. First, exactly \emph{one} rotation is attempted per posterior draw and rejection discards the pair $(\Sigma, Q)$ jointly: retrying rotations until one is accepted for a given $\Sigma$ would oversample reduced-form draws for which acceptance is hard, targeting the wrong posterior. Second, the permutation search exploits the invariance results of \citet{chan2025}: the Haar measure is invariant under column permutations and sign flips, but with zero restrictions a column may only be relabelled to a shock position with the \emph{identical} zero-restriction set, so the replication conservatively permutes only within the three blocks listed in Algorithm~\ref{alg:arrw}; a post-condition asserts that every zero restriction survives the relabelling. Third, sign flips of the two unidentified columns are always available, so the accept/reject step binds only through the six identified shocks' sign sets.
+
+\subsubsection{Importance weights}
+
+The recursive construction of Algorithm~\ref{alg:arrw} does not draw $Q$ uniformly (with respect to the Haar measure) from the zero-restricted set: conditioning each column on the previously drawn ones distorts the density. \citet{arias2018} show that the draw can be corrected by importance weights equal to the ratio of two volume elements. Writing structural parameters as $x = (\operatorname{vec}(A_0), \operatorname{vec}(A_+))$ with $A_0 = (L')^{-1} Q$ and $A_+ = \mathcal{B} A_0$, the weight of an accepted draw is
+\begin{equation}
+w \;\propto\; \frac{v_{f}}{v_{g\circ f}}, \qquad
+\log v_{f} = -(2k + m + 1)\, \log \lvert \det A_0 \rvert, \qquad
+\log v_{g \circ f} = \tfrac{1}{2} \log \det \big( D_N' D_N \big),
+\label{eq:weight}
+\end{equation}
+where $D_N = D_{g \circ f}\, N_z$ is the Jacobian of the map from structural parameters to the reduced-form parameters and the sphere coordinates of the recursive construction, restricted (via an orthonormal basis $N_z$ of the null space of the zero-restriction Jacobian $D_z$) to the zero-restricted manifold. The replication computes $D_{g\circ f}$ and $D_z$ by central finite differences, parameterising $\Sigma$ through its $k(k+1)/2$ free elements $\operatorname{vech}(\Sigma)$ so that $D_N$ has exactly full column rank, and using smooth (projection-based) null-space bases so the finite differencing is well defined --- two documented refinements relative to the reference \texttt{bsvarSIGNs} implementation it was ported from. Weights are normalised to mean one across accepted draws, all posterior quantiles are weighted quantiles, and the Kish effective sample size $\mathrm{ESS} = (\sum_i w_i)^2 / \sum_i w_i^2$ is reported (Appendix~\ref{app:diagnostics}). Because each weight requires numerical Jacobians of a $k(k+m)$-dimensional map, the weights are computed on the validation and production paths but not for the exploratory figure runs, which Section~\ref{sec:validation} shows shift one-year FEVD shares by only a few percentage points.
 
 \subsection{Outputs}
+\label{sec:outputs}
 
-Write \eqref{eq:var} in companion form with companion matrix $F$ and selection matrix $J$ so that $\Psi_h = J F^h J'$ is the reduced-form moving-average coefficient at horizon $h$. The structural impulse response of variable $i$ to shock $j$ at horizon $h$ is
+\paragraph{Impulse responses.} Write \eqref{eq:var} in companion form: stacking $s_t = (y_t', \ldots, y_{t-p+1}')'$,
+\begin{equation}
+s_t = F s_{t-1} + J' (c + \delta' d_t + u_t), \qquad
+F = \begin{pmatrix} \Pi_1 & \cdots & \Pi_{p-1} & \Pi_p \\ I_{k(p-1)} & & & 0 \end{pmatrix},
+\qquad J = \big( I_k \;\; 0 \big),
+\label{eq:companion}
+\end{equation}
+so that $\Psi_h = J F^h J'$ is the reduced-form moving-average coefficient at horizon $h$: iterating \eqref{eq:companion} forward and selecting the first block gives $y_{t+h} = \sum_{s=0}^{h} \Psi_s u_{t+h-s} + (\text{deterministic terms})$, the Wold representation truncated at the sample start. Substituting $u_t = B \varepsilon_t$, the structural impulse response of variable $i$ to a one-standard-deviation shock $j$ at horizon $h$ is
 \begin{equation}
 \operatorname{IRF}_{ij}(h) = \big[\Psi_h B\big]_{ij},
 \end{equation}
-reported as pointwise posterior medians with 68 and 90 per cent credible bands across accepted $(\Pi,\Sigma,Q)$ triples. The forecast-error variance decomposition (FEVD) at horizon $H$ is
+reported as pointwise posterior medians with 68 and 90 per cent credible bands across accepted $(\Pi,\Sigma,Q)$ triples (importance-weighted quantiles where the weights are computed).
+
+\paragraph{Forecast-error variance decomposition.} The $H$-step-ahead forecast error is $y_{t+H} - \mathbb{E}_t y_{t+H} = \sum_{h=0}^{H} \Psi_h B\, \varepsilon_{t+H-h}$; because the structural shocks are orthonormal, its variance for variable $i$ splits additively across shocks, giving the FEVD at horizon $H$:
 \begin{equation}
 \operatorname{FEVD}_{ij}(H) \;=\;
 \frac{\sum_{h=0}^{H}\big[\Psi_h B\big]_{ij}^{2}}
@@ -93,11 +168,36 @@ reported as pointwise posterior medians with 68 and 90 per cent credible bands a
 \qquad \sum_{j=1}^{k}\operatorname{FEVD}_{ij}(H) = 1 .
 \label{eq:fevd}
 \end{equation}
-Estimated structural shocks are recovered as $\hat{\varepsilon}_t = B^{-1}\hat{u}_t$ at each accepted draw. The historical decomposition splits each variable's path into the cumulative contribution of each structural shock, the Covid-dummy component and the deterministic component:
+where the equality of the denominator with $\sum_j$ of the numerators follows from $\Sigma = BB'$, so the shares sum to one mechanically --- a property the test suite nevertheless verifies numerically (Section~\ref{sec:validation}).
+
+\paragraph{Historical decomposition.} Estimated structural shocks are recovered as $\hat{\varepsilon}_t = B^{-1}\hat{u}_t$ at each accepted draw, where $\hat{u}_t = y_t - \hat{c} - \sum_l \hat{\Pi}_l y_{t-l} - \sum_j \hat{\delta}_j d_{j,t}$ are that draw's reduced-form residuals. Solving \eqref{eq:companion} backward from the first post-lag observation splits each variable's path into the cumulative contribution of each structural shock, the Covid-dummy component and the deterministic component:
 \begin{equation}
 y_{i,t} \;=\; \underbrace{\sum_{j=1}^{k}\;\sum_{h=0}^{t-1}\big[\Psi_h B\big]_{ij}\,\hat{\varepsilon}_{j,t-h}}_{\text{structural shocks}}
 \;+\; \underbrace{y^{\text{covid}}_{i,t}}_{\text{dummies}}
 \;+\; \underbrace{y^{\text{det}}_{i,t}}_{\text{initial conditions, constant}},
 \label{eq:hd}
 \end{equation}
-an additive identity that must reconstruct the data exactly --- a property Section~\ref{sec:validation} verifies to $10^{-8}$.
+an additive identity that must reconstruct the data exactly --- a property Section~\ref{sec:validation} verifies to $10^{-8}$. The Covid component $y^{\text{covid}}_{i,t}$ is obtained by feeding the estimated dummy effects $\hat{\delta}\, d_t$ through the companion recursion \eqref{eq:companion} with zero shocks, so that the dynamic propagation of the pandemic dummies is attributed to the dummies rather than to the deterministic trend.
+
+\subsection{Forecasting and the forecast-revision decomposition}
+\label{sec:forecasting-math}
+
+\paragraph{Unconditional forecasts.} Conditional on a draw $(\Pi, \Sigma)$ and data through the forecast origin $T$, the point forecast iterates \eqref{eq:var} forward with zero shocks and zero future dummies:
+\begin{equation}
+\hat{y}_{T+h \mid T} \;=\; c + \sum_{l=1}^{p} \Pi_l\, \hat{y}_{T+h-l \mid T},
+\qquad \hat{y}_{T+s \mid T} = y_{T+s} \text{ for } s \le 0 .
+\label{eq:pointfc}
+\end{equation}
+The predictive \emph{distribution} adds both sources of uncertainty: across accepted posterior draws (parameter uncertainty) and, within each draw, stochastic paths $y_{T+h} = \hat{y}_{T+h\mid T} + \sum_{s=0}^{h-1}\Psi_s u_{T+h-s}$ with $u_{T+h} \sim \mathcal{N}(0, \Sigma)$ (future-shock uncertainty). The replication simulates five stochastic paths per accepted draw and reports weighted pointwise medians with 68 and 90 per cent bands; growth variables are converted to year-on-year rates as $y_{t} - y_{t-4}$, exact in the $100\cdot\log$ parameterisation. This is precisely the construction of the fan charts in Section~\ref{sec:results}.
+
+\paragraph{The structural reading at the data edge.} Because the model is linear, the reduced-form innovation at the most recent observation $T$ maps into that quarter's structural shocks, $\hat{\varepsilon}_T = B^{-1}\big(y_T - \hat{c} - \textstyle\sum_l \hat{\Pi}_l y_{T-l}\big)$, one vector per accepted draw. The posterior distribution of $\hat{\varepsilon}_T$ across draws --- summarised by weighted sign probabilities $P(\varepsilon_{j,T} > 0)$ and magnitude quantiles --- is the \texttt{latest\_shocks} output: a probabilistic statement about what hit the economy in the latest quarter.
+
+\paragraph{Forecast revision.} The Bank's round-by-round use case \citep{brignone2025, brignone2026} decomposes the change in the forecast between two data edges into shock contributions. For one draw, let $\hat{y}_{T+h \mid T}$ be the forecast from data through $T$ and $\hat{y}_{T+h \mid T-1}$ the pseudo-forecast from data through $T-1$ using the \emph{same} parameters. Linearity of \eqref{eq:pointfc} in the state and $u_T = B \varepsilon_T$ give the exact identity
+\begin{equation}
+\hat{y}_{T+h \mid T} \;=\; \hat{y}_{T+h \mid T-1} \;+\; \Psi_h B\, \hat{\varepsilon}_T ,
+\qquad h = 0, 1, \ldots, H,
+\label{eq:revision}
+\end{equation}
+(with $\hat{y}_{T \mid T} = y_T$ at $h=0$): the entire forecast revision is the composite impulse response $\Psi_h B \hat{\varepsilon}_T$, which splits additively across the eight shocks as $\sum_j \hat{\varepsilon}_{j,T}\, [\Psi_h B]_{\cdot j}$. Identity \eqref{eq:revision} holds \emph{per draw} to machine precision (verified to $5.3\times 10^{-12}$; Section~\ref{sec:validation}), so the published decomposition is exact rather than approximate. In the year-on-year units of the figures, the level composite is differenced, $\text{YoY effect}(h) = \text{level}(h) - \text{level}(h-4)$ with the level effect zero before impact.
+
+\paragraph{Conditional forecasts.} The same moving-average algebra supports conditioning on assumed future paths for a subset of variables (a market interest-rate path, an energy-price assumption) in the sense of \citet{waggoner1999}: stacking the conditions $\bar{y}_{i,T+h} = \hat{y}_{i,T+h\mid T} + [\sum_s \Psi_s B \varepsilon_{T+h-s}]_i$ as linear restrictions $R \varepsilon = r$ on the future shocks $\varepsilon = (\varepsilon_{T+1}', \ldots, \varepsilon_{T+H}')'$, the restricted shocks are distributed $\mathcal{N}\big(R'(RR')^{-1} r,\; I - R'(RR')^{-1}R\big)$, i.e.\ the minimum-norm shock configuration consistent with the conditions plus orthogonal noise. The replication exposes the ingredients ($\Psi_h$, $B$, the forecast iterator) but does not yet ship a conditional-forecast tool; Section~\ref{sec:limitations} lists it as the natural next extension, and within a structural model the choice of \emph{which} shocks are allowed to implement the conditions is an economic, not mechanical, decision.

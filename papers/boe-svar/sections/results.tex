@@ -3,32 +3,51 @@
 
 \subsection{The forecast}
 
-With the model estimated through 2024Q2 --- the same vintage the Bank faced in its August 2024 round --- the unconditional forecast puts year-on-year UK GDP growth medians between \textbf{1.3 and 2.0 per cent} and year-on-year CPI inflation medians between \textbf{2.3 and 2.8 per cent} over the forecast horizon, with credible bands that widen with horizon as posterior parameter and shock uncertainty compound. The structural reading at the data edge (the \texttt{latest\_shocks} output) assigns a 0.81 posterior probability to a positive world demand shock and a 0.80 probability to a contractionary (price-raising) world energy shock in 2024Q2, with a 0.75 probability of a positive UK supply shock --- a configuration in which global demand supports activity while the energy and domestic supply readings pull inflation in opposite directions.
+With the model estimated through 2023Q2 and conditioned on data through 2024Q2 --- the same vintage the Bank faced in its August 2024 round --- the unconditional forecast puts year-on-year UK GDP growth medians between \textbf{1.3 and 2.0 per cent} and year-on-year CPI inflation medians between \textbf{2.3 and 2.8 per cent} over the forecast horizon in the importance-weighted production run (6{,}000 draws, 487 accepted, ESS 207.5), with credible bands that widen with horizon as posterior parameter and shock uncertainty compound. The structural reading at the data edge (the \texttt{latest\_shocks} output) assigns a 0.81 posterior probability to a positive world demand shock and a 0.80 probability to a contractionary (price-raising) world energy shock in 2024Q2, with a 0.75 probability of a positive UK supply shock and a 0.66 probability of a negative world supply shock --- a configuration in which global demand supports activity while the energy and domestic supply readings pull inflation in opposite directions.
 
-\subsection{An honest out-of-sample look}
+Figure~\ref{fig:fan} shows the corresponding fan charts from this paper's fixed-seed figure run (3{,}000 draws, 217 accepted, unweighted; per-quarter numbers in Table~\ref{tab:quarterly}), with the ONS outturns that subsequently arrived overlaid as dots. The unweighted figure run is slightly less benign on inflation than the weighted production run --- its CPI medians drift up to about 3.2 per cent at longer horizons rather than staying in the 2.3--2.8 range --- a useful reminder that the importance weights and Monte-Carlo seed move medians by a few tenths even as the bands are robust.
 
-Table~\ref{tab:outturns} confronts the forecast with what actually happened, using ONS outturns and the Bank's contemporaneous August 2024 Monetary Policy Report projections \citep{boe2024mpr}.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_fan.pdf}
+\caption{Fan-chart forecasts of year-on-year UK GDP growth and CPI inflation from the 2024Q2 data edge (median, 68 and 90 per cent predictive bands; parameter plus future-shock uncertainty, five stochastic paths per accepted draw), against subsequent ONS outturns (dots). The vertical dotted line marks the forecast origin.}
+\label{fig:fan}
+\end{figure}
+
+\subsection{An honest out-of-sample look, quarter by quarter}
+
+Table~\ref{tab:quarterly} confronts the forecast with what actually happened, quarter by quarter, through 2025Q3 --- five quarters of genuine out-of-sample data.
 
 \begin{table}[t]
 \centering
-\caption{Forecast from 2024Q2 versus outturns and the Bank's August 2024 projections}
-\label{tab:outturns}
+\caption{Quarter-by-quarter forecast versus outturn (year-on-year, per cent)}
+\label{tab:quarterly}
 \small
-\begin{tabular}{lccc}
+\begin{tabular}{lcccccc}
 \toprule
- & SVAR replication & Outturn (ONS) & BoE MPR, Aug.\ 2024 \\
- & (median, YoY) & & \\
+ & \multicolumn{3}{c}{GDP growth} & \multicolumn{3}{c}{CPI inflation} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Quarter & Median & 68\% band & Outturn & Median & 68\% band & Outturn \\
 \midrule
-GDP growth, 2024 (annual)     & $\approx 1.3$\% & 1.1\% & $\approx 1\tfrac14$\% \\
-GDP growth, 2025 (annual)     & 1.3--2.0\%      & 1.3\% & $\approx 1$\% \\
-CPI inflation, end-2024       & 2.3--2.8\%      & 2.5\% (Dec.) & $\approx 2\tfrac34$\% \\
-CPI inflation, 2025           & 2.3--2.8\%      & rising to 3.8\% (Sep.\ peak) & falling towards 2\% \\
+2024Q3 & 1.3 & [0.8, 1.9] & 1.0 & 2.3 & [1.8, 2.8] & 2.0 \\
+2024Q4 & 1.8 & [1.0, 2.7] & 1.5 & 2.7 & [1.9, 3.5] & 2.5 \\
+2025Q1 & 1.3 & [0.2, 2.4] & 1.3 & 2.8 & [1.7, 3.9] & 2.8 \\
+2025Q2 & 0.9 & [$-0.4$, 2.3] & 1.4 & 3.2 & [1.7, 4.6] & 3.5 \\
+2025Q3 & 0.9 & [$-0.2$, 1.9] & 1.3 & 3.2 & [2.0, 4.3] & 3.8 \\
 \bottomrule
 \end{tabular}
 \par\smallskip
-\parbox{0.95\textwidth}{\footnotesize \emph{Notes:} Outturns from ONS quarterly national accounts and consumer price inflation releases \citep{ons2025gdp, ons2024cpi, ons2025cpi}: annual GDP growth of 1.1\% in 2024 and 1.3\% in 2025; CPI inflation of 2.5\% in the twelve months to December 2024, rising through 2025 to a peak of 3.8\% (September 2025) before easing to 3.2\% by November 2025. Bank projections are the August 2024 Monetary Policy Report's modal paths, shown at comparable points. SVAR bands widen with horizon; the 2025 CPI outturn sits outside the median range but within the upper credible band.}
+\parbox{0.95\textwidth}{\footnotesize \emph{Notes:} Model columns are from the fixed-seed figure run of Figure~\ref{fig:fan} (3{,}000 draws, 217 accepted, unweighted). GDP outturns are ONS estimates of quarterly real GDP relative to the same quarter a year earlier \citep{ons2025gdp}; annual growth was 1.0--1.1 per cent in 2024 and 1.3 per cent in 2025. CPI outturns are quarterly averages of twelve-month CPI inflation \citep{ons2025cpi}; the monthly peak was 3.8 per cent in September 2025. Later ONS vintages revise these figures.}
 \end{table}
 
-The scorecard is mixed in an informative way. On \emph{activity}, the model does well: ONS outturns of 1.1 per cent growth in 2024 and 1.3 per cent in 2025 sit at, or just below, the bottom of the median range, and comfortably inside the bands --- the model correctly read an economy growing modestly rather than re-accelerating or stalling. On \emph{inflation}, the model's 2.3--2.8 per cent median range captures end-2024 exactly (2.5 per cent in December 2024) but misses the 2025 re-acceleration, in which CPI inflation climbed to 3.8 per cent by September 2025 on energy, administered prices and persistent services inflation before easing. This is an honest failure to report --- and a shared one: the Bank's own August 2024 projections had inflation falling back towards target over 2025, so the miss reflects genuinely unforecastable 2024--25 cost developments (and, for the replication, a data edge frozen at 2024Q2) rather than a defect peculiar to the replication. The widening credible bands do their job: the 2025 outturn lies within the upper band even as it escapes the median range.
+The scorecard is mixed in an informative way. On \emph{activity}, the model does well throughout: every quarterly GDP outturn lies inside the 68 per cent band, and the medians track the economy's actual gentle path --- modest growth around 1--1.5 per cent, neither re-acceleration nor stall. The one visible miss in profile is 2025Q2--Q3, where the model's median dips towards 0.9 per cent while the economy held at 1.3--1.4 per cent; the bands absorb it. On \emph{inflation}, the model captures the level and timing of the 2024Q3--2025Q1 path almost exactly (2.3 vs 2.0, 2.7 vs 2.5, 2.8 vs 2.8), then progressively undershoots the 2025 re-acceleration: outturns of 3.5 and 3.8 per cent against medians of 3.2, still inside the 68 per cent band but on its upper half. The widening credible bands do their job --- no outturn escapes even the 68 per cent band in this run --- but the medians clearly did not anticipate how far energy, food and administered prices would push inflation in 2025.
 
-The forecast-revision machinery adds the structural narrative: relative to a pseudo-forecast made one quarter earlier, the 2024Q2 shock readings revise the year-on-year GDP path up by a peak of $+0.40$ percentage points and the CPI path down by $-0.22$ percentage points on impact --- the model's structural account of why the data edge changed the outlook, exactly the round-by-round use case the Bank built the model for.
+\subsection{What the model says 2025 inflation was, and what the Bank said}
+
+The model's structural machinery lets the miss be interrogated rather than merely recorded. Two readings are relevant.
+
+First, the \emph{data-edge reading}. At 2024Q2 the \texttt{latest\_shocks} posterior already flagged a contractionary world energy shock (probability 0.80) alongside strong world demand (0.81): in the model's language, the last observed quarter was one in which energy-driven cost pressure was hitting while global demand held up. The forecast-revision decomposition quantifies what that reading did to the outlook: relative to a pseudo-forecast made one quarter earlier, the 2024Q2 shocks revised the year-on-year GDP path up by a peak of $+0.40$ percentage points and the CPI path down by $-0.22$ percentage points on impact --- the structural account of why the mid-2024 data changed the forecast, exactly the round-by-round use the Bank built the model for. What the frozen data edge could not see is that the energy- and price-level shocks of late 2024 and 2025 --- Ofgem price-cap increases, food-price inflation, April 2025 administered and regulated price rises --- would keep arriving.
+
+Second, the \emph{ex-post comparison with the Bank's own narrative}. The Bank's August 2025 Monetary Policy Report, written as inflation averaged 3.5 per cent in 2025Q2, attributed the increase from 2.8 per cent in Q1 explicitly to energy, food and administered prices, and worried chiefly that the salience of food and energy could feed inflation expectations and the wage--price process \citep{boe2025mpr_aug}; the MPC nevertheless cut Bank Rate to 4 per cent, judging the pressure to be a hump rather than a trend. By November 2025 the Report judged that CPI inflation had peaked at 3.8 per cent in the July--September period and projected a fall to around 3 per cent in coming quarters and a gradual decline to target thereafter, underpinned by subdued growth, building labour-market slack, easing pay growth and easing services inflation \citep{boe2025mpr_nov}. Mapped into the replication's shock vocabulary, the Bank's story of 2025 inflation is a sequence of adverse \emph{energy and supply-side price} disturbances layered on weak demand --- precisely the world energy and (negative) supply shocks the model's 2024Q2 posterior was already detecting, extended for three more quarters. The model's historical decomposition of the 2021--23 surge (Figure~\ref{fig:hd}) tells the same story at larger scale: in both episodes the model and the Bank agree that UK inflation moved on imported cost shocks rather than domestic overheating. The residual disagreement is one of magnitude and persistence, not mechanism: the SVAR's mean-reverting shock structure pulls inflation back towards the deterministic trend faster than the administered-price pipeline of 2025 allowed, an error the Bank's August 2024 projections --- which had inflation falling back towards 2 per cent over 2025 \citep{boe2024mpr} --- shared in full.
+
+The annual summary of the earlier draft of this comparison survives in the numbers: ONS outturns of 1.1 per cent growth in 2024 and 1.3 per cent in 2025 sit at or just below the bottom of the model's median range and comfortably inside the bands, while CPI inflation's climb to a 3.8 per cent September 2025 peak escapes the weighted-run median range of 2.3--2.8 per cent but not the credible bands. The miss is honest, shared with the official forecaster, and --- through the shock decomposition --- structurally interpretable.

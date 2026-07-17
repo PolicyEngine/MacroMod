@@ -1,7 +1,18 @@
 \section{The model}
 \label{sec:model}
 
-The OBR's macroeconomic model descends from the Treasury model first built in 1970 and has been jointly maintained by the OBR and HM Treasury since 2010 \citep{obr2013model}. It is a quarterly, large-scale macroeconometric model in the estimated-structural tradition of \citet{klein1950} and \citet{fair2004}: a small number of estimated behavioural equations embedded in a dense web of national-accounts identities, with expectations largely implicit and adjustment dynamics carried by error-correction terms \citep{davidson1978, engle1987}. It sits in the lineage of the large UK policy models reviewed by \citet{wallis1987}, and is the UK institutional counterpart of semi-structural policy models such as the Federal Reserve's FRB/US \citep{brayton1996}. The 15 October 2025 model listing used here contains 372 equations over 636 variable codes. Of these, roughly 29 equations are econometrically estimated, 216 are accounting identities, and 138 are calibrated or technical relationships; 253 variables are exogenous inputs---the fiscal levers, market assumptions, world demand, and demographic paths on which the OBR conditions its forecast---and 383 are solved by the model.
+The OBR's macroeconomic model descends from the Treasury model first built in 1970 and has been jointly maintained by the OBR and HM Treasury since 2010 \citep{obr2013model, obrmou}. It is a quarterly, large-scale macroeconometric model in the estimated-structural tradition of \citet{klein1950} and \citet{fair2004}: a small number of estimated behavioural equations embedded in a dense web of national-accounts identities, with expectations largely implicit and adjustment dynamics carried by error-correction terms \citep{davidson1978, engle1987}. It sits in the lineage of the large UK policy models reviewed by \citet{wallis1987}, and is the UK institutional counterpart of semi-structural policy models such as the Federal Reserve's FRB/US \citep{brayton1996}. The 15 October 2025 model listing used here contains 372 equations over 636 variable codes. Of these, roughly 29 equations are econometrically estimated, 216 are accounting identities, and 138 are calibrated or technical relationships; 253 variables are exogenous inputs---the fiscal levers, market assumptions, world demand, and demographic paths on which the OBR conditions its forecast---and 383 are solved by the model. All equations quoted in this section are transcribed verbatim (coefficients included, rounded to four decimals) from the published listing; Appendix~\ref{app:glossary} defines every mnemonic used.
+
+\subsection{The anatomy of an OBR equation: ECM long run and short run}
+\label{sec:ecm}
+
+Nearly every estimated behavioural equation in the listing has the same equilibrium-correction form, and reading the model is easier once that template is fixed. A representative equation for a variable $y$ driven by long-run determinants $x$ and short-run drivers $z$ is
+\begin{equation}
+\Delta \ln y_t \;=\; \underbrace{\alpha + \textstyle\sum_i \beta_i\, \Delta \ln z_{i,t}}_{\text{short-run dynamics}} \;-\; \lambda \underbrace{\big[\ln y_{t-1} - \textstyle\sum_j \gamma_j \ln x_{j,t-1}\big]}_{\text{lagged equilibrium error}},
+\qquad 0 < \lambda < 1 .
+\label{eq:ecmtemplate}
+\end{equation}
+The bracketed term is the residual of a long-run (cointegrating) relationship $\ln y^* = \sum_j \gamma_j \ln x_j$ up to a constant: when $y$ sat above its equilibrium value last quarter, growth is pulled down by $\lambda$ times the gap, so the level converges to $y^*$ at a geometric rate---a gap half-life of roughly $\ln 2/\lambda$ quarters. The $\beta_i$ terms govern the impact response before the level correction has had time to bite. Three consequences matter for policy scoring. First, \emph{impact and long-run multipliers differ}: a permanent income shock moves consumption on impact by the short-run elasticity ($0.103$ in equation~\eqref{eq:cons}) but eventually by the long-run one ($0.439$), so reform effects build over the horizon rather than arriving at once---exactly the profile visible in Figure~\ref{fig:reform}. Second, the adjustment speed $\lambda$ is the model's memory: at $\lambda = 0.125$ (consumption) roughly $12.5$ per cent of any disequilibrium closes per quarter, so a two-year scoring window captures only part of the eventual response. Third, the intercept $\alpha$ and the implicit constant of the long-run relation are where unpublished calibration lives; as Section~\ref{sec:calibration} shows, it is precisely these constants (not the published slopes) that impose floors on the free-running fit. The OBR's add-factors (Section~\ref{sec:anchoring}) enter equation~\eqref{eq:ecmtemplate} as period-specific shifts to $\alpha$.
 
 \subsection{The expenditure core}
 
@@ -24,7 +35,7 @@ The centrepiece behavioural equation is an error-correction consumption function
 \end{aligned}
 \label{eq:cons}
 \end{equation}
-where $RHHDI$ is real household disposable income, $LFSUR$ the LFS unemployment rate, $GPW$ gross housing wealth, $NFWPE$ net financial wealth of the personal sector, $PCE$ the consumption deflator, $R$ Bank Rate, and $\pi^{PCE}_4$ annual consumption-deflator inflation. The long-run solution ties consumption to income, housing wealth, and financial wealth with an adjustment speed of about 12.5 per cent per quarter; the short run responds to income growth, unemployment changes, wealth growth, and the real interest rate. A companion equation splits off durables ($CDUR$) with relative-price, income, and user-cost terms.
+where $RHHDI$ is real household disposable income, $LFSUR$ the LFS unemployment rate, $GPW$ gross housing wealth, $NFWPE$ net financial wealth of the personal sector, $PCE$ the consumption deflator, $R$ Bank Rate, and $\pi^{PCE}_4$ annual consumption-deflator inflation. Mapped onto template~\eqref{eq:ecmtemplate}: the long-run solution ties consumption to income (elasticity $0.439$), housing wealth ($0.106$), and financial wealth ($0.222$) with adjustment speed $\lambda = 0.125$ per quarter---a half-life for a consumption gap of about five and a half quarters; the short run responds to income growth, unemployment changes, housing-wealth growth, and the change in the ex-post real interest rate. A companion equation splits off durables ($CDUR$) with relative-price, income, and user-cost terms, and a house-price equation ($PD$) ties prices to housing wealth per house and the earnings--deflator wedge, closing a housing-collateral loop back into equation~\eqref{eq:cons} through $GPW$.
 
 \subsection{Investment}
 
@@ -40,7 +51,82 @@ with business investment behaviour specified as an error-correction accelerator 
 \end{aligned}
 \label{eq:ibus}
 \end{equation}
-where $MSGVA$ is market-sector gross value added, $CBIUD$ a CBI capacity-utilisation survey balance, $KMSXH$ the market-sector capital stock, and $KGAP$ the gap between actual and desired capital---the term through which the corporation-tax rate ($TCPRO$), by raising the user cost of capital, lowers desired capital and hence investment. In the October 2025 listing this behavioural line ships commented out (the OBR runs investment off its databank with judgement); the emulator's corporation-tax experiments therefore operate the channel through an explicit investment closure with the cost-of-capital relationship restored and stabilised (Section~\ref{sec:method}).
+where $MSGVA$ is market-sector gross value added, $CBIUD$ a CBI capacity-utilisation survey balance, $KMSXH$ the market-sector capital stock, and $KGAP$ the gap between actual and desired capital---the term through which the corporation-tax rate ($TCPRO$), by raising the user cost of capital, lowers desired capital and hence investment. Note the near-unit short-run accelerator coefficient on lagged market-sector output growth ($1.0057$) against the slow error correction ($\lambda = 0.042$, a gap half-life of about sixteen quarters): investment chases demand hard in the short run and repairs its level only slowly, which is why an unconstrained output--investment loop is explosive on a databank without a live supply block (Section~\ref{sec:method}). In the October 2025 listing this behavioural line ships commented out (the OBR runs investment off its databank with judgement); the emulator's corporation-tax experiments therefore operate the channel through an explicit investment closure with the cost-of-capital relationship restored and stabilised.
+
+\subsection{Labour market}
+\label{sec:labour}
+
+The labour-market block combines one estimated equation---market-sector employment---with a set of identities that convert employment into unemployment and participation. Market-sector employees ($EMS$) follow a labour-demand ECM on market-sector output and the real producer wage:
+\begin{equation}
+\begin{aligned}
+\Delta \ln EMS \;=\;& -0.0113 \;+\; 0.4370\,\Delta \ln EMS_{-1} \;+\; 0.1932\,\Delta \ln EMS_{-2} \;+\; 0.1714\,\Delta \ln MSGVA_{-1} \\
+&-\; 0.0062\,\Big[ \ln\!\big(\tfrac{EMS_{-1}}{MSGVA_{-1}}\big) + 0.4 \ln\!\big(\tfrac{PSAVEI_{-1}}{PMSGVA_{-1}}\big) \Big],
+\end{aligned}
+\label{eq:ems}
+\end{equation}
+(a 2010Q4 break dummy omitted for readability). The long-run solution makes the employment--output ratio depend on the producer real wage with elasticity $0.4$: labour demand is downward-sloping, but the error-correction speed is extremely slow ($\lambda = 0.0062$, a half-life of over a hundred quarters), so employment is dominated in any scoring window by the lagged-adjustment and output-growth terms---the model's rendering of labour hoarding. Around this single behavioural equation sit the identities
+\begin{align}
+ETLFS &= 1000\,\frac{HWA}{AVH}, &
+ULFS &= \frac{POP16 \cdot PART16}{100} - ETLFS, \label{eq:etlfs}\\
+LFSUR &= 100\,\frac{ULFS}{ETLFS + ULFS}, &
+ER &= 100\,\frac{ETLFS}{POP16},
+\label{eq:lfsur}
+\end{align}
+which build LFS employment from total hours worked ($HWA$) over average hours ($AVH$), unemployment from the participation-implied labour force less employment, and the unemployment and employment rates from those stocks. Workforce jobs, self-employment, and public-sector employment ($ECG$, $ELA$) scale by ratio links to the government-sector aggregates. The crucial configuration fact---central to the honest scorecard of Section~\ref{sec:rawscore}---is that $HWA$, $AVH$, and $PART16$ are exogenous inputs in this configuration: total employment is a \emph{trivial identity} over passthrough series, and only $EMS$ and the unemployment split are genuinely computed. Unemployment then feeds back into the demand side twice: through the $\Delta LFSUR$ term in consumption~\eqref{eq:cons} and through the wage equation below.
+
+Private-sector average earnings ($PSAVEI$) are set by an estimated wage ECM:
+\begin{equation}
+\begin{aligned}
+\Delta \ln PSAVEI \;=\;& -0.0282 \;+\; 0.575\,\Delta \ln PMSGVA + 0.250\,\Delta \ln PMSGVA_{-1} + 0.105\,\Delta \ln PMSGVA_{-2} \\
+&+\; 0.070\,\Delta \ln PMSGVA_{-3} \;-\; 0.0096\,\Delta LFSUR \;+\; 0.264\,\big(\Delta \ln MSGVA - \Delta \ln EMS\big) \\
+&+\; 0.282\,\big(\Delta \ln CPI - \Delta \ln PMSGVA\big) \\
+&-\; 0.0433\,\Big[ \ln PSAVEI_{-1} - \ln\!\big(\tfrac{MSGVA_{-1}}{EMS_{-1}}\big) - \ln PMSGVA_{-1} \\
+&\qquad\qquad +\; \ln\!\big(1 + \tfrac{EMPSC_{-1}}{WFP_{-1}}\big) + 0.0137\,LFSUR_{-1} \Big],
+\end{aligned}
+\label{eq:wage}
+\end{equation}
+a bargaining-style wage equation: the long run ties the real product wage to labour productivity ($MSGVA/EMS$) one-for-one, shifted down by employer social contributions (the tax wedge, $EMPSC/WFP$) and by unemployment (a wage curve with semi-elasticity $0.0137$); the short run passes through producer-price inflation (with distributed-lag weights summing to one, so there is no long-run money illusion), productivity growth, the consumer--producer price wedge, and the change in unemployment. Earnings, employment, and public-sector pay then aggregate to the economy-wide wage bill
+\begin{equation}
+WFP = ADJW \cdot PSAVEI \cdot (EMS - ESLFS) + \tfrac{52}{4000}\,CGWADJ \cdot ERCG \cdot ECG + \tfrac{52}{4000}\,LAWADJ \cdot ERLA \cdot ELA,
+\label{eq:wfp}
+\end{equation}
+which is the largest single input to household income~\eqref{eq:hhdi} and to income-tax receipts in the fiscal block: equations \eqref{eq:ems}--\eqref{eq:wfp} are the transmission path by which a demand shock eventually moves PAYE receipts.
+
+\subsection{Trade}
+\label{sec:trade}
+
+The trade block is asymmetric in this configuration: aggregate export and import volumes ($X$, $M$) are exogenous conditioning inputs (the world-demand judgement), while the block's live equations decompose them, price them, and determine the import \emph{content} of demand. Non-oil goods flows are residuals, $XNOG = X - XS - XOIL$ and $MNOG = M - MS - MOIL$, and current-price aggregates are built by deflator-weighted sums such as $XPS = (PXNOG/100)XNOG + (PXS/100)XS + (PXOIL/100)XOIL$. The import content of final expenditure is imposed through fixed input--output weights:
+\begin{equation}
+MGTFE = 0.176\,CONS + 0.064\,CGG + 0.175\,IF + 0.094\,DINV + 0.410\,XNOG + 0.049\,XS,
+\label{eq:mgtfe}
+\end{equation}
+with a services analogue ($MSTFE$; weights $0.081$, $0.030$, $0.059$, $0.012$, $0.029$, $0.093$): a pound of goods exports carries far more import content ($0.41$) than a pound of government consumption ($0.064$), one reason fiscal multipliers on $CGG$ exceed those on trade-intensive demand. Services import volumes are the block's estimated behavioural equation, an ECM on weighted expenditure and the relative import price:
+\begin{equation}
+\begin{aligned}
+\Delta \ln MS \;=\;& 0.819\,\Delta \ln MSTFE + \cdots - 0.477\,\Delta \ln PMSREL - 0.271\,\Delta \ln MS_{-1} \\
+&-\; 0.171\,\big[\ln MS_{-1} - 1.079 \ln MSTFE_{-1} - 0.662 \ln SPECX_{-1} + 0.874 \ln PMSREL_{-1} + \cdots\big] - 0.032,
+\end{aligned}
+\label{eq:ms}
+\end{equation}
+whose long run has an expenditure elasticity slightly above one (trade deepening) and a relative-price elasticity of $-0.87$. Trade \emph{prices} are estimated ECMs in domestic costs and world prices converted at the exchange rate---for export prices,
+\begin{equation}
+\begin{aligned}
+\Delta \ln PXNOG \;=\;& 0.636\,\Delta \ln PPIY_{-1} + 0.103\,\big(\Delta \ln WPG - \Delta \ln RXD\big) - 0.131\,\Delta \ln RX \\
+&-\; 0.161\,\big[\ln PXNOG_{-1} + 0.330 \ln RX_{-1} - 0.921 \ln PPIY_{-1} - 0.079 \ln (WPG_{-1}/RXD_{-1})\big] + \cdots,
+\end{aligned}
+\label{eq:pxnog}
+\end{equation}
+with an import-price twin ($PMNOG$; long-run weights $0.55$ domestic, $0.45$ world). The long-run weights say UK exporters are mostly domestic-cost setters ($0.92$ on producer prices $PPIY$) with modest world-price-taking ($0.08$ on world goods prices $WPG/RXD$), and both equations make the exchange rate ($RX$, $RXD$) a first-order transmission channel: a depreciation raises export and import prices within quarters, feeding the CPI--RPI block and, through $PMSREL$ in~\eqref{eq:ms}, expenditure switching. Oil trade prices are pure conversions of the exogenous Brent price, $\Delta \ln PXOIL = \Delta \ln PBRENT - \Delta \ln RXD$.
+
+\subsection{Government spending}
+\label{sec:govspend}
+
+Government consumption is the model's canonical fiscal lever, and its treatment illustrates the model's nominal-to-real architecture. The Spending-Review path enters in cash terms ($CGGPS$, nominal government consumption); real government consumption follows a bridging equation
+\begin{equation}
+\Delta \ln CGG \;=\; 0.0007 \;+\; 0.3739\,\Delta \ln CGGPS \;+\; 0.1802\,\Delta \ln CGGPS_{-1} \;-\; 0.4198\,\Delta \ln CGG_{-1},
+\label{eq:cgg}
+\end{equation}
+a distributed lag converting nominal spending plans into real activity, with the implied government-consumption deflator defined residually as $GGFCD = 100\,CGGPS/CGG$. Procurement is the cash residual $CGP = CGGPSPSF - (CGWS + LAWS) - LAPR - (RCGIM + RLAIM)$: central-government procurement is what remains of the spending envelope after central and local pay bills ($CGWS$, $LAWS$), local procurement, and capital-consumption imputations. The split matters for incidence: the pay component feeds the wage bill~\eqref{eq:wfp} and household income directly, while procurement enters demand without a first-round household-income counterpart. Government-sector social contributions scale with the pay bills by ratio links ($CGASC/CGASC_{-1} = CGWS/CGWS_{-1}$, and similarly for $EESCCG$, $LASC$, $EESCLA$), and government investment enters the capital account as nominal $CGIPS$ (a direct lever in the emulator) deflated onto real $GGI$ inside total investment. In the emulator's demand closure a shock to real $CGG$ enters identity~\eqref{eq:gdpid} directly---hence the impact multiplier of approximately one reported in Section~\ref{sec:experiments}---while its cash counterpart flows through the fiscal chain of Section~\ref{sec:fiscal} into borrowing.
 
 \subsection{Incomes}
 
@@ -57,19 +143,61 @@ summing mixed income, employee compensation less social contributions, taxes on 
 FYCPR \;=\; OS - OSHH - OSGG - OSPC - RENTCO + SA - FISIMPS.
 \label{eq:fycpr}
 \end{equation}
-The wage bill aggregates employment, average earnings, and public-sector pay:
+The wage bill is equation~\eqref{eq:wfp}; the taxes-on-income term closes the loop back to the fiscal block through
 \begin{equation}
-WFP = ADJW \cdot PSAVEI \cdot (EMS - ESLFS) + \tfrac{52}{4000}\,CGWADJ \cdot ERCG \cdot ECG + \tfrac{52}{4000}\,LAWADJ \cdot ERLA \cdot ELA,
+TYWHH = TYEM + TSEOP + CC + CGT + OCT - NPISHTC,
+\label{eq:tywhh}
 \end{equation}
-with private-sector average earnings ($PSAVEI$) determined by an estimated error-correction equation in market-sector prices, productivity, unemployment, and the wedge between consumer and producer prices. Employment is the identity $ETLFS = 1000\,(HWA/AVH)$, total hours over average hours---both exogenous inputs in this configuration, a point that matters for the honest scorecard in Section~\ref{sec:calibration}.
+PAYE and self-assessment income tax, council tax, capital gains tax, and other current taxes: the same receipts lines that aggregate into government revenue in Section~\ref{sec:fiscal} are subtracted here from household income---precisely the double-entry the microsimulation bridge declines to re-traverse (Section~\ref{sec:bridge}).
 
 \subsection{Prices}
 
-The retail-price block builds the RPI from mortgage-interest and other components, $PR = I7\,[(1-W_4)\,PRXMIP/I9 + W_4\,PRMIP/I4]$, with annual RPI inflation $RPI = 100\,(PR/PR_{-4} - 1)$; the consumption deflator moves with the CPI through $PCE/PCE_{-4} = CPI/CPI_{-4}$. The CPI itself is exogenous in this configuration (the OBR imposes its inflation judgement), so the deflator path is conditioned on the EFO inflation forecast.
+The retail-price block builds the RPI from mortgage-interest and other components, $PR = I7\,[(1-W_4)\,PRXMIP/I9 + W_4\,PRMIP/I4]$, with annual RPI inflation $RPI = 100\,(PR/PR_{-4} - 1)$; the consumption deflator moves with the CPI through $PCE/PCE_{-4} = CPI/CPI_{-4}$. The CPI itself is exogenous in this configuration (the OBR imposes its inflation judgement), so the deflator path is conditioned on the EFO inflation forecast---which also makes an exogenous CPI shock a legitimate lever for price-shock experiments (Section~\ref{sec:experiments}). Rent components ($PRENT$, $CPIRENT$) index to a weighted average of earnings growth, house-rental values, and house prices, tying the price block back to the labour-market and housing equations.
 
-\subsection{Fiscal block}
+\subsection{The fiscal block: receipts, spending, and the PSNB chain}
+\label{sec:fiscal}
 
-Government receipts and spending aggregate from their components---for example income-tax receipts $INCTAXG = TYEM + TSEOP + TCINV - INCTAC + CTC - NPISHTC$---up to public sector net borrowing, $PSNB = -PSCB + PSNI$ (the current deficit plus net investment). The fiscal levers a reform can pull directly include government consumption $CGG$, nominal central-government investment $CGIPS$, the corporation-tax rate $TCPRO$, and the market assumptions (Bank Rate $R$, gilt yields, the exchange rate).
+The fiscal block is the deepest identity chain in the model: roughly a hundred equations that aggregate individual taxes and spending lines into the headline public-finance aggregates. It is worth setting out in full, because it is the path by which any scored reform becomes a borrowing number.
+
+\paragraph{Receipts.} Individual tax streams aggregate bottom-up. Income-tax receipts are
+\begin{equation}
+INCTAXG = TYEM + TSEOP + TCINV - INCTAC + CTC - NPISHTC,
+\label{eq:inctax}
+\end{equation}
+PAYE plus self-assessment plus tax on investment income, less accruals adjustments and reliefs. Indirect taxes bundle as $CETAX = VREC + TXFUEL + TXTOB + TXALC + CUST + CCL + AL + TXCUS$ (VAT, fuel, tobacco, alcohol, customs, climate-change levy, aggregates levy, customs adjustments). These roll up into taxes on income and wealth,
+\begin{equation}
+\begin{aligned}
+PUBSTIW \;=\;& TYEM + TSEOP + PRT + TCINV + CT + CGT + FCACA \\
+&+ BETPRF + BETLEVY + OFGEM - NPISHTC - TYPCO + PROV - LAEPS,
+\end{aligned}
+\label{eq:pubstiw}
+\end{equation}
+(including corporation tax $CT = NSCTP + NNSCTP$, split North Sea/onshore), and finally into public sector current receipts:
+\begin{equation}
+\begin{aligned}
+PSCR \;=\;& PUBSTIW + PUBSTPD + OCT + CC + INHT + EENIC + EMPNIC \\
+&+ (RCGIM + RLAIM + OSPC) + PSINTR + (RNCG + HHTCG) + LARENT + PCRENT + \cdots,
+\end{aligned}
+\label{eq:pscr}
+\end{equation}
+taxes on income and wealth, taxes on production, council tax, inheritance tax, employee and employer National Insurance, imputed capital consumption, public-sector interest and dividend receipts, and rent.
+
+\paragraph{Spending.} Public sector current expenditure ($PSCE$) is the mirror aggregate---pay, procurement, subsidies, net social benefits ($CGSB + LASBHH$), current grants, debt interest, and EU transactions---carried in the listing in inverted form (subsidies as the residual, reflecting the OBR's own solution ordering). Depreciation is $DEP = RCGIM + RLAIM + PCCON$, and gross public-sector investment accumulates as
+\begin{equation}
+PSGI = CGIPS + LAIPS + IPCPS + IBPC + DINVCG + (NPACG + NPALA) + \cdots + ASSETSA,
+\label{eq:psgi}
+\end{equation}
+central and local government investment, public-corporation investment, and asset transactions.
+
+\paragraph{The borrowing chain.} The headline aggregates then follow in strict sequence:
+\begin{align}
+PSCB &= PSCR - PSCE - DEP && \text{(current balance)} \label{eq:pscb}\\
+PSNI &= PSGI - DEP - ASSETSA && \text{(net investment)} \label{eq:psni}\\
+PSNB &= -PSCB + PSNI && \text{(net borrowing)} \label{eq:psnb}\\
+PSNCR &= PSNB + PSLSFA + PSACADJ && \text{(net cash requirement)} \label{eq:psncr}\\
+\Delta PSND &= PSNCR - ILGAC + \Delta FLEASGG + \Delta FLEASPC + PSNDRES && \text{(net debt)} \label{eq:psnd}
+\end{align}
+Current receipts less current spending less depreciation give the current balance; the deficit is the current deficit plus net investment; cash-basis and accruals adjustments ($PSLSFA$, $PSACADJ$) convert borrowing to the cash requirement; and the cash requirement, less index-linked gilt accruals and finance-lease adjustments, cumulates into the net-debt stock. Parallel decompositions attribute borrowing to sub-sectors ($CGNB$, $LANB$, $PCNB$ for central government, local authorities, and public corporations, with $GGNB = CGNB + LANB$), and the sub-sector chain feeds general-government gross debt ($GGGD$) for the international definitions. The one add-factor in this chain sits on $PSNBCY$ (the listing's \texttt{@ADD} on calendar-year borrowing), which is where the OBR's fiscal judgement enters. Every behavioural response elsewhere in the model reaches the public finances through this chain: a consumption shock moves VAT ($VREC$), the wage bill moves PAYE and NICs, profits move corporation tax, and the sum lands mechanically in equations \eqref{eq:pscb}--\eqref{eq:psnd}. In the emulator these identities solve alongside the rest of the system, so scored reforms carry second-round fiscal aggregates on the same accounting basis as the OBR's published tables---subject to the calibration floors on the chain's unpublished input series documented in Section~\ref{sec:calibration}.
 
 \subsection{Add-factors and the anchoring mechanism}
 \label{sec:anchoring}

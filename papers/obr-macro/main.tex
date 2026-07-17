@@ -1,6 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1.1in]{geometry}
 \usepackage{booktabs}
+\usepackage{longtable}
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{xcolor}
@@ -22,7 +23,7 @@
 \maketitle
 
 \begin{abstract}
-\noindent I describe an open-source Python implementation of the Office for Budget Responsibility's macroeconometric model of the UK economy, built for near-term fiscal-reform scoring in the PolicyEngine Macro suite. The emulator transpiles the OBR's 372 published EViews equations into Python, solves them by Gauss--Seidel iteration with a demand-side closure swap, and anchors the baseline to the OBR's November 2025 \emph{Economic and Fiscal Outlook} using the OBR's own add-factor device. In anchored mode the model reproduces the published EFO path with a GDP MAPE of 0.18 per cent and consumption of 0.29 per cent over 2025Q1--2027Q4, hard-gated in continuous integration. The free-running fit is deliberately reported without flattery: of 21 headline variables, 10 are passthroughs and only 4 of the 11 actually computed land within band, with company profits 54.6 per cent off---a gap traced to unpublished OBR calibration constants rather than live bugs. A static-costing bridge injects PolicyEngine microsimulation costings into the model as a household-disposable-income shock, delivering the OBR's own ``static costing in, second-round effects out'' workflow. A worked example---raising the basic rate of income tax by 1p---yields a static costing of \pounds 6.46 billion in 2026 rising to \pounds 7.38 billion by 2030, within the range of HMRC's published ready reckoner, with second-round GDP effects of $-$0.02 to $-$0.03 per cent.
+\noindent I describe an open-source Python implementation of the Office for Budget Responsibility's macroeconometric model of the UK economy, built for near-term fiscal-reform scoring in the PolicyEngine Macro suite. The emulator transpiles the OBR's 372 published EViews equations into Python, solves them by Gauss--Seidel iteration with a demand-side closure swap, and anchors the baseline to the OBR's November 2025 \emph{Economic and Fiscal Outlook} using the OBR's own add-factor device. In anchored mode the model reproduces the published EFO path with a GDP MAPE of 0.18 per cent and consumption of 0.29 per cent over 2025Q1--2027Q4, hard-gated in continuous integration. The free-running fit is deliberately reported without flattery: of 21 headline variables, 10 are passthroughs and only 4 of the 11 actually computed land within band, with company profits 54.6 per cent off---a gap traced to unpublished OBR calibration constants rather than live bugs. A static-costing bridge injects PolicyEngine microsimulation costings into the model as a household-disposable-income shock, delivering the OBR's own ``static costing in, second-round effects out'' workflow. A worked example---raising the basic rate of income tax by 1p---yields a static costing of \pounds 6.46 billion in 2026 rising to \pounds 7.38 billion by 2030, within the range of HMRC's published ready reckoner, with second-round GDP effects building from $-$0.02 per cent on impact to $-$0.06 per cent by end-2027. Three further experiments---a \pounds 5bn government-consumption expansion, a VAT-style one per cent consumer-price shock, and a 2pp corporation-tax rise through the user-cost-of-capital channel---exercise the direct macro levers and are benchmarked against the official ready-reckoner numbers where they exist.
 \end{abstract}
 
 \medskip
@@ -30,13 +31,18 @@
 
 \newpage
 \input{sections/intro}
+\input{sections/literature}
 \input{sections/model}
 \input{sections/method}
 \input{sections/calibration}
 \input{sections/results}
+\input{sections/experiments}
 \input{sections/limitations}
 \input{sections/conclusion}
 
 \bibliography{references}
+
+\appendix
+\input{sections/appendix}
 
 \end{document}

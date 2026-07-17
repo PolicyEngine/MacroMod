@@ -1,0 +1,69 @@
+\section{Variable glossary}
+\label{app:glossary}
+
+Table~\ref{tab:glossary} defines every OBR mnemonic used in this paper, with the definition from the OBR's published variable listing of 15 October 2025 and the ONS series identifier where the listing records one. The table is generated mechanically from the published workbook by \texttt{figures/make\_glossary.py}; the full 636-code glossary, with live ONS series links, is browsable on the model dashboard's Glossary tab. Six further codes appearing in the paper are emulator- or scorecard-internal rather than OBR mnemonics: \texttt{AWEI} (average weekly earnings, scorecard label), \texttt{CBIUD} (CBI investment-uncertainty balance, an input to the reconstructed investment equation, defaulted to zero), \texttt{COMP} (compensation of employees, scorecard label), \texttt{CPIGR} (CPI inflation rate), \texttt{EEES} (employees, scorecard label), and \texttt{PSNB} (used in the text for the seasonally adjusted net-borrowing concept carried in the listing as \texttt{PSNBNSA}/\texttt{PSNBCY}).
+
+{\small
+\input{sections/glossary_table}
+}
+
+\section{The complete free-running scorecard}
+\label{app:scorecard}
+
+Table~\ref{tab:fullscore} reproduces the complete 21-variable free-running scorecard summarised in Table~\ref{tab:rawscore}, organised by model block, with each variable's metric and passthrough status made explicit. The de-seeding procedure and band definitions are those of Section~\ref{sec:rawscore}: rates within 1.0pp, net balances within 1.5 per cent of GDP, levels within 10 per cent MAPE.
+
+\begin{table}[ht]
+\centering
+\caption{Complete free-running scorecard by block, raw de-seeded solve vs EFO, 2025Q1--2027Q4}
+\label{tab:fullscore}
+\small
+\begin{tabular}{llllrl}
+\toprule
+Block & Variable & Code & Metric & Error & Status \\
+\midrule
+Demand & Real GDP & $GDPM$ & MAPE & 5.70\% & computed --- fair \\
+ & Consumption & $CONS$ & MAPE & 9.45\% & computed --- fair \\
+ & Total investment & $IF$ & MAPE & 0.00\% & passthrough \\
+ & Business investment & $IBUS$ & MAPE & 15.48\% & computed --- poor \\
+ & Exports & $X$ & MAPE & 0.00\% & passthrough \\
+ & Imports & $M$ & MAPE & 0.00\% & passthrough \\
+\midrule
+Labour market & Employment & $ETLFS$ & MAPE & 0.00\% & trivial identity \\
+ & Employees & $EEES$ & MAPE & 0.00\% & passthrough \\
+ & Unemployment rate & $LFSUR$ & pp & 1.01 & computed --- poor \\
+ & Average earnings & $AWEI$ & MAPE & 0.00\% & passthrough \\
+\midrule
+Prices \& wages & CPI index & $CPI$ & MAPE & 0.00\% & passthrough \\
+ & RPI inflation & $RPI$ & pp & 2.03 & computed --- poor \\
+ & CPI inflation & $CPIGR$ & pp & 0.00 & passthrough \\
+ & GDP deflator & $PGDP$ & MAPE & 0.00\% & passthrough \\
+ & Wages \& salaries & $WFP$ & MAPE & 0.00\% & passthrough \\
+\midrule
+Incomes & Household income & $HHDI$ & MAPE & 14.76\% & computed --- poor \\
+ & Compensation & $COMP$ & MAPE & 0.00\% & passthrough \\
+ & Real household income & $RHHDI$ & MAPE & 14.48\% & computed --- poor \\
+ & Company profits & $FYCPR$ & MAPE & 54.57\% & computed --- off \\
+\midrule
+External & Current account & $CB$ & \% of GDP & 2.76 & computed --- poor \\
+ & Trade balance & $TB$ & \% of GDP & 0.62 & computed --- fair \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\parbox{0.92\textwidth}{\footnotesize \emph{Notes:} ``Passthrough'' means the variable's equation is dead or exogenous in this configuration and the series is held at the OBR's published value, so a 0.00 error carries no information about calibration. The employment identity $ETLFS = 1000\,HWA/AVH$ is computed but trivial, both inputs being passthrough. RPI inflation is scored as a rate against the EFO's $RPIGR$ series (scoring the modelled inflation \emph{rate} against the RPI \emph{index} is a category error the scorecard previously made, reading a meaningless 99.6 per cent). Net balances are scored as a per cent of GDP, the OBR's own convention for differences of large gross flows. Source: \texttt{docs/calibration\_scorecard.md} and \texttt{obr\_macro/calibration\_score.py} in the model repository.}
+\end{table}
+
+\section{Solver and convergence details}
+\label{app:solver}
+
+\paragraph{Iteration scheme.} Each quarter is solved by Gauss--Seidel iteration over the full equation list in listing order: every left-hand variable is updated in place from the current values of all others, and a sweep of all 372 equations constitutes one iteration. Convergence is declared when the maximum relative change across all variables in a sweep falls below $10^{-6}$, where the relative change of an update from $y^{old}$ to $y^{new}$ is $|y^{new} - y^{old}| / \max(|y^{old}|, |y^{new}|, 10^{-6})$---symmetric in old and new magnitudes, with an absolute floor so near-zero variables (rates, balances) still register movement without inflating the criterion. The iteration cap is 60 sweeps per quarter.
+
+\paragraph{Stall detection.} A minority of equations oscillate or overflow from unit inconsistencies in the public databank and would burn the full iteration budget without converging. The solver therefore tracks the best (smallest) maximum-change achieved and exits with a recorded \texttt{stall} status if eight consecutive sweeps fail to improve on it; the exit status of every period (\texttt{tol}, \texttt{stall}, or \texttt{max\_iter}) is retained for diagnosis, and equations that raise during evaluation are counted per variable rather than silently dropped, so dead equations are visible in the solve report. The de-seeded scorecard of Section~\ref{sec:rawscore} exists precisely because a stall exit near the EFO seed would otherwise flatter the raw score.
+
+\paragraph{Sequential solve and typical cost.} Quarters solve sequentially forward (lags reference solved history; the few lead references use the seeded path). A twelve-quarter anchored solve of the full system takes roughly 30--40 seconds on a laptop (single-threaded CPython; equations are compiled once and evaluated against a per-iteration variable dictionary); a reform run is two such solves on structurally identical clones.
+
+\paragraph{Add-factor application.} Anchoring residuals (Section~\ref{sec:anchoring}) are added to behavioural equations' solutions in baseline mode and disabled in shock mode, so that shocked runs deviate from an identically structured baseline. A second, separate channel---\emph{structural} add-factors---is applied in baseline and shocked runs alike and therefore cancels in any base-versus-shock delta; the investment closure uses it to hold the reconstructed $\Delta \ln IBUSX$ baseline on the OBR's published path without contaminating the corporation-tax response.
+
+\paragraph{The investment closure.} Corporation-tax experiments activate the reconstructed business-investment ECM~\eqref{eq:ibus} (published commented out, with one unbalanced parenthesis restored) in place of the $IBUSX$ residual identity, add the $IF$ and $IBUS$ aggregation identities, and stabilise the result in two moves: market-sector output $MSGVA$ is frozen at a reference path from a tracking solve in which $IBUSX$ is pinned to its published values (breaking an accelerator loop whose closed-loop eigenvalue exceeds one on this databank---the raw loop runs $IBUSX$ from $\sim$\pounds 94{,}000m to $\sim$\pounds 7{,}000{,}000m in twelve quarters), and the equation's level is re-centred on the OBR path by structural add-factors. Because $KSTAR$ still responds to the cost of capital, the $TCPRO$ channel survives intact. Investment-closure solves cap Gauss--Seidel at 25 sweeps: the only variable still moving beyond that point is a rest-of-world financial-accounts series off the corporation-tax chain, and the investment response itself is settled to within $\sim$1 per cent by sweep 25.
+
+\paragraph{Reproducibility.} All figures and experiment tables in this paper are generated by the scripts in the paper's \texttt{figures/} directory (\texttt{fig\_anchored.py}, \texttt{fig\_free\_running.py}, \texttt{fig\_reform.py}, \texttt{run\_experiments.py}, \texttt{make\_glossary.py}), which run against the installed \texttt{obr\_macro} package and write both the PDF figures and CSV audit files alongside themselves.

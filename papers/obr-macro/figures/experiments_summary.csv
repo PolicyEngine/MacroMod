@@ -1,0 +1,10 @@
+reform,year,avg_pct_gdp,avg_delta_gdp_bn,avg_delta_cons_bn,avg_delta_if_bn
+Corporation tax +2pp,2025,-0.0049,-0.034,-0.0003,-0.0336
+Corporation tax +2pp,2026,-0.0433,-0.2953,-0.0035,-0.2903
+Corporation tax +2pp,2027,-0.1334,-0.901,-0.0136,-0.8802
+Gov consumption +£5bn/yr,2025,0.1826,1.25,0.0,0.0
+Gov consumption +£5bn/yr,2026,0.1861,1.2497,-0.0003,0.0
+Gov consumption +£5bn/yr,2027,0.1869,1.2492,-0.0008,0.0
+VAT-style price shock +1%,2025,-0.1481,-1.0144,-1.0144,0.0
+VAT-style price shock +1%,2026,-0.4074,-2.7373,-2.7373,0.0
+VAT-style price shock +1%,2027,-0.4593,-3.0698,-3.0698,0.0

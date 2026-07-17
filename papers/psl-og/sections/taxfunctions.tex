@@ -1,24 +1,38 @@
 \section{Tax functions from PolicyEngine microdata}
 \label{sec:taxfunc}
 
-The channel through which a statutory reform enters the general-equilibrium model is the tax-function estimation step of \citet{DeBackerEvansPhillips2019}. This is the PolicyEngine-specific part of the pipeline, and it is what distinguishes the psl-og member from a stylised-wedge OLG exercise: the households in Section~\ref{subsec:households} respond to a smooth summary of the \emph{actual} UK tax and benefit code, computed reform-by-reform from microdata.
+The channel through which a statutory reform enters the general-equilibrium model is the tax-function estimation step of \citet{DeBackerEvansPhillips2019}. This is the PolicyEngine-specific part of the pipeline, and it is what distinguishes the psl-og member from a stylised-wedge OLG exercise: the households in Section~\ref{subsec:households} respond to a smooth summary of the \emph{actual} UK tax and benefit code, computed reform-by-reform from microdata. This section describes the microdata pipeline end to end, writes out the functional forms in full --- including all twelve parameters of the DEP specification and the estimation objective --- and compares the forms on offer.
 
-\subsection{The pipeline}
+\subsection{The microdata pipeline, from PolicyEngine UK to \texttt{txfunc}}
 \label{subsec:txpipeline}
 
-The estimation loop, run once per budget-window year at calibration time (for both the baseline and each reform), is:
-\begin{enumerate}
-\item \textbf{Microsimulation.} PolicyEngine UK \citep{PolicyEngineUK} is run over the PolicyEngine enhanced FRS microdata --- the Family Resources Survey reweighted and enriched with HMRC Survey of Personal Incomes, Living Costs and Food Survey, and Wealth and Assets Survey information --- under the policy in question. This yields, for every adult in the sample, total tax liability, labour income $x$, and capital income $y$, and hence an \emph{effective tax rate} $ETR = tax/(x+y)$.
-\item \textbf{Marginal rates by perturbation.} Marginal tax rates are computed numerically: add \pounds 1 of employment income (for $\tau^{mtrx}$) or of capital income (for $\tau^{mtry}$) per adult, rerun the microsimulation, and read off the change in household net income. This captures the full statutory schedule including benefit tapers, thresholds, and interactions --- e.g.\ the Universal Credit taper and personal-allowance withdrawal appear in the marginal-rate cloud automatically.
-\item \textbf{Function fitting.} For each year (and, if configured, each age group), parametric functions $\tau^{etr}(x,y)$, $\tau^{mtrx}(x,y)$, $\tau^{mtry}(x,y)$ are fitted to the population-weighted scatter of micro observations by nonlinear least squares (OG-Core's \texttt{txfunc} module).
-\item \textbf{Embedding.} The fitted parameters are handed to OG-Core, where the functions appear in the households' budget constraints and Euler equations \eqref{eq:budget}--\eqref{eq:eul_save}, scaled between model units and pounds by the endogenous \emph{factor} solved alongside the steady state.
-\end{enumerate}
+\paragraph{The input data.} The microdata substrate is PolicyEngine's \emph{enhanced FRS}: the Department for Work and Pensions' Family Resources Survey (roughly 20,000 households per wave), enhanced in two ways. First, \emph{imputation}: variables the FRS lacks or under-reports --- capital income, wealth, consumption categories --- are imputed from donor surveys (the HMRC Survey of Personal Incomes for the income distribution's upper tail, the Wealth and Assets Survey for asset holdings, the Living Costs and Food Survey for expenditure) using quantile-regression-forest models. Second, \emph{reweighting}: household weights are re-optimised by gradient descent so that survey aggregates match a large set of administrative and official statistics (HMRC income-tax totals by band, DWP benefit caseloads, ONS demographics). The result is a household file that reproduces the published income distribution far better than the raw FRS --- in particular in the top decile, which dominates income-tax revenue. The dataset is versioned and distributed through Hugging Face (gated; a \texttt{HUGGING\_FACE\_TOKEN} is required), and the integration caches it locally per year under the suite's cache directory.
+
+\paragraph{Step 1: microsimulation.} For each year $y$ of the budget window and each policy $P$ (baseline and reform), PolicyEngine UK \citep{PolicyEngineUK} computes every household's full statutory position: income tax (allowances, bands, Scottish rates), National Insurance contributions, and the benefit system (Universal Credit with its taper, legacy benefits, child benefit and its high-income charge, pension credit). From the person-level output the pipeline extracts, for every adult $i$: labour income $x_i$ (employment plus self-employment income), capital income $y_i$ (savings interest, dividends, property and other capital income), total tax net of benefits $T_i$, and the survey weight $w_i$. The \emph{effective tax rate} observation is $ETR_i = T_i/(x_i + y_i)$, computed on the sample with total income above a small floor (observations with near-zero income produce unbounded ratios and are dropped, as are extreme outliers by percentile trim).
+
+\paragraph{Step 2: marginal rates by perturbation.} Marginal tax rates are not read from statutory schedules --- doing so would miss benefit withdrawal entirely. They are computed \emph{numerically}: add a small increment $\Delta$ (\pounds 1) of employment income to every adult simultaneously, rerun the full microsimulation, and record
+\begin{equation}
+\label{eq:mtrpert}
+MTRx_i \;=\; 1 - \frac{\text{net income}_i(x_i+\Delta) - \text{net income}_i(x_i)}{\Delta},
+\end{equation}
+and analogously $MTRy_i$ perturbing capital income. Because the perturbation runs through the entire simulated system, the marginal-rate cloud automatically contains every kink and notch of the true schedule: the 55\%-plus effective marginal rates where the Universal Credit taper overlaps income tax and NICs, the 60\% band from personal-allowance withdrawal above \pounds 100,000, the child-benefit high-income charge, and the interactions among them. No hand-coded schedule could replicate this, and it is precisely this detail that the estimated functions summarise for the macro model.
+
+\paragraph{Step 3: function fitting.} For each year (and, if configured, each age cell), parametric functions $\tau^{etr}(x,y)$, $\tau^{mtrx}(x,y)$, $\tau^{mtry}(x,y)$ are fitted to the weighted scatter of micro observations by constrained weighted nonlinear least squares. Writing $\theta$ for the parameter vector of the chosen functional form and $\tau(\cdot;\theta)$ for the fitted function, the estimator for each rate type solves
+\begin{equation}
+\label{eq:txobjective}
+\hat{\theta} \;=\; \arg\min_{\theta\in\Theta}\;
+\sum_{i} w_i\,\bigl[\tau_i - \tau(x_i, y_i;\theta)\bigr]^2 ,
+\end{equation}
+where $\tau_i$ is the micro observation ($ETR_i$, $MTRx_i$ or $MTRy_i$), $w_i$ the survey weight, and $\Theta$ imposes the shape constraints of the functional form (positivity of curvature parameters, $max \ge min$, $\phi\in[0,1]$), so the fitted schedules are monotone and bounded by construction. OG-Core's \texttt{txfunc} module implements \eqref{eq:txobjective} with a global-then-local strategy (differential evolution or L-BFGS-B on transformed parameters, per \texttt{tax\_func\_type}), and reports the weighted sum of squared errors and observation count per fitted cell.
+
+\paragraph{Step 4: embedding.} The fitted parameters are handed to OG-Core, where the functions appear in the households' budget constraints and Euler equations \eqref{eq:budget}--\eqref{eq:eul_save}. One subtlety makes the loop circular: the functions are estimated in \emph{pounds}, but the model works in model units. The \emph{factor} --- the ratio of data average income to model average income --- converts model incomes into pounds before the tax function is evaluated, and it is solved \emph{jointly} with the steady state (it is one of the outer-loop unknowns of Section~\ref{subsubsec:sssolve}), because average model income itself depends on behaviour, which depends on taxes, which depend on the factor. Beyond the estimation sample's income support, rates are capped at the fitted asymptotic maxima, so extrapolation to the model's richest agents is conservative rather than explosive.
+
 A reform score is then the comparison of two full general-equilibrium solves whose only primitive difference is the fitted tax-function parameters (plus any structural overrides).
 
-\subsection{Functional forms}
+\subsection{The DEP functional form in full}
 \label{subsec:txforms}
 
-OG-Core's default specification is the \emph{DEP} (DeBacker--Evans--Phillips) form: a bivariate function of labour income $x$ and capital income $y$ built as a Cobb--Douglas aggregate, with weight $\phi\in[0,1]$, of two univariate ratio-of-polynomials schedules,
+OG-Core's richest specification is the \emph{DEP} (DeBacker--Evans--Phillips) form: a bivariate function of labour income $x$ and capital income $y$ built as a Cobb--Douglas aggregate, with weight $\phi\in[0,1]$, of two univariate ratio-of-polynomials schedules,
 \begin{equation}
 \label{eq:dep}
 \tau(x,y) \;=\; \Bigl[\tau^{x}(x) + shift_x\Bigr]^{\phi}\,\Bigl[\tau^{y}(y) + shift_y\Bigr]^{1-\phi} + shift,
@@ -27,16 +41,79 @@ where each univariate component is a bounded, monotone ratio of quadratics,
 \begin{equation}
 \label{eq:depuni}
 \tau^{x}(x) \;=\; \bigl(max_x - min_x\bigr)\,\frac{A x^2 + B x}{A x^2 + B x + 1} \;+\; min_x,
-\qquad A,B>0,
+\qquad
+\tau^{y}(y) \;=\; \bigl(max_y - min_y\bigr)\,\frac{C y^2 + D y}{C y^2 + D y + 1} \;+\; min_y,
 \end{equation}
-and symmetrically for $\tau^{y}(y)$ with parameters $(C,D,max_y,min_y)$. The twelve parameters per rate type deliver rates that rise smoothly from a (possibly negative) minimum to an asymptotic maximum in each income dimension, and are estimated separately for $ETR$, $MTRx$, and $MTRy$ \citep{DeBackerEvansPhillips2019,DeBackerEvans2024}.
+with $A,B,C,D>0$. The twelve parameters per rate type are, explicitly:
+\begin{center}
+\begin{tabular}{clcl}
+\toprule
+\# & Parameter & Constraint & Role \\
+\midrule
+1 & $A$ & $>0$ & curvature of the labour-income schedule \\
+2 & $B$ & $>0$ & slope of the labour-income schedule at low $x$ \\
+3 & $C$ & $>0$ & curvature of the capital-income schedule \\
+4 & $D$ & $>0$ & slope of the capital-income schedule at low $y$ \\
+5 & $max_x$ & $> min_x$ & asymptotic maximum rate in $x$ \\
+6 & $min_x$ & --- & minimum rate in $x$ (may be negative: net transfers) \\
+7 & $max_y$ & $> min_y$ & asymptotic maximum rate in $y$ \\
+8 & $min_y$ & --- & minimum rate in $y$ \\
+9 & $shift_x$ & level shift & keeps the $x$-component positive before exponentiation \\
+10 & $shift_y$ & level shift & keeps the $y$-component positive before exponentiation \\
+11 & $shift$ & --- & overall level shift (restores possibly negative rates) \\
+12 & $\phi$ & $\in[0,1]$ & Cobb--Douglas weight on labour vs.\ capital income \\
+\bottomrule
+\end{tabular}
+\end{center}
+Each ratio $\frac{Ax^2+Bx}{Ax^2+Bx+1}$ rises smoothly from 0 at $x=0$ to 1 as $x\to\infty$, so $\tau^x$ rises from $min_x$ to $max_x$; the shifts guarantee the bracketed terms in \eqref{eq:dep} are strictly positive (so the Cobb--Douglas aggregate is well defined even when fitted minimum rates are negative, as they are for transfer-receiving low earners); and $\phi$ governs how much of the joint variation loads on labour versus capital income. The parameters are estimated separately for $ETR$, $MTRx$, and $MTRy$ --- 36 parameters per year-age cell in total \citep{DeBackerEvansPhillips2019,DeBackerEvans2024}. Figure~\ref{fig:dep} illustrates the resulting surface: rates rising smoothly in both income dimensions towards their asymptotic maxima.
 
-The framework also supports simpler forms on total income $x+y$: the three-parameter \citet{GouveiaStrauss1994} schedule
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_dep.pdf}
+\caption{Illustrative DEP effective-tax-rate surface \eqref{eq:dep}--\eqref{eq:depuni}, drawn with parameter magnitudes in the range reported by \citet{DeBackerEvansPhillips2019} (not a fitted UK surface). Left: the surface over labour income $x$ and capital income $y$. Right: contours. The bounded ratio-of-quadratics components deliver rates that rise smoothly from a (possibly negative) minimum towards asymptotic maxima in each income dimension, so the model's richest agents face capped, not explosive, extrapolated rates.}
+\label{fig:dep}
+\end{figure}
+
+\subsection{Gouveia--Strauss as fitted, and the menu of forms}
+\label{subsec:gs}
+
+The framework also supports simpler forms on total income $z\equiv x+y$. The three-parameter \citet{GouveiaStrauss1994} schedule specifies tax \emph{liability} $T(z) = \phi_0\bigl[z - (z^{-\phi_1}+\phi_2)^{-1/\phi_1}\bigr]$, so the effective rate is
 \begin{equation}
 \label{eq:gs}
-\tau^{etr}(x+y) \;=\; \phi_0\Bigl[\,1 - \bigl((x+y)^{-\phi_1} + \phi_2\bigr)^{-1/\phi_1}\,(x+y)^{-1}\Bigr],
+\tau^{etr}(z) \;=\; \phi_0\Bigl[\,1 - \bigl(z^{-\phi_1} + \phi_2\bigr)^{-1/\phi_1}\,z^{-1}\Bigr],
 \end{equation}
-whose marginal-rate schedule is the analytical derivative of the same fitted parameters --- so effective and marginal rates are mutually consistent by construction --- and the log-linear progressivity form of \citet{HSV2017}, $\tau = 1-\phi_0 (x+y)^{-\phi_1}$. The OG-UK wiring deployed in PolicyEngine Macro fits the Gouveia--Strauss form \eqref{eq:gs} to the PolicyEngine effective-rate microdata for each year of a three-year budget window, taking marginal-rate schedules as its analytical derivatives; the richer DEP form \eqref{eq:dep}--\eqref{eq:depuni} remains available through OG-Core's \texttt{tax\_func\_type} option at the cost of a heavier estimation step.
+and the marginal rate is the analytical derivative of the same liability function,
+\begin{equation}
+\label{eq:gsmtr}
+\tau^{mtr}(z) \;=\; T'(z) \;=\; \phi_0\Bigl[\,1 - \bigl(1 + \phi_2\, z^{\phi_1}\bigr)^{-1-\frac{1}{\phi_1}}\Bigr].
+\end{equation}
+Here $\phi_0\in(0,1)$ is the asymptotic top rate approached by both schedules, $\phi_1>0$ governs how fast progressivity sets in, and $\phi_2>0$ locates the schedule along the income axis. Because \eqref{eq:gsmtr} is the exact derivative of the liability underlying \eqref{eq:gs}, effective and marginal rates are \emph{mutually consistent by construction} --- an internal-consistency property the DEP form, whose three rate functions are estimated independently, does not share. Figure~\ref{fig:gs} plots a fitted-style pair. The third supported form is the log-linear progressivity function of \citet{HSV2017}, $T(z) = z - \phi_0 z^{1-\phi_1}$ (so $\tau^{etr} = 1-\phi_0 z^{-\phi_1}$), popular for its analytical tractability in optimal-tax work; and a piecewise-linear ``mono'' spline option exists for nonparametric fits on total income.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/fig_gs.pdf}
+\caption{An illustrative Gouveia--Strauss fit \eqref{eq:gs}--\eqref{eq:gsmtr} in the shape produced by the UK schedule: effective rates rising from near zero through the personal-allowance range towards the asymptotic maximum $\phi_0$, with the marginal-rate schedule the analytical derivative of the same fitted liability function --- so ETR and MTR cannot disagree, unlike independently estimated DEP surfaces.}
+\label{fig:gs}
+\end{figure}
+
+\paragraph{Comparing the forms.} The trade-off across the menu is richness against robustness, summarised in Table~\ref{tab:txforms}. DEP is the only form that lets labour and capital income face different schedules --- essential where the statutory system taxes them differently, as the UK does (separate dividend rates, savings allowances, NICs on labour income only) --- but its 12-parameter nonconvex objective is the fragile step of the pipeline in thin cells, and its independently estimated ETR/MTR trio can be mutually inconsistent. GS and HSV collapse the joint distribution onto total income, cannot represent labour/capital asymmetry, but are fast, stable, and internally consistent. The OG-UK wiring deployed in PolicyEngine Macro fits the Gouveia--Strauss form to the PolicyEngine effective-rate microdata for each year of a three-year budget window, taking marginal-rate schedules as analytical derivatives; the richer DEP form remains available through OG-Core's \texttt{tax\_func\_type} option at the cost of a heavier and less robust estimation step.
+
+\begin{table}[t]
+\centering
+\caption{Tax functional forms supported by OG-Core's \texttt{txfunc}}
+\label{tab:txforms}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Form & Parameters & Arguments & $x$/$y$ asymmetry & ETR--MTR consistent & Deployed \\
+\midrule
+DEP & 12 per rate ($\times$3) & $(x,y)$ & yes & no (separate fits) & optional \\
+Gouveia--Strauss & 3 & $x+y$ & no & yes (analytic) & \textbf{default} \\
+HSV log-linear & 2 & $x+y$ & no & yes (analytic) & optional \\
+Piecewise linear & knots & $x+y$ & no & no & optional \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Age pooling}
 \label{subsec:agepooling}

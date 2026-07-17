@@ -1,0 +1,103 @@
+\appendix
+
+\section{Parameter glossary}
+\label{app:glossary}
+
+Table~\ref{tab:glossary} collects every symbol used in the paper, its meaning, and where it is set.
+
+\begin{table}[h]
+\centering
+\caption{Glossary of model symbols}
+\label{tab:glossary}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llll}
+\toprule
+Symbol & Meaning & Type & Where set \\
+\midrule
+$E$, $S$ & childhood periods; active life span & structure & fixed (20, 80) \\
+$J$, $\lambda_j$ & number of ability types; type shares & structure & OG-Core default (7; shares in Table~\ref{tab:calibration}) \\
+$e_{j,s}$ & effective labour units by type and age & exogenous profile & OG-Core default matrix (Figure~\ref{fig:ability}) \\
+$\omega_{s,t}$, $\hat\omega_{s,t}$ & population by age; normalised shares & exogenous path & UN WPP + laws of motion \eqref{eq:popbirths}--\eqref{eq:popaging} \\
+$f_s$, $\rho_s$, $i_s$ & fertility, mortality hazard, immigration rate & exogenous profiles & UN WPP; $i_s$ residual \\
+$g_{n,t}$, $\bar g_n$ & population growth rate; stationary value & derived & from demographic block \\
+$g_y$ & labour-augmenting productivity growth & calibrated & OBR potential growth \\
+$c_{j,s,t}$, $n_{j,s,t}$, $b_{j,s,t}$ & consumption, labour, assets & endogenous & household problem \\
+$\sigma$ & coefficient of relative risk aversion & calibrated & 1.5 \\
+$\beta$ & discount factor & matched & ONS saving ratio \\
+$\chi^n_s$, $\chi^b_j$ & labour-disutility scale; bequest intensity & calibrated & OG-Core profiles \\
+$v(n)$; $b$, $\upsilon$, $\tilde l$ & elliptical disutility; its parameters & fitted & CFE-matching (Section~\ref{subsubsec:ellipse}) \\
+$\theta$ & Frisch elasticity of labour supply & calibrated & 0.35--0.4 \\
+$x$, $y$ & labour income; capital income & endogenous & $x = w e_{j,s} n$, $y = r_p b$ \\
+$\tau^{etr},\tau^{mtrx},\tau^{mtry}$ & effective and marginal tax-rate functions & estimated & PolicyEngine microdata (Section~\ref{sec:taxfunc}) \\
+$\phi_0,\phi_1,\phi_2$ & Gouveia--Strauss parameters & estimated & \texttt{txfunc} NLLS \eqref{eq:txobjective} \\
+$A$--$D$, $max$/$min$, $shift$s, $\phi$ & DEP parameters (12 per rate) & estimated & \texttt{txfunc} NLLS (Section~\ref{subsec:txforms}) \\
+factor & model-to-data income scaling & endogenous & solved with steady state \\
+$bq$, $BQ_j$ & received bequests; aggregate by type & endogenous & accidental-bequest redistribution \\
+$tr$, $TR_t$, $\alpha_{tr}$ & transfers; aggregate; GDP share & rule & government block \\
+$G_t$, $\alpha_g$ & public consumption; GDP share & rule / closure & government block \\
+$D_t$, $\alpha_D$ & government debt; long-run debt/GDP target & rule / closure & fiscal closure \eqref{eq:closure} \\
+$T_{G1}$, $T_{G2}$, $\rho_G$ & closure phase boundaries; smoothing weight & configured & OG-Core closure defaults \\
+$r_t$, $w_t$ & return on capital; wage & endogenous & firm FOCs \eqref{eq:focL}--\eqref{eq:focK} \\
+$r_{gov,t}$; $\tau_d,\mu_d$ & government rate; its wedge parameters & calibrated & gilt-anchored \eqref{eq:rgov} \\
+$r_{p,t}$ & household portfolio return & derived & \eqref{eq:rport} \\
+$K_t$, $L_t$, $Y_t$, $C_t$, $I_t$ & aggregates & endogenous & market clearing \\
+$Z_t$, $\gamma$, $\varepsilon$, $\delta$, $\delta^\tau$ & TFP; capital share; substitution elasticity; & calibrated & technology and tax blocks \\
+& economic and tax depreciation & & \\
+$\tau^b_t$, $\tau^c_t$ & corporate and consumption tax rates & calibrated / override & government block \\
+$\xi$, $\xi_{TPI}$ & damping weights (SS, TPI) & solver & OG-Core defaults (0.4) \\
+\texttt{mindist\_SS}, \texttt{mindist\_TPI} & convergence tolerances & solver & $10^{-9}$, $10^{-5}$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\section{The OG-Core API surface used by the integration}
+\label{app:api}
+
+The integration touches a deliberately small slice of the two underlying packages. From \textbf{OG-Core} (\texttt{ogcore}, version 0.x series):
+\begin{itemize}
+\item \texttt{ogcore.parameters.Specifications} --- the parameter container. The integration constructs one per run, applies OG-UK's default parameter JSON (\texttt{oguk\_default\_parameters.json}), and layers any \texttt{param\_overrides} (e.g.\ \texttt{cit\_rate}, TFP, spending shares) via \texttt{update\_specifications}.
+\item \texttt{ogcore.txfunc} --- tax-function estimation: the NLLS objective \eqref{eq:txobjective} over the configured \texttt{tax\_func\_type} (\texttt{GS} deployed; \texttt{DEP}, \texttt{HSV}, \texttt{mono} available).
+\item \texttt{ogcore.SS.run\_SS} --- the steady-state fixed point of Section~\ref{subsubsec:sssolve}; returns the steady-state dictionary (aggregates, prices, policies by $(j,s)$, the factor).
+\item \texttt{ogcore.TPI.run\_TPI} --- time-path iteration of Section~\ref{subsubsec:tpi}; reachable through \texttt{oguk} but not wired into the CLI scorer.
+\item \texttt{ogcore.execute.runner} --- the orchestration entry point OG-UK's API wraps (parameter setup, optional tax-function estimation, SS and/or TPI, output pickling to \texttt{OUTPUT/SS/SS\_vars.pkl} and \texttt{OUTPUT/TPI/TPI\_vars.pkl}).
+\item Supporting modules used indirectly: \texttt{demographics} (UN data retrieval and the population machinery of Section~\ref{subsec:demographics}), \texttt{elliptical\_u\_est} (the $(b,\upsilon)$ fit), \texttt{household}, \texttt{firm}, \texttt{fiscal}, \texttt{tax}, \texttt{aggregates} (the equation blocks), and \texttt{output\_plots}/\texttt{output\_tables} (diagnostics).
+\end{itemize}
+From \textbf{OG-UK} (\texttt{oguk} 0.3.0):
+\begin{itemize}
+\item \texttt{oguk.get\_micro\_data} --- runs PolicyEngine UK over the enhanced FRS (cached per year under the suite cache directory) and produces the $(x_i, y_i, ETR_i, MTRx_i, MTRy_i, w_i)$ observations of Section~\ref{subsec:txpipeline}, including the \pounds 1-perturbation marginal rates.
+\item \texttt{oguk.calibrate.Calibration} --- assembles demographics, macro parameters, and estimated tax functions into a \texttt{Specifications}-compatible parameter set.
+\item \texttt{oguk.api.solve\_steady\_state(start\_year, policy, ...)} and \texttt{oguk.api.run\_transition\_path(...)} --- the scoring API; \texttt{policy} is a PolicyEngine \texttt{Policy} object built from the suite's flat reform dictionary.
+\item \texttt{oguk.api.map\_to\_real\_world(baseline, reform)} --- converts model-unit changes into current-price \pounds bn using a GDP-anchored scale factor with levels tied to live ONS series and HMRC receipts, falling back to cached values offline.
+\end{itemize}
+The \textbf{policyengine-macro} adapter contributes the suite contract on top: reform-dictionary validation, the module-level baseline cache keyed on \texttt{(start\_year, max\_iter)}, the \texttt{ScoreResult} block (model class \texttt{olg-ge}, horizon \texttt{steady-state}), and the actionable error mapping for the two known environment failures (version mismatch; missing Hugging Face token).
+
+\section{Reproduction recipe}
+\label{app:repro}
+
+The following recipe reproduces the deployed scoring environment exactly, on a machine with Python 3.10+ and $\geq$16\,GB of memory. Versions are pinned deliberately (Section~\ref{subsec:pins}); do not substitute newer ones.
+
+\begin{enumerate}
+\item \textbf{Environment.} Create a fresh virtual environment and install the pinned pair plus the integration:
+\begin{quote}
+\ttfamily
+python -m venv .venv \&\& source .venv/bin/activate\\
+pip install policyengine-uk==2.88.0 oguk==0.3.0\\
+pip install policyengine-macro
+\end{quote}
+The \texttt{oguk} dependency resolution pulls a compatible \texttt{ogcore} automatically; \texttt{policyengine-uk} must be 2.88.0 exactly --- versions $\geq$ 2.89 renamed the microdata dataset keys (\texttt{enhanced\_frs\_2023\_24\_*} $\to$ \texttt{populace\_uk\_*}) and fail at calibration time with a \texttt{KeyError}.
+\item \textbf{Data access.} Export a Hugging Face token with access to the gated PolicyEngine enhanced-FRS dataset:
+\begin{quote}
+\ttfamily export HUGGING\_FACE\_TOKEN=hf\_...
+\end{quote}
+On first run the calibration downloads one \texttt{.h5} file per budget-window year into the suite cache directory (\texttt{\textasciitilde/.cache/macromod/policyengine-data/}); subsequent runs are offline.
+\item \textbf{Baseline.} \texttt{pe-macro og-baseline} solves and reports the baseline steady state (model-unit aggregates, the interest rate, and the \pounds bn anchoring). Expect $\approx$17+ minutes on a laptop: several minutes of microsimulation and tax-function estimation, the remainder in the general-equilibrium fixed point.
+\item \textbf{A reform score.}
+\begin{quote}
+\ttfamily
+pe-macro score --country uk --model og --reform \textbackslash\\
+\hspace*{1.5em}'\{"gov.hmrc.income\_tax.rates.uk[0].rate": 0.21\}'
+\end{quote}
+Two solves are required (baseline and reform); within one process the baseline is cached, so a batch of reforms pays for the baseline once.
+\item \textbf{Determinism and outputs.} Solves are deterministic given versions and data vintage: the pipeline involves no simulation randomness, so re-runs reproduce results to solver tolerance ($10^{-9}$ in the steady-state outer loop). Raw solver output is pickled under \texttt{OUTPUT/} in the working directory (\texttt{SS\_vars.pkl}; \texttt{TPI\_vars.pkl} when a transition path is run via the \texttt{oguk} API), and the CLI's JSON \texttt{ScoreResult} carries the levels, \pounds bn changes, percent changes, and the status caveats of Section~\ref{sec:limitations}.
+\item \textbf{Figures.} The illustrative figures in this paper regenerate with \texttt{python figures/make\_figures.py} from the paper directory; they load only the UN demographic CSVs shipped with \texttt{oguk}, the OG-Core default \texttt{Specifications}, and published parameter values --- no equilibrium solve is required.
+\end{enumerate}

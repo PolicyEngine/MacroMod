@@ -3,49 +3,266 @@
 
 \subsection{History and design}
 
-FRB/US was introduced at the Federal Reserve Board in 1996, replacing the MPS model that had been in use since the 1970s \citep{brayton1996guide}. Its design responded to the Lucas-critique era: most behavioural equations are derived from explicit optimisation problems of households, firms and financial-market participants, with expectations appearing explicitly, while retaining the empirical fit and sectoral detail expected of a staff forecasting model. The current public model file specifies 367 variables, of which 284 are endogenous, split between behavioural equations and identities; the remainder are exogenous drivers, policy instruments and switches \citep{fedfrbuspython}.
+FRB/US was introduced at the Federal Reserve Board in 1996, replacing the MPS model that had been in use since the 1970s \citep{brayton1996guide, brayton1997evolution}. Its design responded to the Lucas-critique era: most behavioural equations are derived from explicit optimisation problems of households, firms and financial-market participants, with expectations appearing explicitly as separate, switchable variables \citep{brayton1997role}, while retaining the empirical fit and sectoral detail expected of a staff forecasting model. The current public model file specifies 367 variables, of which 284 are endogenous --- 120 estimated behavioural equations and 164 identities --- while the remaining 83 are exogenous drivers, policy instruments and switches \citep{fedfrbuspython}.
 
-The model covers the standard expenditure and income sides of the U.S. economy: household consumption of non-durables and services (\texttt{eco}) and durables (\texttt{ecd}); residential (\texttt{eh}) and business fixed investment in equipment (\texttt{epd}, \texttt{epi}) and structures (\texttt{eps}); labour supply, hours (\texttt{lhp}) and unemployment (\texttt{lur}); a detailed price--wage block built around trend unit labour costs, with core PCE inflation (\texttt{picxfe}) linked to slack, trend inflation expectations and relative-price shocks; foreign trade; a fiscal sector with disaggregated federal and state--local taxes, transfers and purchases, plus debt- and surplus-targeting fiscal reaction functions; and a financial block mapping the federal funds rate into term and risk-adjusted rates, equity values and other asset prices.
+\subsection{Structure: the 284 equations by sector}
+\label{sec:sectors}
 
-\subsection{Polynomial adjustment costs}
+The \texttt{model.xml} file tags every variable with a sector and an equation type. Table~\ref{tab:sectors} reports the composition of the endogenous block, counted directly from the parse output of the implementation described in Section~\ref{sec:implementation}.
 
-The adjustment dynamics of most key non-financial variables are governed by the generalised adjustment-cost framework known as PAC --- polynomial adjustment costs \citep{tinsley1993, tinsley2002}. An agent choosing $y_t$ minimises
+\begin{table}[htbp]
+\centering
+\caption{The 284 endogenous equations of FRB/US by sector (April 2026 \texttt{model.xml})}
+\label{tab:sectors}
+\small
+\begin{tabular}{lrrrl}
+\toprule
+Sector & Behavioural & Identity & Total & Representative variables \\
+\midrule
+Wages and prices           & 23 & 20 & 43 & \texttt{picxfe}, \texttt{pieci}, \texttt{pipxnc}, \texttt{ptr} \\
+Financial                  & 23 & 13 & 36 & \texttt{rff}, \texttt{rg10}, \texttt{rbbb}, \texttt{req}, \texttt{wpsn} \\
+Government                 & 19 & 14 & 33 & \texttt{egfe}, \texttt{trp}, \texttt{tpn}, \texttt{gfdbtn} \\
+Nominal income             &  3 & 30 & 33 & \texttt{ypn}, \texttt{yhln}, \texttt{ynicpn} \\
+Expectations               &  5 & 27 & 32 & \texttt{zeco}, \texttt{zpicxfe}, \texttt{zrff10}, \texttt{zgap05} \\
+Aggregate output           &  9 & 13 & 22 & \texttt{xgdp}, \texttt{xfs}, \texttt{xgap2}, \texttt{xb} \\
+Foreign trade              &  6 & 15 & 21 & \texttt{ex}, \texttt{emo}, \texttt{fpxr} \\
+Labor market               &  9 & 10 & 19 & \texttt{lhp}, \texttt{lww}, \texttt{leh}, \texttt{lur}, \texttt{lfpr} \\
+Household expenditures     &  7 & 11 & 18 & \texttt{eco}, \texttt{ecd}, \texttt{eh} \\
+Business expenditures      &  6 &  8 & 14 & \texttt{ebfi}, \texttt{ki}, \texttt{rtbfi} \\
+Foreign activity           & 10 &  3 & 13 & \texttt{fgdp}, \texttt{fpic}, \texttt{frs10} \\
+\midrule
+Total                      & 120 & 164 & 284 & \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\parbox{0.95\textwidth}{\footnotesize Counts from the implementation's parse of \texttt{model.xml} (sector and \texttt{equation\_type} tags). A further 83 variables are exogenous: policy settings (\texttt{pitarg}, \texttt{trptx}, \texttt{rfffix}, \texttt{rffmin}), switches (\texttt{dmp*}, \texttt{dfp*}), trends and conversion factors.}
+\end{table}
+
+The expenditure side covers household consumption of non-durables and services (\texttt{eco}) and durables (\texttt{ecd}); residential investment (\texttt{eh}); business fixed investment, consolidated in the current vintage into a single chain-weighted aggregate (\texttt{ebfi}) with an inventory block; government purchases at federal and state--local level; and foreign trade. The income side disaggregates labour, transfer and property income, the latter defined more broadly than in the NIPAs (households ``pierce the corporate veil,'' counting retained earnings, and inflation-adjust their interest income). The price--wage block is built around two structural inflation equations linked by trend unit labour costs; the labour block maps hours into employment and unemployment through an Okun's-law chain; and the financial block maps the federal funds rate into the term structure, corporate rates, equity values and household wealth. Sections~\ref{sec:pw}--\ref{sec:finblock} walk through these blocks; we first develop the adjustment-cost machinery they share.
+
+\subsection{Polynomial adjustment costs: from cost function to decision rule}
+\label{sec:pac}
+
+The dynamics of most key non-financial variables are governed by the generalised adjustment-cost framework known as PAC --- polynomial adjustment costs \citep{tinsley1993, tinsley2002}. This subsection derives the decision rule as coded, following the Board's technical notes distributed with the model (\texttt{PAC\_in\_FRBUS.pdf}, \texttt{pac\_basics.pdf}).
+
+\paragraph{Cost function and Euler equation.} An agent choosing $y_t$ (typically a logarithm) minimises
 \begin{equation}
 C_t \;=\; \sum_{i=0}^{\infty} \beta^{i}\Big[\,\big(y_{t+i}-y^{*}_{t+i}\big)^{2} \;+\; \sum_{k=1}^{m} b_k\big((1-L)^{k}\,y_{t+i}\big)^{2}\Big],
 \label{eq:pac-cost}
 \end{equation}
-which penalises deviations of $y$ from its desired level $y^{*}$ and movements in the level and $m-1$ higher time-differences of $y$; $\beta\;(=0.98)$ is a discount factor and $L$ the lag operator. The Euler equation can be manipulated into the PAC decision rule
+which penalises deviations of $y$ from its desired level $y^{*}$ and movements in the level and $m-1$ higher time-differences of $y$; $\beta=0.98$ is a fixed discount factor and $L$ the lag operator (expectation operators are suppressed). The case $m=1$ is the familiar quadratic-adjustment-cost model; most FRB/US equations have $m$ between 2 and 4. Differentiating with respect to $y_t$, each friction term contributes $2b_k(1-L)^k(1-\beta F)^k y_t$, where $F\equiv L^{-1}$ is the lead operator, giving the Euler equation
 \begin{equation}
-\Delta y_t \;=\; a_0\big(y^{1*}_{t-1}-y_{t-1}\big) \;+\; \sum_{i=1}^{m-1} a_i\,\Delta y_{t-i} \;+\; \sum_{i=0}^{\infty} d_i\,\Delta y^{1*}_{t+i} \;+\; \sum_{i=0}^{\infty} h_i\,y^{0*}_{t+i},
+\big(y_t - y^{*}_t\big) \;+\; \sum_{k=1}^{m} b_k\big[(1-L)(1-\beta F)\big]^{k} y_t \;=\; 0.
+\label{eq:pac-euler}
+\end{equation}
+
+\paragraph{Factorisation.} The operator $1+\sum_k b_k[(1-L)(1-\beta F)]^k$ is a self-reciprocal polynomial in $L$ and $\beta F$ (the coefficient on $(\beta F)^k$ equals that on $L^k$), and \citet{tinsley1993} shows that any such polynomial factors into lag and lead parts $\hat A(L)\hat A(\beta F)$. Normalising $A(z)=1+\alpha_1 z+\dots+\alpha_m z^m$ and pinning the constant by the steady-state requirement $y=y^{*}$ when $L=F=1$ yields the compact Euler equation
+\begin{equation}
+A(\beta F)\,A(L)\,y_t \;=\; c\,y^{*}_t, \qquad c = A(1)\,A(\beta).
+\label{eq:pac-factored}
+\end{equation}
+The lag polynomial $A(L)$ carries the intrinsic (backward) dynamics; the lead polynomial $A(\beta F)$ carries the discounted forward-looking response to the target path.
+
+\paragraph{Companion form.} Writing $x_t\equiv A(L)y_t$ and stacking $m$ leads of $x$ in a vector $g_t$, equation~\eqref{eq:pac-factored} becomes $g_t = f_t + G\,g_{t+1}$ with $f_t=(c\,y^*_t,0,\dots,0)'$ and
+\begin{equation}
+G \;=\; \begin{bmatrix} -\alpha_1\beta & -\alpha_2\beta^2 & \cdots & -\alpha_{m-1}\beta^{m-1} & -\alpha_m\beta^m \\[2pt] & I_{m-1} & & & 0 \end{bmatrix},
+\label{eq:pac-G}
+\end{equation}
+so that forward substitution gives $A(L)\,y_t = \xi'\sum_{i=0}^{\infty} G^{i}\,\xi\, c\, y^{*}_{t+i}$, with $\xi$ the first-coordinate selector.
+
+\paragraph{Decision rule.} Decomposing $A(L)y_t = \Delta y_t + A(1)y_{t-1} - A^{*}(L)\Delta y_{t-1}$, where $A^{*}(L)$ collects the tail coefficients $\alpha^{*}_k=\sum_{j=k+1}^{m}\alpha_j$, and converting the forward level sum into a forward difference sum yields the PAC decision rule
+\begin{equation}
+\Delta y_t \;=\; a_0\big(y^{*}_{t-1}-y_{t-1}\big) \;+\; \sum_{k=1}^{m-1} a_k\,\Delta y_{t-k} \;+\; E_{t-1}\sum_{j=0}^{\infty} d_j\,\Delta y^{*}_{t+j},
 \label{eq:pac-rule}
 \end{equation}
-where the target has been decomposed into non-stationary ($y^{1*}$) and stationary ($y^{0*}$) components: the change in $y$ responds to the lagged gap between $y$ and the trend component of its target, to its own lags (reflecting higher-order frictions), and to discounted expected future movements in the target. In the model file the two expected-future sums are assigned to explicit expectations variables $Z^{1}$ and $Z^{0}$,
+with exact coefficient mappings
 \begin{equation}
-\Delta y_t \;=\; a_0\big(y^{1*}_{t-1}-y_{t-1}\big) \;+\; \sum_{i=1}^{m-1} a_i\,\Delta y_{t-i} \;+\; Z^{1}_t \;+\; Z^{0}_t,
+a_0 = d_0 = A(1), \qquad a_k = -\sum_{j=k+1}^{m}\alpha_j, \qquad
+d_j = A(1) - A(1)A(\beta)\sum_{i=0}^{j-1}\xi' G^{i}\xi .
+\label{eq:pac-coeffs}
+\end{equation}
+The change in $y$ error-corrects on the lagged gap to target with speed $a_0=A(1)$, inherits its own lags from the higher-order frictions, and responds to the discounted expected path of target changes.
+
+\paragraph{Target decomposition and $Z$ variables.} In FRB/US the target is decomposed as $y^{*}=y^{1*}+\gamma\,y^{0*}$: a trending I(1) component $y^{1*}$ (denoted by ``Q'' variables such as \texttt{qeco}, specified before estimation from theory or cointegrating regressions) and a stationary component $y^{0*}$ whose loading $\gamma$ is estimated inside the PAC equation. The two expected-future sums are assigned to explicit expectations variables,
+\begin{equation}
+\Delta y_t \;=\; a_0\big(y^{1*}_{t-1}-y_{t-1}\big) \;+\; \sum_{k=1}^{m-1} a_k\,\Delta y_{t-k} \;+\; Z^{1}_t \;+\; Z^{0}_t,
+\qquad
+Z^{1}_t = \sum_{i} d_i\, E\,\Delta y^{1*}_{t+i},\;\; Z^{0}_t = \sum_i h_i\, E\, y^{0*}_{t+i},
 \label{eq:pac-z}
 \end{equation}
-augmented by a growth-neutrality correction so that $y=y^{1*}$ in a balanced-growth equilibrium. Most spending equations further combine optimising agents with rule-of-thumb agents whose spending tracks income or output $x$:
+with weights $h_i = A(1)A(\beta)\,\iota' G^{i}\iota$ and $d_i = A(1)A(\beta)\,\iota'[I-G]^{-1}G^{i}\iota$. On a balanced-growth path with $\Delta y=\Delta y^{1*}=g$, the rule delivers $y=y^{1*}$ only if $\sum_k a_k + \sum_i d_i = 1$; the current vintage imposes this \emph{growth-neutrality restriction} directly in estimation (earlier vintages instead added the correction term $[1-\sum_k a_k-\sum_i d_i]\,g$ to $Z^1$). Finally, most spending equations aggregate optimising agents with rule-of-thumb agents whose spending tracks income or output $x$:
 \begin{equation}
-\Delta y_t \;=\; \gamma\Big(a_0\big(y^{1*}_{t-1}-y_{t-1}\big)+\sum_{i=1}^{m-1}a_i\,\Delta y_{t-i}+Z^{1}_t+Z^{0}_t\Big) \;+\; (1-\gamma)\,\Delta x_t .
+\Delta y_t \;=\; \gamma_{\!o}\Big(a_0\big(y^{1*}_{t-1}-y_{t-1}\big)+\sum_{k=1}^{m-1}a_k\,\Delta y_{t-k}+Z^{1}_t+Z^{0}_t\Big) \;+\; (1-\gamma_{\!o})\,\Delta x_t .
 \label{eq:pac-mix}
 \end{equation}
-PAC is used in the equations for consumption (\texttt{eco}, \texttt{ecd}), fixed investment (\texttt{eh}, \texttt{epd}, \texttt{epi}, \texttt{eps}), aggregate hours (\texttt{lhp}) and dividends, and the same error-correction-with-expectations structure organises the price--wage block.
+PAC governs consumption (\texttt{eco}, \texttt{ecd}), fixed investment (\texttt{eh}, \texttt{ebfi}), aggregate hours (\texttt{lhp}) and dividends (\texttt{ynidn}), and the same error-correction-with-expectations logic organises the price--wage block.
 
 \subsection{Expectations: VAR and MCE}
+\label{sec:expectations}
 
-FRB/US supports two treatments of the expectations variables $Z^{0}$ and $Z^{1}$ \citep{brayton2014note}. Under \emph{model-consistent expectations} (MCE), the infinite forward sums are collapsed into finite-lead recursions in future $Z$'s and solved jointly with the model's own future paths. Under \emph{VAR expectations} --- the configuration implemented here --- expectations are generated by small estimated vector autoregressions. Each PAC equation's small model stacks the target components with a core three-variable VAR (output gap, inflation, funds rate) in companion form $z_t = H z_{t-1}$, and the expectations terms become linear functions of lagged observables:
+FRB/US supports two treatments of the roughly 25 explicit expectations ($Z$) variables \citep{brayton1997role, brayton2014note}, selectable individually or in groups (all; asset pricing; wage--price).
+
+\paragraph{VAR expectations.} Under the configuration implemented here, expectations are generated by small estimated vector autoregressions. The core VAR contains the funds rate, overall PCE inflation and the output gap, specified in error-correction form around \emph{moving endpoints} --- long-run survey expectations of the funds rate and inflation (\texttt{rtr}, \texttt{ptr}), each a random walk, and a zero endpoint for the gap:
+\begin{equation}
+\Delta X^{c}_t \;=\; \Lambda_0\big(X^{c}_{t-1}-X^{c\infty}_{t-1}\big) \;+\; \sum_{i=1}^{3}\Lambda_i\,\Delta X^{c}_{t-i}.
+\label{eq:core-var}
+\end{equation}
+For each PAC equation, the target components are appended to the core VAR with restrictions forcing long-horizon forecasts to the appropriate endpoints, and the combined four-lag system is written in companion form $z_t = H z_{t-1}$, so $E_{t-1}z_{t+i}=H^{i+1}z_{t-1}$. Substituting into the infinite sums of~\eqref{eq:pac-z} and collapsing them with Kronecker (vec) algebra yields fixed-coefficient, purely backward-looking expressions
 \begin{equation}
 Z^{0}_t = h_0' z_{t-1}, \qquad Z^{1}_t = h_1' z_{t-1},
 \label{eq:var-z}
 \end{equation}
-where the coefficient vectors $h_0$, $h_1$ are known nonlinear functions of the PAC coefficients, the discount factor and the VAR companion matrix $H$. Because these expectations depend only on current and lagged variables, the VAR version of the model is fully backward-looking: the 284-equation system is simultaneous \emph{within} each quarter but recursive \emph{across} quarters, which is what permits the period-by-period solution strategy of Section~\ref{sec:implementation}.
+\begin{align}
+h_0 &= A(1)A(\beta)\big[\iota_m'\otimes H'\big]\big[I - G\otimes H'\big]^{-1}\big[\iota_m\otimes\iota_{h0}\big], \nonumber\\
+h_1 &= A(1)A(\beta)\big[\iota_m'(I_m{-}G)^{-1}\otimes H'\big]\big[I - G\otimes H'\big]^{-1}\big[\iota_m\otimes\iota_{h1}\big],
+\label{eq:var-h}
+\end{align}
+where $\iota_{h0}$, $\iota_{h1}$ select the target components within $z$. Because $h_0,h_1$ are nonlinear functions of the PAC coefficients, $\beta$ and $H$, the Board estimates each PAC equation by iterative least squares. Asset-price expectations are present values rather than PAC sums: for example the expected average funds rate over ten years satisfies $Z^{pv}_t=(1-w)\,\iota'[I-wH]^{-1}z_t$ with $w$ set by duration, and endpoint restrictions ensure the coefficients on the funds rate and its endpoint sum to one while those on inflation sum to zero. Asset-price expectations condition on current-quarter information; all other sectors use lagged information only.
 
-\subsection{Policy rules}
+Because every expectations term in~\eqref{eq:var-z} depends only on current and lagged observables, the VAR version of the model is fully backward-looking: the 284-equation system is simultaneous \emph{within} each quarter but recursive \emph{across} quarters, which is what permits the period-by-period solution strategy of Section~\ref{sec:implementation}.
 
-Fiscal policy is closed by reaction functions that adjust taxes to stabilise either the debt-to-GDP ratio (\texttt{dfpdbt}) or the fiscal surplus ratio (\texttt{dfpsrp}); all experiments in this paper use the Fed's standard demo configuration (surplus-ratio targeting). Monetary policy can follow any of several published interest-rate rules selected by switch variables. The default in the Fed's demonstration programs, and in this paper, is the \emph{inertial Taylor rule} \texttt{rffintay}:
+\paragraph{Model-consistent expectations.} Under MCE the infinite forward sums are instead collapsed into finite-lead recursions,
+\begin{equation}
+Z^{0}_t \;=\; -\sum_{i=1}^{m}\alpha_i\beta^{i}\, Z^{0}_{t+i} \;+\; A(1)A(\beta)\,y^{0*}_t,
+\label{eq:mce-z}
+\end{equation}
+(and analogously for $Z^1$), solved jointly with the model's own future paths by extended-path methods with terminal conditions --- the Fed's EViews platform alternates between the backward-looking model and a partial forward model, adjusting add factors on the expectations equations until model-consistent expectation errors vanish. MCE variants are out of scope for this implementation (Section~\ref{sec:limitations}).
+
+\subsection{The price--wage sector}
+\label{sec:pw}
+
+The nominal core of FRB/US is a pair of structural inflation equations --- core PCE price inflation (\texttt{picxfe}) and growth of the employment cost index for hourly compensation (\texttt{pieci}) --- specified as new-Keynesian Phillips curves with indexation, following Cogley--Sbordone, and estimated jointly under model-consistent expectations (Board technical note \texttt{price\_wage\_sector\_083013.pdf}). Both take the form
+\begin{equation}
+\Pi_t \;=\; \beta\,E_{t-1}\Pi_{t+1} \;+\; \kappa\,E_{t-1}\mu_t \;+\; \epsilon_t,
+\qquad
+\Pi_t \;\equiv\; \pi_t - \gamma\,\hat\pi_t - (1-\gamma)\,\bar\pi_t,
+\label{eq:nkpc}
+\end{equation}
+where $\hat\pi$ is a lagged-inflation index, $\bar\pi$ trend inflation (the ten-year survey expectation \texttt{ptr}, a random walk), $\mu$ a markup gap, and $\beta=0.98$. The price markup gap is a weighted average of the detrended labour share and the import-price/final-sales relative price; the wage markup gap reduces to an unemployment-gap term less the labour share. As coded in the current vintage:
+\begin{equation}
+\pi^{p}_t \;=\; \frac{\gamma_p\,\pi^{p}_{t-1} \;+\; \beta\,Z^{\pi p}_t \;+\; (1-\beta)(1-\gamma_p)\,\bar\pi_{t-1} \;+\; \kappa_p\cdot 400\,\ln\!\big(\texttt{qpcnia}_{t-1}/\texttt{pcnia}_{t-1}\big)}{1+\gamma_p\beta},
+\label{eq:picxfe}
+\end{equation}
+with $\gamma_p=0.671$ and $\kappa_p=0.00191$, and
+\begin{multline}
+\pi^{w}_t \;=\; \Big[\tfrac{1}{4}\gamma_w\big((1{-}\beta)(\pi^{w}_{t-1}{+}\pi^{w}_{t-2}{+}\pi^{w}_{t-3})+\pi^{w}_{t-4}\big) + \beta\,Z^{\pi w}_t + (1{-}\beta)(1{-}\gamma_w)\big(\bar\pi_{t-1}+g^{w}_{t-1}\big) \\
+ - \alpha_w\big(\texttt{lur}_{t-1}-\texttt{lurnat}_{t-1}\big) + \kappa_w\cdot 400\,\ln\!\big(\texttt{qpl}_{t-1}/\texttt{pl}_{t-1}\big)\Big]\Big/\big(1+\tfrac{1}{4}\gamma_w\beta\big),
+\label{eq:pieci}
+\end{multline}
+with $\gamma_w=0.685$, $\alpha_w=0.0167$, $\kappa_w=0.000957$, and trend wage inflation equal to trend price inflation plus trend productivity growth less the trend drift of the consumption/output relative price ($g^w = \texttt{hlprdt}-400\,\texttt{huqpct}$). Three features deserve note. First, slack affects prices only \emph{indirectly}: the unemployment gap enters the wage equation, and wages reach prices through the labour-share (unit-labour-cost) error-correction terms $\ln(\texttt{qpcnia}/\texttt{pcnia})$ and $\ln(\texttt{qpl}/\texttt{pl})$ and through expected inflation. Second, the estimated slopes are small --- the Board's estimation puts $\kappa_p$ around $0.003$ and imposes $\kappa_w=0.5\,\kappa_p$ --- the flat reduced-form Phillips curve visible in the simulations of Section~\ref{sec:results}. Third, the NAIRU (\texttt{lurnat}) is a random walk, and trend expectations (\texttt{ptr}) respond only slowly to realised inflation, so one-off shocks barely move the nominal anchor.
+
+Around this core, the sector's remaining equations are semi-structural: overall PCE inflation adds relative food and energy price movements to \texttt{picxfe}; the aggregate non-consumption price (\texttt{pipxnc}, covering investment, government purchases and exports) follows consumption inflation adjusted for the trend investment/consumption relative-price drift, with error correction and an exchange-rate pass-through term; and nine component deflators track \texttt{pxnc} one-for-one with level adjustments that offset chain-aggregation discrepancies.
+
+\subsection{Household consumption}
+\label{sec:consumption}
+
+Consumption illustrates the full PAC apparatus. Total desired consumption (\texttt{qec}, including the service flow from durables) comes from a cointegrating regression on \emph{permanent income by category} and wealth:
+\begin{equation}
+\ln \texttt{qec} \;=\; 0.365 \;+\; 0.494\,\ln \texttt{zyh}^{l} \;+\; 0.186\,\ln \texttt{zyht} \;+\; 0.133\,\ln \texttt{zyhp} \;+\; 0.187\,\ln(\texttt{wpo}+\texttt{wps}),
+\label{eq:qec}
+\end{equation}
+where \texttt{zyh}$^l$, \texttt{zyht} and \texttt{zyhp} are expected present values of labour, transfer and property income (discounted at 25 per cent annually, so ``permanent income'' is dominated by a horizon of a few years), and \texttt{wpo} and \texttt{wps} are real non-equity and stock-market wealth. The propensity ordering --- highest out of labour income, then transfers, lowest out of property income, with a distinct wealth channel --- is what makes the \emph{composition} of an income change matter in FRB/US: transfers and labour income move spending far more than an equal-sized change in property income. Property income itself is defined more broadly than in the NIPAs: it adds the imputed service flow from durables and corporate retained earnings, and subtracts inflation losses on nominal government debt holdings.
+
+The nondurables-and-services equation is then PAC with $m=2$ and a rule-of-thumb share of 0.308:
+\begin{equation}
+\Delta\ln \texttt{eco}_t = \big(0.158\,\ln\tfrac{\texttt{qeco}_{t-1}}{\texttt{eco}_{t-1}} + 0.412\,\Delta\ln \texttt{eco}_{t-1} + Z^{eco}_t\big)(1-0.308) \;+\; 0.308\,\Delta\ln(\texttt{yhl}+\texttt{yht})_t,
+\label{eq:eco}
+\end{equation}
+so that roughly a third of spending tracks current labour-plus-transfer income --- the model's hand-to-mouth channel, which drives the tax-cut experiment of Section~\ref{sec:results}. Durables (\texttt{ecd}) follow a stock-adjustment PAC whose target converts the desired durables stock into gross investment, with user cost $\texttt{rccd}=\max(100\,\texttt{jrcd}+\texttt{rcar}-\texttt{zpi5},\,0.01)$ (depreciation plus the real consumer-loan rate) entering with elasticity $-0.584$, plus a cyclical term in the expected output gap.
+
+\subsection{Business and residential investment}
+\label{sec:investment}
+
+Business fixed investment (\texttt{ebfi}) combines PAC-optimising firms with an accelerator: a share $0.384$ of investment growth simply tracks lagged business output growth (a cash-flow/liquidity channel), while the remainder error-corrects to the target capital-accumulation path:
+\begin{multline}
+\Delta\ln \texttt{ebfi}_t = \big(0.074\,\ln\tfrac{\texttt{qebfi}_{t-1}}{\texttt{ebfi}_{t-1}} + 0.522\,\Delta\ln \texttt{ebfi}_{t-1} + 0.302\,\Delta\ln \texttt{ebfi}_{t-2} + Z^{ebfi}_t\big)(1-0.384) \\
+ + 0.384\,\big(\Delta\ln \texttt{xb}_{t-1}-\tfrac{\texttt{hgpbfir}_{t-1}}{400}\big).
+\label{eq:ebfi}
+\end{multline}
+The target embodies a neoclassical desired investment--output ratio with unit user-cost elasticity, $\texttt{vbfi}\propto (\texttt{pkbfir}/\texttt{pbfir})/\texttt{rtbfi}$, where the user cost \texttt{rtbfi} combines depreciation, expected relative-price appreciation, corporate taxation (investment tax credit, depreciation allowances, the corporate rate) and a financing rate that is an even mix of after-tax corporate debt (five-year Treasury plus the BBB spread) and the required return on equity. This is the model's main channel from the term structure and credit spreads to real activity. Residential investment (\texttt{eh}) is PAC with $m=3$ plus a borrowing-cost term in the lagged \emph{change} of the nominal mortgage rate; its target user cost is the after-tax real mortgage rate plus property tax and depreciation. Inventory investment error-corrects the stock--sales ratio to a slowly declining filtered trend.
+
+\subsection{The labour block and Okun's law}
+\label{sec:labour}
+
+Employment and unemployment are determined by a chain running from output to hours to bodies. Aggregate business hours (\texttt{lhp}) follow a modified PAC in which about 37 per cent of hours adjustment is subject to frictions while the rest tracks current target growth:
+\begin{multline}
+\Delta\ln \texttt{lhp}_t = 0.202\,\ln\tfrac{\texttt{qlhp}_{t-1}}{\texttt{lhp}_{t-1}} + 0.203\,\Delta\ln \texttt{lhp}_{t-1} + 0.372\,Z^{lhp}_t \\
+ + 0.628\,\big(\Delta\ln \texttt{xbo}_t - \tfrac{\texttt{hlprdt}_{t-1}}{400}\big) - 0.127\,\big(\Delta\ln \texttt{xbo}_{t-1} - \tfrac{\texttt{hlprdt}_{t-2}}{400}\big),
+\label{eq:lhp}
+\end{multline}
+with target hours equal to adjusted business output divided by trend labour productivity, so that the gap between actual and trend productivity is procyclical. About 30 per cent of any hours change is absorbed by the workweek (\texttt{lww}) in the short run, the remainder by employment ($\texttt{lep}=\texttt{lhp}/\texttt{lww}$). Household employment adds government workers and an error-correcting payroll/household discrepancy; labour-force participation (\texttt{lfpr}) error-corrects to its trend with a discouraged-worker term in the unemployment gap; and the unemployment rate follows as the identity $\texttt{lur}=100\,(1-\texttt{leh}/\texttt{lf})$. The resulting reduced-form co-movement between the output gap and the unemployment gap is FRB/US's Okun's law --- visible in Section~\ref{sec:results}, where a one-per-cent output loss is associated with roughly a half-point unemployment increase, building over several quarters.
+
+\subsection{The financial block: term structure, equity and wealth}
+\label{sec:finblock}
+
+Financial prices are the model's forward-looking transmission channel. Long-term rates are expectations-hypothesis averages of the expected funds-rate path plus counter-cyclical term premia:
+\begin{equation}
+\texttt{rg10}_t = \texttt{zrff10}_t + \texttt{rg10p}_t, \qquad
+\texttt{rg10p}_t = 1.05 - 0.461\,\texttt{zgap10}_t + \text{AR(1) error},
+\label{eq:rg10}
+\end{equation}
+where under VAR expectations \texttt{zrff10} is the duration-weighted present value $(1-w)\,\iota'[I-wH]^{-1}z_t$ of expected funds rates, loading on current and lagged funds rates, inflation, the output gap and the endpoint variables. Corporate rates add a counter-cyclical BBB risk premium ($\texttt{rbbb}=\texttt{rg10}+\texttt{rbbbp}$); the required real return on equity is the real 30-year rate plus an equity premium tied to the BBB premium. Stock-market wealth is a Gordon-model valuation of dividends,
+\begin{equation}
+\ln \texttt{wpsn}_t \;=\; \ln\big(0.5\,(\texttt{ynicpn}_t-\texttt{tcin}_t)\big) \;-\; 0.25\,\big(\texttt{req}_t-\texttt{zdivgr}_t\big) \;+\; \text{const},
+\label{eq:wpsn}
+\end{equation}
+so equity values fall when required returns rise relative to expected dividend growth; dividends themselves are PAC-smoothed toward a constant share of after-tax profits. Non-equity property wealth (\texttt{wpon}) accumulates personal saving, durables net investment and capital gains, with house prices error-correcting to rents. Through equations~\eqref{eq:qec} and \eqref{eq:ebfi}--\eqref{eq:wpsn}, a funds-rate shock therefore propagates simultaneously through user costs, long rates, equity and housing wealth, and the exchange rate, before feeding back into slack and, weakly, inflation.
+
+\subsection{Monetary policy rules}
+\label{sec:rules}
+
+Monetary policy is modular. The effective funds rate is set by
+\begin{equation}
+\texttt{rff}_t \;=\; \max\big(\texttt{rffrule}_t,\ \texttt{rffmin}_t\big)
+\label{eq:rff}
+\end{equation}
+(as coded, a \texttt{@recode} indicator expression, with an optional threshold-based liftoff mechanism controlled by \texttt{dmptrsh} and logistic switch variables), where \texttt{rffmin} is the effective lower bound ($0.125$ in the baseline data; set to 0 to impose a strict ZLB) and \texttt{rffrule} mixes the available rules through exogenous 0/1 switches:
+\begin{multline}
+\texttt{rffrule}_t = \texttt{dmpex}\,\texttt{rfffix}_t + \texttt{dmprr}\,(\texttt{rrfix}_t+\bar\pi_t) + \texttt{dmptay}\,\texttt{rfftay}_t \\
+ + \texttt{dmptlr}\,\texttt{rfftlr}_t + \texttt{dmpintay}\,\texttt{rffintay}_t + \texttt{dmpalt}\,\texttt{rffalt}_t .
+\label{eq:rffrule}
+\end{multline}
+Table~\ref{tab:rules} enumerates the rules with their coefficients as published in \texttt{model.xml}; $\bar\pi_t$ denotes the four-quarter average of core PCE inflation, $\tilde x_t$ the output gap (\texttt{xgap2}), and $r^{*}_t$ the policymakers' perceived equilibrium real rate (\texttt{rstar}, exogenous in the experiments here, or converging to the model's real rate when $\texttt{drstar}=1$).
+
+\begin{table}[htbp]
+\centering
+\caption{Monetary policy rules in \texttt{model.xml} (April 2026 vintage)}
+\label{tab:rules}
+\small
+\begin{tabular}{llp{8.2cm}}
+\toprule
+Switch & Rule & Specification (coefficients as published) \\
+\midrule
+\texttt{dmpintay} & Inertial Taylor (\texttt{rffintay}) & $r_t = 0.85\,r_{t-1} + 0.15\big[r^{*}_t+\bar\pi_t+0.5\,(\bar\pi_t-\pi^{targ})+1.0\,\tilde x_t\big]$ \\[3pt]
+\texttt{dmptay} & Taylor, output gap (\texttt{rfftay}) & $r_t = r^{*}_t+\bar\pi_t+0.5\,(\bar\pi_t-\pi^{targ})+1.0\,\tilde x_t$ \\[3pt]
+\texttt{dmptlr} & Taylor, unemp.\ gap (\texttt{rfftlr}) & $r_t = r^{*}_t-0.5\,\pi^{targ}+0.375\sum_{i=0}^{3}\pi_{t-i}+1.1\,(\texttt{lurnat}_t-\texttt{lur}_t)$ \\[3pt]
+\texttt{dmpalt} & Estimated rule (\texttt{rffalt}) & $r_t = 0.055+1.20\,r_{t-1}-0.39\,r_{t-2}$ \newline $\phantom{r_t = }+0.695\,\tilde x_t-0.517\,\tilde x_{t-1}+0.329\,\bar\pi_t$ \\[3pt]
+\texttt{dmpex} & Exogenous nominal rate & $r_t = \texttt{rfffix}_t$ (pre-set path) \\[3pt]
+\texttt{dmprr} & Exogenous real rate & $r_t = \texttt{rrfix}_t + \bar\pi_t$ \\
+\midrule
+ & Lower bound & $\texttt{rff}_t \ge \texttt{rffmin}_t$; threshold liftoff via \texttt{dmptrsh}, \texttt{lurtrsh}, \texttt{pitrsh} \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\parbox{0.95\textwidth}{\footnotesize The baseline LONGBASE projection sets $\texttt{dmpintay}=1$ (all other switches 0), $\pi^{targ}=2$, $r^{*}=1.1$. The estimated rule \texttt{rffalt} has funds-rate lag coefficients summing to $0.81$ and hence a long-run inflation response of $0.329/(1-0.81)\approx 1.7$.}
+\end{table}
+
+The default in the Fed's demonstration programs, in the LONGBASE projection and throughout this paper is the inertial Taylor rule,
 \begin{equation}
 r^{ff}_t \;=\; \rho\, r^{ff}_{t-1} \;+\; (1-\rho)\Big[\, r^{*}_t + \bar\pi_t + 0.5\,\big(\bar\pi_t - \pi^{targ}_t\big) + 1.0\, \tilde x_t \Big] \;+\; \varepsilon_t,
 \qquad \rho = 0.85,
 \label{eq:taylor}
 \end{equation}
-where $\bar\pi_t$ is the four-quarter moving average of core PCE inflation, $\pi^{targ}$ the inflation target, $r^{*}$ the policymakers' perceived equilibrium real funds rate, $\tilde x_t$ the output gap (\texttt{xgap2}), and $\varepsilon_t$ the additive shock term (\texttt{rffintay\_aerr}) used to implement monetary-policy shocks. The coefficients (0.5 on the inflation gap, 1.0 on the output gap, smoothing 0.85) are as published in \texttt{model.xml}.
+whose additive shock term (\texttt{rffintay\_aerr}) implements monetary-policy shocks. Section~\ref{sec:results} exploits the switch structure directly, re-running the fiscal experiment under \texttt{dmpex} with \texttt{rfffix} set to the baseline funds-rate path.
+
+\subsection{Fiscal closure}
+\label{sec:fiscal-closure}
+
+Fiscal policy is closed by reaction functions on the \emph{trend} personal tax rate (\texttt{trpt}), selected by switches: exogenous trend rates (\texttt{dfpex}), stabilisation of the debt-to-GDP ratio at a target (\texttt{dfpdbt}), or stabilisation of the surplus-to-GDP ratio (\texttt{dfpsrp}), the latter as coded:
+\begin{equation}
+\texttt{trpt}_t \;=\; \texttt{trpt}_{t-1} \;+\; \lambda\,\Big[\tfrac{\texttt{gfsrpn}_{t-1}}{\texttt{xgdpn}_{t-1}} - \big(\texttt{gfsrt}_{t-1}+0.0075\,\tilde x_{t-1}\big)\Big],
+\label{eq:trpt}
+\end{equation}
+so the trend tax rate drifts up (down) when the cyclically adjusted surplus ratio is below (above) target. The actual average personal tax rate (\texttt{trp}) then error-corrects to trend with a small procyclical term, and personal tax receipts follow the identity $\texttt{tpn}=\texttt{trp}\,(\texttt{ypn}-\texttt{gtn})$. All experiments in this paper use the Fed's standard demo configuration (surplus-ratio targeting, $\texttt{dfpdbt}=0$, $\texttt{dfpsrp}=1$); the tax experiment of Section~\ref{sec:results} operates directly on \texttt{trp}.

@@ -1,0 +1,88 @@
+\appendix
+
+\section{Data appendix}
+\label{app:data}
+
+Table~\ref{tab:data} documents every series in the dataset: source, series codes, and the construction applied. The dataset covers 1992Q1--2024Q2 (130 quarters, no missing values); the binding start is the FRED Brent series \texttt{POILBREUSDQ}, which begins in 1992Q1. All variables enter the model as $100\cdot\log$ of the level except Bank Rate, which enters as the level in per cent. The full download-and-construction script ships with the repository (\texttt{scripts/download\_data.py}); raw source files are cached so the build is reproducible offline.
+
+\begin{table}[h]
+\centering
+\caption{Series, sources and transformations}
+\label{tab:data}
+\footnotesize
+\begin{tabular}{p{1.9cm}p{3.8cm}p{3.3cm}p{4.5cm}}
+\toprule
+Variable & Description & Source (codes) & Construction \\
+\midrule
+\texttt{uk\_gdp} & UK real GDP, chained volume, SA, \pounds m & ONS UKEA (\texttt{ABMI}) & As published. \\
+\addlinespace
+\texttt{cpisa} & UK CPI, seasonally adjusted & ONS MM23 (\texttt{D7BT}) & Monthly NSA index averaged to quarterly, then multiplicative classical seasonal adjustment (ratio to $2{\times}4$ centred moving average, constant quarterly factors normalised to mean 1). Approximates the Bank's internal SA series; no X-13. \\
+\addlinespace
+\texttt{cpi\_energy} & UK CPI energy & ONS MM23 (\texttt{D7CH}, \texttt{D7EC}) & CPI division 04.5 (electricity, gas \& other fuels) and class 07.2.2 (fuels \& lubricants) combined with equal 0.5/0.5 weights via chained weighted log growth; NSA. The official aggregate uses time-varying expenditure weights. \\
+\addlinespace
+\texttt{bank\_rate} & Bank Rate, quarterly average, \% & BoE IADB (\texttt{IUQABEDR}) & As published. \\
+\addlinespace
+\texttt{eri} & Sterling broad effective exchange-rate index & BoE IADB (\texttt{XUQABK67}) & Quarterly average. \\
+\addlinespace
+\texttt{oil\_price} & Real Brent price in sterling & FRED (\texttt{POILBREUSDQ}); BoE (\texttt{XUQAUSS}) & Brent USD/bbl (quarterly average) divided by USD/GBP, deflated by \texttt{cpisa}. Index-like level; only $100\cdot\log$ enters the VAR. \\
+\addlinespace
+\texttt{world\_gdp} & UK-trade-weighted world real GDP (proxy) & FRED: US \texttt{GDPC1}; EA19 \texttt{CLVMNACSCAB1GQEA19}; DE \texttt{CLVMNACSCAB1GQDE}; JP \texttt{JPNRGDPEXP}; CN \texttt{RGDPNACNA666NRUG} & Divisia-style chain of weight-averaged quarterly log growth with era trade weights (EA/US/JP/CN: 0.50/0.17/0.04/0.01 to 1999; 0.48/0.16/0.03/0.05 to 2009; 0.45/0.16/0.02/0.07 after), renormalised each quarter over available countries. EA backcast pre-1995 with German growth; China (annual PWT) log-linearly interpolated, drops out after 2023Q2; Japan enters from 1994Q1. \\
+\addlinespace
+\texttt{world\_cpi} & UK-trade-weighted world CPI (proxy) & FRED: US \texttt{CPALTT01USQ661S}; EA19 \texttt{CP0000EZ19M086NEST}; DE \texttt{DEUCPIALLMINMEI}; JP \texttt{CPALTT01JPQ661S} + \texttt{FPCPITOTLZGJPN}; CN \texttt{CHNCPIALLMINMEI} & Same era weights and chain method. EA backcast pre-1997 with German CPI; Japan extended after 2021Q2 with World Bank annual inflation (flat within-year profile); China enters from 1993Q2. EA/DE legs NSA. \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\parbox{0.97\textwidth}{\footnotesize \emph{Notes:} The two world aggregates proxy unpublished internal Bank series. The era trade weights are static approximations informed by ONS Pink Book and IMF Direction of Trade shares (covering roughly 0.70--0.72 of UK trade; the remainder implicitly grows at the weighted average of the included countries), documented in the repository's \texttt{data/README.md} together with a comparison file retaining the earlier two-country (US/EA) proxies, with which the current aggregates correlate at 0.996--1.000 in levels.}
+\end{table}
+
+\section{Prior hyperparameters}
+\label{app:priors}
+
+Table~\ref{tab:priors} lists every prior hyperparameter, its default, and its role. Defaults follow the \citet{giannone2015} conventions; the source paper does not report the Bank's settings. Maximising the closed-form marginal likelihood \eqref{eq:lml} over $(\lambda, \mu, \theta)$ on the estimation sample --- the optional empirical-Bayes step --- selects substantially looser lag shrinkage than the default ($\lambda \approx 1.12$, $\mu \approx 0.48$, $\theta \approx 1.0$; log ML $-1678.5$ against $-1795.4$ at the defaults, computed on the estimation sample with the Covid dummies); the shipped configuration retains the conventional defaults for comparability with standard practice, and the calibration bands of Section~\ref{sec:validation} are wide enough to cover both settings.
+
+\begin{table}[h]
+\centering
+\caption{Prior hyperparameters}
+\label{tab:priors}
+\small
+\begin{tabular}{llp{8.3cm}}
+\toprule
+Parameter & Default & Role \\
+\midrule
+$\lambda$ & 0.2 & Overall Minnesota tightness: prior s.d.\ of the coefficient on variable $j$, lag $l$, equation $i$ is $\lambda s_i / (l^2 s_j)$. \\
+lag decay & $l^2$ & Harmonic-quadratic tightening in the lag order. \\
+$\delta_i$ & 1 & Prior mean on each variable's own first lag (random walk in levels). \\
+$\mu$ & 1 & Sum-of-coefficients (no-cointegration) tightness, centred on pre-sample means. \\
+$\theta$ & 1 & Single-unit-root (dummy-initial-observation) tightness. \\
+$s_i$ & AR(1) resid.\ s.d. & Per-equation scale from univariate AR(1) regressions. \\
+IW scale & $\operatorname{diag}(s_i^2)$ & Prior scale of $\Sigma$ via dummy rows. \\
+$\varepsilon_{\text{const}}$ & $10^{-3}$ & Dummy weight on constant and Covid dummies (near-flat prior). \\
+$p$ & 4 & Lag length (unstated in the source paper; configurable). \\
+Covid dummies & 6 & One exogenous 0/1 dummy per quarter, 2020Q1--2021Q2. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Sampling and convergence diagnostics}
+\label{app:diagnostics}
+
+Posterior draws are i.i.d.\ (direct sampling from the conjugate NIW posterior; no Markov chain), so the relevant diagnostics concern the identification step: the sign-restriction acceptance rate and the effective sample size of the \citet{arias2018} importance weights. Table~\ref{tab:diagnostics} reports them for every run used in this paper. Acceptance rates of 7--8 per cent are typical for a restriction set of this size (17 sign restrictions across six shocks plus 13 zero restrictions), and are materially raised by the \citet{chan2025} permutation search relative to plain accept/reject. The weighted ESS of roughly 45--47 per cent of accepted draws indicates moderately variable weights --- informative but not degenerate; no single draw dominates ($\max_i w_i / \sum_i w_i < 2$ per cent in the production run). Weighted and unweighted headline statistics are compared in Section~\ref{sec:validation}: the weights move the one-year global FEVD shares of UK GDP and CPI from 47.4 and 42.4 per cent towards the paper's approximate 40 and 50 per cent, i.e.\ towards the uniform-over-rotations posterior the weights are designed to recover.
+
+\begin{table}[h]
+\centering
+\caption{Runs, acceptance and effective sample sizes}
+\label{tab:diagnostics}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Run & Posterior draws & Accepted & Acceptance & Weights & ESS \\
+\midrule
+Production replication & 10{,}000 & 751 & 7.5\% & yes & 350.3 \\
+Forecast revision (2024Q2 edge) & 6{,}000 & 487 & 8.1\% & yes & 207.5 \\
+Paper figures, estimation sample & 3{,}000 & 246 & 8.2\% & no & --- \\
+Paper figures, 2024Q2 edge & 3{,}000 & 217 & 7.2\% & no & --- \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\parbox{0.9\textwidth}{\footnotesize \emph{Notes:} All runs use $p=4$, $\lambda=0.2$, $\mu=1$, $\theta=1$ and fixed seeds (figure runs: seed 20250717 and 20250718 respectively; scripts in the paper's \texttt{figures/} directory). ESS is the Kish effective sample size of the normalised importance weights. Each weight requires two numerical Jacobians of a $k(k+m) = 376$-dimensional map, which is why the exploratory figure runs omit them.}
+\end{table}

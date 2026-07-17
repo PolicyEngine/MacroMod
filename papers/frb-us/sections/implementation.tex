@@ -3,17 +3,65 @@
 
 The package (\texttt{frbus}) is roughly 700 lines of Python over \texttt{numpy}, \texttt{scipy}, \texttt{sympy} and \texttt{pandas}, organised as a pipeline from the Fed's published artefacts to a compiled per-period solver. The public API mirrors the essentials of the Fed's \texttt{pyfrbus}: \texttt{Frbus(path)}, \texttt{.init\_trac(start, end, data)}, \texttt{.solve(start, end, data)} and \texttt{.exogenize([...])}, so that the Fed's demo programs translate line-for-line.
 
-\subsection{Parsing the model and data}
+\subsection{The XML model schema}
+\label{sec:xml}
 
-\texttt{parse.py} reads \texttt{model.xml} directly: variable names, endogenous/exogenous classification, per-equation coefficient values, and the VAR ``standard'' equation text in EViews syntax. \texttt{data.py} loads \texttt{LONGBASE.TXT} --- the Fed's quarterly database of history and staff projections, here the April 2026 vintage --- into a \texttt{pandas} DataFrame on a quarterly \texttt{PeriodIndex}. \texttt{equations.py} and \texttt{lexing.py} normalise each equation: EViews constructs (\texttt{d(log(x),0,1)}, lag notation \texttt{x(-2)}, coefficient references \texttt{y\_eq(i)}) are lexed, coefficients are substituted by value, the equation is flipped to residual form $F_i(\cdot)=0$, and every equation is augmented with an additive tracking residual (add factor) \texttt{<endo>\_trac} alongside the model's own shock terms \texttt{<endo>\_aerr}. Variable references are then index-substituted into array coordinates: current-period endogenous variables become entries of the unknown vector \texttt{x[i]}, and everything else (lags and exogenous variables) becomes \texttt{data[p,\,j]} references into the data matrix.
+\texttt{model.xml} is a flat list of \texttt{<variable>} elements, one per model variable. Each carries a \texttt{<name>}, an \texttt{<equation\_type>} (\texttt{Behavioral}, \texttt{Identity} or \texttt{Exogenous}), a \texttt{<sector>} tag (the basis of Table~\ref{tab:sectors}), free-text \texttt{<definition>} and \texttt{<description>} fields, and --- for endogenous variables --- one or more equation blocks. The \texttt{<standard\_equation>} block contains the VAR-expectations equation in two redundant syntaxes (\texttt{<eviews\_equation>} and \texttt{<python\_equation>}), a list of \texttt{<coeff>} elements pairing coefficient names such as \texttt{y\_rffintay(3)} with numeric values, and a \texttt{<rhs\_eq\_var>} list naming the endogenous variables appearing on the right-hand side; MCE variants, where they exist, live in parallel \texttt{<mce\_equation>} blocks, which this implementation deliberately ignores. \texttt{parse.py} reads the file with the standard-library XML parser into a \texttt{ModelSpec}: variable names, endogenous/exogenous classification, per-equation coefficient name--value maps, and the raw EViews equation text. Nothing else is consulted --- the XML file is the single source of truth for the model's semantics, and the LONGBASE database (\texttt{data.py}, loaded onto a quarterly \texttt{pandas} \texttt{PeriodIndex}; here the April 2026 vintage, 857 quarters from 1962Q1 into the Board's long-run projection) for its numbers.
 
-\subsection{Symbolic differentiation and compilation}
+\subsection{Lexing and index substitution}
+\label{sec:lexing}
 
-\texttt{symbolic.py} evaluates the substituted equation strings in a \texttt{sympy} namespace in which \texttt{x} and \texttt{data} are containers returning symbols literally named \texttt{x[i]} and \texttt{data[p,j]}; the string form of any derivative is then directly executable Python again. The analytic Jacobian is built by differentiating each residual $F_i$ with respect to each unknown $x_j$ appearing in it, stored as a sparse triplet list $(i, j, \partial F_i/\partial x_j)$, with the diagonal structurally present as in \texttt{pyfrbus}. Non-smooth primitives (\texttt{max}, \texttt{min}, an indicator function used by the policy-threshold equations) are given exact piecewise derivatives. \texttt{runtime.py} compiles the residual vector and Jacobian into ordinary Python functions evaluated with \texttt{numpy}; compilation happens once per data layout and is cached on the model object.
+\texttt{equations.py} and \texttt{lexing.py} normalise each equation in stages. EViews constructs are rewritten: difference operators \texttt{d(log(x),0,1)} become explicit lag expressions, lag notation \texttt{x(-2)} becomes an indexed reference, and coefficient references \texttt{y\_eq(i)} are substituted by their numeric values from the \texttt{<coeff>} table. Every equation is flipped to residual form $F_i(\cdot)=0$ and augmented with its additive shock term (\texttt{<endo>\_aerr}, present in the published equations) and an additive tracking residual (\texttt{<endo>\_trac}, added by the implementation for add-factoring). The lexer then tokenises each equation and performs \emph{index substitution}: a current-period endogenous variable becomes an element \texttt{x[i]} of the unknown vector, and everything else --- lags of endogenous variables, exogenous variables, shocks and add factors --- becomes a reference \texttt{data[p,\,j]} into the (periods $\times$ variables) data matrix, with \texttt{p} the row offset implied by the lag. The result is a list of plain Python expression strings over exactly two array names, which is what makes the next stage possible. Because substitution is against a specific DataFrame column layout, the compiled artefacts are cached per layout and invalidated when \texttt{exogenize} changes the endogenous set (exogenised equations are simply dropped from the system and their variables re-classed as data).
 
-\subsection{The per-period Newton solver}
+\subsection{Symbolic differentiation and the sparse Jacobian}
+\label{sec:jacobian}
 
-Because the VAR model is backward-looking across quarters, \texttt{solver.py} solves period by period. For each quarter the full 284-equation simultaneous system $F(x)=0$ is solved by a damped Newton method: the Newton step solves the sparse linear system with an LU factorisation (\texttt{scipy.sparse.linalg.splu}) after diagonal row-scaling for conditioning, and a backtracking line search halves the step until the model evaluates cleanly (no domain errors or NaNs). Defaults are a step tolerance \texttt{xtol} $=10^{-8}$ and residual tolerance \texttt{rtol} $=5\times10^{-4}$; the previous quarter's solution is the initial guess. In practice a 20-quarter simulation solves in about three seconds on a laptop, including one-off symbolic compilation.
+\texttt{symbolic.py} evaluates the substituted equation strings in a \texttt{sympy} namespace in which \texttt{x} and \texttt{data} are container objects returning symbols literally named \texttt{x[i]} and \texttt{data[p,j]}; the string form of any \texttt{sympy} derivative is therefore directly executable Python again. The analytic Jacobian is built by differentiating each residual $F_i$ with respect to each unknown $x_j$ that appears in it, stored as a triplet list $(i, j, \partial F_i/\partial x_j)$ with the diagonal structurally present, as in \texttt{pyfrbus}. Non-smooth primitives (\texttt{max}, \texttt{min}, and the \texttt{@recode} indicator used by the policy-threshold equations) are given exact piecewise derivatives. \texttt{runtime.py} compiles the residual vector and each Jacobian entry into ordinary Python lambdas evaluated with \texttt{numpy}, assembling a \texttt{scipy} CSR matrix per evaluation.
+
+The system is extremely sparse. For the standard configuration (284 equations), the symbolic Jacobian has \textbf{900 structural non-zeros} out of $284^2 = 80{,}656$ possible entries --- a density of \textbf{1.12 per cent}, or a mean of 3.17 unknowns per equation (median 3). The densest rows have 11 entries (final sales \texttt{xfs} and the permanent-income expectations \texttt{zyht}, \texttt{zyhp}); 46 equations reference only their own variable contemporaneously, i.e.\ are fully recursive given the rest of the period's solution. This sparsity is inherited from the model's structure: most simultaneity flows through a handful of aggregates (output, the funds rate, inflation) while long chains of identities and lag-driven equations hang off them.
+
+\subsection{Structural block analysis and comparison with pyfrbus}
+\label{sec:blocks}
+
+Applying a strongly-connected-components decomposition to the 900-edge within-period dependency graph yields \textbf{162 components: one large simultaneous block of 120 equations, one of 3, one of 2, and 159 singletons}. This is precisely the structure the vendor's \texttt{pyfrbus} exploits: its \texttt{block\_ordering} module topologically sorts the components and solves them in sequence --- trivially for the recursive singletons, with Newton's method for the simultaneous cores --- which shrinks each linear solve at the cost of bookkeeping (renumbering unknowns per block, threading solved values into later blocks). This implementation makes the opposite engineering choice: it solves the full 284-equation system in a single damped Newton loop per period. The single-block approach is simpler --- no graph machinery, one compiled residual/Jacobian pair, and \texttt{exogenize} reduces to a row/column deletion --- and at FRB/US's scale it is not a bottleneck: a sparse LU factorisation of a $284\times284$ matrix with 900 non-zeros costs well under a millisecond, so the recursive equations ride along in the Newton solve at negligible cost. Both approaches solve the same $F(x)=0$; Section~\ref{sec:validation} confirms agreement to solver tolerance. For much larger systems --- or the MCE stacked-time problem, where all quarters' equations are solved jointly --- block decomposition and orderings would begin to pay.
+
+\subsection{The per-period damped Newton solver}
+\label{sec:newton}
+
+Because the VAR model is backward-looking across quarters, \texttt{solver.py} solves period by period, using the previous quarter's solution as the initial guess. Each quarter the full simultaneous system $F(x)=0$ is solved by a damped Newton method:
+\begin{enumerate}
+  \item evaluate $F$ and the sparse Jacobian $J$ at the current iterate;
+  \item row-scale the system by $\mathrm{diag}(1/\max_j |J_{ij}|)$ for conditioning;
+  \item factor the scaled Jacobian with a sparse LU decomposition (\texttt{scipy.sparse.linalg.splu}, i.e.\ SuperLU) and solve for the Newton step;
+  \item backtrack: halve the step until the model evaluates cleanly at the trial point --- no domain errors (logs of non-positive arguments) and no NaNs in $F$ or $J$;
+  \item iterate until the step norm falls below \texttt{xtol} $=10^{-8}$, then require the residual norm to be below \texttt{rtol} $=5\times10^{-4}$.
+\end{enumerate}
+The damping criterion is deliberately permissive --- it guards against leaving the domain of definition rather than enforcing monotone residual descent --- which matches the vendor's behaviour and is sufficient in practice: starting from the previous quarter's solution, baseline and shocked quarters alike converge in a handful of iterations, and no experiment in this paper required anything beyond the default settings. Failures (singular Jacobian, exhausted backtracking) raise typed exceptions rather than returning silently.
+
+\subsection{Performance}
+\label{sec:performance}
+
+Table~\ref{tab:perf} reports wall-clock times on the development machine (Apple Silicon laptop, single-threaded), measured on fresh runs of the experiment script in \texttt{figures/}. One-off model construction --- XML parsing, lexing, symbolic differentiation of all 284 equations and compilation --- takes about 0.7 seconds; after that, solving costs about \textbf{4.4 milliseconds per quarter}, so a 20-quarter policy simulation runs in under a tenth of a second and the full experiment suite of Section~\ref{sec:results}, spanning three model configurations and 40-quarter horizons, completes in a few seconds. Add-factoring (\texttt{init\_trac}) is a single equation evaluation per quarter and is essentially free. These times remove any computational barrier to embedding FRB/US in bootstrap loops, optimisation over rule coefficients, or microsimulation pipelines.
+
+\begin{table}[htbp]
+\centering
+\caption{Performance benchmarks (fresh runs, single core)}
+\label{tab:perf}
+\begin{tabular}{lr}
+\toprule
+Operation & Time \\
+\midrule
+Parse \texttt{model.xml} & 0.012\,s \\
+Lex, differentiate and compile (one-off, incl.\ \texttt{init\_trac} over 40q) & 0.68\,s \\
+Solve, 20 quarters & 0.087\,s \\
+Solve, 40 quarters & 0.177\,s \\
+Per solved quarter & $\approx$4.4\,ms \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\parbox{0.8\textwidth}{\footnotesize Sparse LU via SuperLU; Jacobian: 900 non-zeros, density 1.12\%. Times from \texttt{figures/run\_experiments.py} on the April 2026 artefacts.}
+\end{table}
 
 \subsection{Add factors}
 
@@ -24,6 +72,6 @@ Because the VAR model is backward-looking across quarters, \texttt{solver.py} so
 The implementation follows \texttt{pyfrbus} semantics exactly but departs from it in engineering terms:
 \begin{itemize}
   \item \textbf{Modern dependencies.} No pin of \texttt{sympy} 1.3, no \texttt{scikit-umfpack}/\texttt{symengine} requirement, no pre-2.0 \texttt{pandas}; the package installs on current Python (3.10+) with wheels only. Sparse solves use \texttt{scipy}'s bundled SuperLU rather than UMFPACK.
-  \item \textbf{Single-block Newton.} \texttt{pyfrbus} decomposes each period's system into recursive and simultaneous blocks and solves them in sequence; this implementation solves the full simultaneous system in one Newton iteration loop. Both solve the same $F(x)=0$, and Section~\ref{sec:validation} confirms the solutions agree to solver tolerance.
+  \item \textbf{Single-block Newton.} \texttt{pyfrbus} decomposes each period's system into recursive and simultaneous blocks (Section~\ref{sec:blocks}) and solves them in sequence; this implementation solves the full simultaneous system in one Newton iteration loop. Both solve the same $F(x)=0$, and Section~\ref{sec:validation} confirms the solutions agree to solver tolerance.
   \item \textbf{Scope.} MCE (rational-expectations) equation variants are not implemented --- \texttt{Frbus(path, mce=...)} raises \texttt{NotImplementedError} --- and the \texttt{mcontrol} trajectory-matching utility and stochastic simulations are likewise out of scope. The VAR model, add-factoring, exogenisation and shock simulation are complete.
 \end{itemize}
