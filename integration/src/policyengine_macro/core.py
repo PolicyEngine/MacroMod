@@ -516,13 +516,167 @@ def _pe_entity_dict(mapping) -> dict:
     return {k: _pe_jsonify(v) for k, v in mapping.items()}
 
 
+# ---------------------------------------------------------------------------
+# Reform-dict validation (shared by every tool that accepts a reform)
+# ---------------------------------------------------------------------------
+#
+# PolicyEngine's compile_reform (policyengine.tax_benefit_models.common.reform)
+# accepts exactly two shapes per parameter path:
+#
+#   {"gov.path": 0.21}                  -> applied from {year}-01-01
+#   {"gov.path": {"2026-01-01": 0.21}}  -> applied from that effective date
+#
+# Each (date, value) pair becomes a ParameterValue with start_date parsed by
+# datetime.strptime(key, "%Y-%m-%d") and end_date=None — i.e. values are
+# OPEN-ENDED with no expiry. A "start.end" range key therefore fails in
+# strptime ("unconverted data remains: .2029-12-31"), and there is no
+# supported way to express an end date: silently dropping the end would score
+# a permanent reform while the caller asked for a temporary one. So ranges are
+# rejected up front with an explicit explanation rather than faked.
+
+_REFORM_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_REFORM_RANGE_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})[.:](\d{4}-\d{2}-\d{2})$")
+
+_REFORM_SHAPES_HELP = (
+    "Supported reform shapes (per parameter path):\n"
+    '  - flat value:      {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}\n'
+    "  - effective date:  "
+    '{"gov.hmrc.income_tax.rates.uk[0].rate": {"2026-01-01": 0.21}}\n'
+    "A flat value takes effect from 1 January of the simulation year; a dated "
+    "value takes effect from that date. Values are open-ended (no end date). "
+    "Call list_reform_parameters for verified parameter paths and units."
+)
+
+
+def validate_reform(reform, *, argument: str = "reform") -> dict:
+    """Validate a reform dict and return it normalised to {path: {date: value}}.
+
+    Raises ValueError with an actionable message naming the supported shapes
+    for anything else, so callers never see a raw pydantic/strptime dump.
+    """
+    if reform is None or (isinstance(reform, dict) and not reform):
+        raise ValueError(
+            f"{argument} must be a non-empty {{parameter_path: value}} dict.\n"
+            + _REFORM_SHAPES_HELP
+        )
+    if not isinstance(reform, dict):
+        raise ValueError(
+            f"{argument} must be a non-empty {{parameter_path: value}} "
+            f"dict, got {type(reform).__name__}.\n"
+            + _REFORM_SHAPES_HELP
+        )
+
+    normalised: dict[str, object] = {}
+    for path, spec in reform.items():
+        if not isinstance(path, str) or not path:
+            raise ValueError(
+                f"{argument} keys must be parameter-path strings, got "
+                f"{path!r}.\n" + _REFORM_SHAPES_HELP
+            )
+        if not isinstance(spec, dict):
+            if isinstance(spec, (int, float, bool)):
+                # Left as a scalar: PolicyEngine applies it from
+                # {year}-01-01, which is the documented behaviour.
+                normalised[path] = spec
+                continue
+            raise ValueError(
+                f"{argument}['{path}'] must be a number or a "
+                f"{{date: value}} dict, got {type(spec).__name__} "
+                f"({spec!r}).\n" + _REFORM_SHAPES_HELP
+            )
+        if not spec:
+            raise ValueError(
+                f"{argument}['{path}'] is an empty dict; give it a value or a "
+                "{date: value} mapping.\n" + _REFORM_SHAPES_HELP
+            )
+        dated: dict[str, object] = {}
+        for key, value in spec.items():
+            key = str(key)
+            range_match = _REFORM_RANGE_RE.match(key)
+            if range_match:
+                start, end = range_match.groups()
+                raise ValueError(
+                    f"{argument}['{path}'] uses the date-range key '{key}', "
+                    "which the PolicyEngine reform-dict API does "
+                    "not support: a reform value is applied from an effective "
+                    "date and stays in force indefinitely (end_date is always "
+                    f"None), so the end date {end} cannot be expressed.\n"
+                    f"Use the start date alone to score the reform as "
+                    f'permanent: {{"{start}": {value!r}}}. To approximate a '
+                    "time-limited reform, score the affected years "
+                    "individually (e.g. one population_reform_impact call per "
+                    "year in the window) and treat later years as baseline.\n"
+                    + _REFORM_SHAPES_HELP
+                )
+            if not _REFORM_DATE_RE.match(key):
+                raise ValueError(
+                    f"{argument}['{path}'] has the invalid date key '{key}'. "
+                    "Effective dates must be YYYY-MM-DD.\n"
+                    + _REFORM_SHAPES_HELP
+                )
+            if not isinstance(value, (int, float, bool)):
+                raise ValueError(
+                    f"{argument}['{path}']['{key}'] must be a number, got "
+                    f"{type(value).__name__} ({value!r}).\n"
+                    + _REFORM_SHAPES_HELP
+                )
+            dated[key] = value
+        normalised[path] = dated
+    return normalised
+
+
+def _validate_country(country, *, argument: str = "country") -> str:
+    """Validate the country argument with an actionable message.
+
+    Deliberately has NO default: 'uk' and 'us' are different tax-benefit
+    models, and defaulting would silently score the wrong country for a US
+    household. pe_population_impact keeps its historical country='uk' default
+    for backwards compatibility; the household tools require it explicitly.
+    """
+    if country is None or country == "":
+        raise ValueError(
+            f"{argument} is required and must be 'uk' or 'us' — there is no "
+            "default, because the two are different tax-benefit models and "
+            "guessing would silently score the wrong country. Example: "
+            'country="uk".'
+        )
+    if not isinstance(country, str):
+        raise ValueError(
+            f"{argument} must be the string 'uk' or 'us', got "
+            f"{type(country).__name__} ({country!r})."
+        )
+    country = country.lower()
+    if country not in ("uk", "us"):
+        raise ValueError(f"{argument} must be 'uk' or 'us', got {country!r}")
+    return country
+
+
+def _validate_people(people, *, argument: str = "people") -> list[dict]:
+    """Validate the people argument with an actionable message."""
+    if not people:
+        raise ValueError(
+            f"{argument} is required: a non-empty list of person dicts with "
+            "ANNUAL money amounts, e.g. "
+            '[{"age": 35, "employment_income": 50000}, {"age": 5}].'
+        )
+    if not isinstance(people, list) or not all(
+        isinstance(p, dict) for p in people
+    ):
+        raise ValueError(
+            f"{argument} must be a list of person dicts, e.g. "
+            '[{"age": 35, "employment_income": 50000}].'
+        )
+    return people
+
+
 def _pe_run(country, people, year, reform, benunit, tax_unit, household):
     # Validate country before importing PolicyEngine so bad input fails fast
     # with a clear ValueError even where PE is not installed (matches
     # pe_population_impact and lets the wiring tests run without the heavy dep).
-    country = country.lower()
-    if country not in ("uk", "us"):
-        raise ValueError(f"country must be 'uk' or 'us', got {country!r}")
+    country = _validate_country(country)
+    people = _validate_people(people)
+    if reform is not None:
+        reform = validate_reform(reform)
     pe = _import_pe()
     if country == "uk":
         return pe.uk.calculate_household(
@@ -581,7 +735,7 @@ def pe_household(
     tax_unit (e.g. {"filing_status": "SINGLE"}) and household
     (e.g. {"state_code_str": "CA"}).
     """
-    country = country.lower()
+    country = _validate_country(country)
     result = _pe_run(country, people, year, reform, benunit, tax_unit, household)
     out = {
         "country": country,
@@ -611,9 +765,9 @@ def pe_household_impact(
 ) -> dict:
     """Baseline vs reform for one household: what does this reform do to
     this family? Returns baseline and reform summaries plus their deltas."""
-    if not reform:
-        raise ValueError("reform must be a non-empty {parameter_path: value} dict")
-    country = country.lower()
+    reform = validate_reform(reform)
+    country = _validate_country(country)
+    people = _validate_people(people)
     base = _pe_summary(
         country, _pe_run(country, people, year, None, benunit, tax_unit, household)
     )
@@ -761,11 +915,8 @@ def pe_population_impact(
     The baseline simulation is cached in-process per (country, year,
     dataset). UK data needs HUGGING_FACE_TOKEN on first download.
     """
-    if not reform:
-        raise ValueError("reform must be a non-empty {parameter_path: value} dict")
-    country = country.lower()
-    if country not in ("uk", "us"):
-        raise ValueError(f"country must be 'uk' or 'us', got {country!r}")
+    reform = validate_reform(reform)
+    country = _validate_country(country)
 
     ds, base = _pe_pop_baseline(country, year, dataset)
     pe = _import_pe()
@@ -893,17 +1044,28 @@ def _og_build_policy(reform: dict, start_year: int):
     from policyengine.core import ParameterValue, Policy
     from policyengine.tax_benefit_models.uk import uk_latest
 
-    start = datetime(int(start_year), 1, 1)
+    default_start = datetime(int(start_year), 1, 1)
+    values = []
+    for path, spec in reform.items():
+        # validate_reform leaves flat values as scalars and dated values as
+        # {"YYYY-MM-DD": value}; both are supported here.
+        dated = spec if isinstance(spec, dict) else {None: spec}
+        for date_key, value in dated.items():
+            start = (
+                default_start
+                if date_key is None
+                else datetime.strptime(str(date_key), "%Y-%m-%d")
+            )
+            values.append(
+                ParameterValue(
+                    parameter=uk_latest.get_parameter(path),
+                    value=value,
+                    start_date=start,
+                )
+            )
     return Policy(
         name=", ".join(f"{p} = {v}" for p, v in reform.items()),
-        parameter_values=[
-            ParameterValue(
-                parameter=uk_latest.get_parameter(path),
-                value=value,
-                start_date=start,
-            )
-            for path, value in reform.items()
-        ],
+        parameter_values=values,
     )
 
 
@@ -983,7 +1145,7 @@ def og_score_reform(
     steady states, and maps the long-run changes to real-world £bn via
     oguk.map_to_real_world.
     """
-    _validate_reform(reform)
+    reform = validate_reform(reform)
     solve_steady_state, map_to_real_world = _import_oguk()
     policy = _og_build_policy(dict(reform), int(start_year))
     baseline_ss = _og_solve_baseline(start_year, max_iter, use_cache=baseline_cache)
@@ -1205,7 +1367,7 @@ def obr_score_reform(
     UK only (the OBR is a UK model). Runtime: one microsim run per year in
     the window (~6s each after the first) plus two OBR solves.
     """
-    _validate_reform(reform)
+    reform = validate_reform(reform)
     corp = _obr_corp_tax_paths(reform)
     if corp:
         raise ValueError(
@@ -1324,11 +1486,8 @@ SCORE_MODELS = ("og", "obr", "microsim")
 
 
 def _validate_reform(reform) -> None:
-    if not reform or not isinstance(reform, dict):
-        raise ValueError(
-            "reform must be a non-empty {parameter_path: value} dict, e.g. "
-            '{"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}'
-        )
+    """Backwards-compatible alias: validate and discard the normalised form."""
+    validate_reform(reform)
 
 
 def score_reform(
@@ -1361,8 +1520,15 @@ def score_reform(
       annual costing + distribution, no macro feedback). UK or US.
       Extra arg: dataset.
     """
-    country = country.lower()
-    _validate_reform(reform)
+    country = _validate_country(country)
+    reform = validate_reform(reform)
+    if model not in SCORE_MODELS:
+        prefix = "model is required and " if model is None else ""
+        raise ValueError(
+            f"{prefix}model must be one of {SCORE_MODELS}, got {model!r}. "
+            "'microsim' is the fast static population costing; 'obr' adds "
+            "macro feedback; 'og' is the long-run OLG comparison."
+        )
     if model == "og":
         if country != "uk":
             raise ValueError(
