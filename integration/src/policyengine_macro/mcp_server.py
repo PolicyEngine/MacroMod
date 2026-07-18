@@ -16,9 +16,9 @@ mcp = FastMCP("policyengine-macro")
 
 @mcp.tool()
 def score_reform(
-    country: str,
-    reform: dict,
-    model: str,
+    country: str | None = None,
+    reform: dict | None = None,
+    model: str | None = None,
     start_year: int = 2026,
     max_iter: int = 250,
     years: int = 5,
@@ -34,8 +34,13 @@ def score_reform(
         country: 'uk' (macro members are UK models; 'us' works for microsim).
         reform: Flat {parameter_path: value} dict — the same shape as
             population_reform_impact / household_reform_impact, e.g.
-            {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}. Call
-            list_reform_parameters for verified paths and units.
+            {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}. A value may
+            also be a {effective_date: value} dict, e.g.
+            {"gov.hmrc.income_tax.rates.uk[0].rate": {"2026-01-01": 0.21}}.
+            Dates are single YYYY-MM-DD effective dates; date RANGES
+            ("2026-01-01.2029-12-31") are not supported, because a
+            PolicyEngine reform value applies from its effective date with
+            no expiry. Call list_reform_parameters for verified paths.
         model: Which model consumes the reform, via its contract:
             'og'  — OG-UK overlapping-generations model: long-run steady-state
                     general-equilibrium comparison; the reform enters through
@@ -167,8 +172,8 @@ def model_summary() -> dict:
 
 @mcp.tool()
 def calculate_household(
-    country: str,
-    people: list[dict],
+    country: str | None = None,
+    people: list[dict] | None = None,
     year: int = 2026,
     reform: dict | None = None,
     benunit: dict | None = None,
@@ -187,8 +192,11 @@ def calculate_household(
         reform: Optional parametric reform as {parameter_path: value}, e.g.
             {"gov.hmrc.income_tax.rates.uk[0].rate": 0.25} (UK basic rate to
             25%, a decimal) or {"gov.irs.credits.ctc.amount.base[0].amount":
-            3000} (US CTC to $3,000). Call list_reform_parameters for verified
-            paths and units.
+            3000} (US CTC to $3,000). A value may also be a
+            {effective_date: value} dict with a single YYYY-MM-DD date, e.g.
+            {"gov.hmrc.income_tax.rates.uk[0].rate": {"2026-01-01": 0.21}};
+            date ranges are not supported. Call list_reform_parameters for
+            verified paths and units.
         benunit: UK only, optional benefit-unit dict, e.g.
             {"would_claim_uc": true, "would_claim_child_benefit": true}.
         tax_unit: US only, optional, e.g. {"filing_status": "SINGLE"} or "JOINT".
@@ -209,9 +217,9 @@ def calculate_household(
 
 @mcp.tool()
 def household_reform_impact(
-    country: str,
-    people: list[dict],
-    reform: dict,
+    country: str | None = None,
+    people: list[dict] | None = None,
+    reform: dict | None = None,
     year: int = 2026,
     benunit: dict | None = None,
     tax_unit: dict | None = None,

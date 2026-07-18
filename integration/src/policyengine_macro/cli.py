@@ -265,7 +265,12 @@ def _json_opt(value, name):
 
 
 _PEOPLE_HELP = 'JSON list of person dicts, e.g. \'[{"age":35,"employment_income":50000}]\'.'
-_REFORM_HELP = 'JSON reform dict, e.g. \'{"gov.hmrc.income_tax.rates.uk[0].rate":0.25}\'.'
+_REFORM_HELP = (
+    'JSON reform dict, e.g. \'{"gov.hmrc.income_tax.rates.uk[0].rate":0.25}\'. '
+    'A value may also be a single-effective-date dict, e.g. '
+    '\'{"gov.hmrc.income_tax.rates.uk[0].rate":{"2026-01-01":0.25}}\'; '
+    'date ranges ("2026-01-01.2029-12-31") are not supported.'
+)
 
 
 def _pe_common_options(fn):
@@ -404,7 +409,7 @@ def parameters(as_json):
 
 
 def _echo_og_impact(res: dict) -> None:
-    click.echo(f"OG-UK steady-state reform score")
+    click.echo("OG-UK steady-state reform score")
     click.echo(f"Reform: {res['reform']} (from {res['start_year']})")
     click.echo(f"Assumptions: {res['assumptions']}\n")
     imp = res["impact"]
