@@ -899,3 +899,98 @@ h2 {
 .foot-nav .foot-pe img { height: 18px; }
 
 .cta-sub { max-width: 64ch; margin: 0 auto 30px; text-align: center; font-size: var(--fs-body); line-height: 1.65; color: var(--paper-faint); }
+
+/* ============================================================
+   doc index cards (shared: /docs/ and /papers/)
+   ============================================================ */
+.doc-index { display: grid; grid-template-columns: 1fr; gap: 16px; margin: 26px 0; }
+@media (min-width: 760px) { .doc-index { grid-template-columns: 1fr 1fr; } }
+.doc-index a {
+  display: block; border: 1px solid var(--line-soft); border-radius: 8px;
+  padding: 20px 22px; text-decoration: none; transition: border-color 0.25s, transform 0.25s;
+}
+.doc-index a:hover { border-color: var(--primary); transform: translateY(-2px); }
+.doc-index .di-id { font-family: var(--mono); font-size: var(--fs-label); color: var(--amber); }
+.doc-index h3 { font-family: var(--display); font-weight: 500; font-size: var(--fs-h3-sm); margin: 8px 0 8px; color: var(--paper); }
+.doc-index p { font-size: var(--fs-body-sm); line-height: 1.55; color: var(--paper-dim); margin: 0; }
+.doc-index .di-go { display: block; margin-top: 12px; font-family: var(--mono); font-size: var(--fs-label); color: var(--amber-soft); }
+
+/* ============================================================
+   working papers — index cards + in-page PDF viewer
+   ============================================================ */
+
+/* --- papers index: extends .doc-index with a metadata/result row --- */
+.paper-meta {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 12px 0 0;
+}
+.paper-meta .tag { white-space: nowrap; }
+.paper-result {
+  display: block; margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+  font-family: var(--mono); font-size: var(--fs-label);
+  line-height: 1.55; color: var(--paper-dim);
+}
+.paper-result strong { color: var(--amber); font-weight: 500; }
+
+/* --- viewer page --- */
+.paper-viewer { padding-top: clamp(96px, 14vh, 140px); }
+.paper-viewer-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap; margin-bottom: 18px;
+}
+.paper-viewer-head h1 {
+  font-family: var(--display); font-weight: 500;
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.25;
+  margin: 6px 0 0; max-width: 30ch; color: var(--paper);
+}
+.paper-viewer-actions { display: inline-flex; gap: 10px; flex-wrap: wrap; }
+
+/* the embed frame */
+.pdf-frame {
+  position: relative;
+  width: 100%;
+  height: min(78vh, 1000px);
+  min-height: 460px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ink-2);
+}
+.pdf-frame object,
+.pdf-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+/* fallback shown by the browser when inline PDF rendering is unavailable
+   (it is the <object> element's child content, so it only paints when the
+   PDF handler fails) */
+.pdf-fallback {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 14px; height: 100%;
+  padding: 36px 24px; text-align: center;
+}
+.pdf-fallback p {
+  margin: 0; max-width: 46ch;
+  font-size: var(--fs-body-sm); line-height: 1.6; color: var(--paper-dim);
+}
+
+.pdf-note {
+  margin-top: 14px; font-family: var(--mono); font-size: var(--fs-label);
+  color: var(--paper-faint);
+}
+
+/* --- mobile / touch: inline PDF embedding is unreliable (iOS Safari and most
+   Android browsers render a blank box or a single page), so drop the embed
+   entirely and promote a download/open card instead. --- */
+.pdf-mobile { display: none; }
+@media (max-width: 820px), (pointer: coarse) {
+  .pdf-frame { display: none; }
+  .pdf-mobile {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+    border: 1px solid var(--line-soft); border-radius: 8px;
+    padding: 24px 22px; background: var(--ink-2);
+  }
+  .pdf-mobile p {
+    margin: 0; font-size: var(--fs-body-sm); line-height: 1.6;
+    color: var(--paper-dim);
+  }
+}

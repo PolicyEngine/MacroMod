@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Replicating the Bank of England's structural VAR — PolicyEngine Macro</title>
+<meta name="description" content="An eight-variable Bayesian SVAR with a Minnesota prior and zero plus sign restrictions imposed via Arias et al. (2018), identifying six named structural shocks." />
+<link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
+<meta name="theme-color" content="#FFFFFF" />
+
+<link rel="stylesheet" href="/vendor/fonts/fonts.css" />
+<link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body class="doc">
+<div class="grain" aria-hidden="true"></div>
+<canvas id="field" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="brand" href="/">
+    <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
+  </a>
+  <nav class="nav-links">
+    <a href="/#idea">idea</a>
+    <a href="/#models">models</a>
+    <a href="/#pipeline">pipeline</a>
+    <a href="/docs/">docs</a>
+    <a href="/papers/">papers</a>
+    <a href="/connect/">use it</a>
+    <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="band paper-viewer">
+    <div class="paper-viewer-head">
+      <div>
+        <span class="di-id mono">boe-svar · UK · hosted · 28 pages</span>
+        <h1>An open replication of the Bank of England's structural VAR model for the UK economy</h1>
+      </div>
+      <div class="paper-viewer-actions">
+        <a class="btn btn-primary" href="/papers/boe-svar/main.pdf" download>Download PDF</a>
+        <a class="btn btn-ghost" href="/papers/">All papers</a>
+      </div>
+    </div>
+
+    <p class="paper-result" style="max-width:78ch;">Out-of-sample from the 2024Q2 edge: RMSE <strong>0.32pp</strong> for both GDP growth and CPI inflation, with <strong>14/14 outturns inside the 68% bands</strong>. Global shocks explain 40.9% of GDP and 50.1% of CPI FEV at one year, vs ~40% and ~50% in the paper.</p>
+
+    <!-- desktop: render the PDF inline with the browser's own viewer.
+         No third-party script — the <object> child content is the fallback
+         the browser paints if it has no PDF handler. -->
+    <div class="pdf-frame">
+      <object data="/papers/boe-svar/main.pdf#view=FitH" type="application/pdf" aria-label="Replicating the Bank of England's structural VAR">
+        <div class="pdf-fallback">
+          <p>
+            Your browser can’t display PDFs inline. The paper is 28
+            pages — open or download it instead.
+          </p>
+          <a class="btn btn-primary" href="/papers/boe-svar/main.pdf">Open the PDF</a>
+        </div>
+      </object>
+    </div>
+
+    <!-- touch / narrow viewports: inline embedding is unreliable, so show a
+         download card rather than an empty box -->
+    <div class="pdf-mobile">
+      <span class="di-id mono">28 pages · pdf</span>
+      <p>
+        Inline PDF viewing is unreliable on mobile browsers, so it’s disabled
+        here. Open the paper in your device’s PDF reader instead.
+      </p>
+      <a class="btn btn-primary" href="/papers/boe-svar/main.pdf">Open the PDF</a>
+    </div>
+
+    <p class="pdf-note">
+      Source, figures, and reproduction scripts:
+      <a href="https://github.com/PolicyEngine/macro/tree/main/papers/boe-svar">papers/boe-svar/</a>
+    </p>
+
+    <p class="research-link mono" style="margin-top:26px;">
+      <a href="/papers/obr-macro/">← obr-macro</a> &nbsp;·&nbsp; <a href="/papers/">all papers</a> &nbsp;·&nbsp; <a href="/papers/frb-us/">frb-us →</a>
+    </p>
+  </section>
+</main>
+
+<footer class="foot foot-bar">
+  <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
+  <nav class="foot-nav mono">
+    <a href="/docs/">docs</a>
+    <a href="/papers/">papers</a>
+    <a href="/connect/">use it</a>
+    <a href="https://github.com/PolicyEngine/macro">GitHub</a>
+    <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
+  </nav>
+</footer>
+<script src="/field.js" defer></script>
+<script src="/reveal.js" defer></script>
+</body>
+</html>
