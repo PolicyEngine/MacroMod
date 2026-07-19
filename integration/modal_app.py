@@ -2,20 +2,23 @@
 
     modal deploy integration/modal_app.py
 
-Serves the FastMCP instance from `policyengine_macro.mcp_server` (tools: score_reform,
-obr_shock, list_reform_variables, forecast_uk, latest_shocks, model_summary,
+Serves the FastMCP instance from `policyengine_macro.mcp_server` (13 tools:
+score_reform, obr_shock, list_reform_variables, frbus_shock,
+frbus_list_variables, frbus_summary, forecast_uk, latest_shocks, model_summary,
 calculate_household, household_reform_impact, list_reform_parameters,
 population_reform_impact) as an
 ASGI app at  https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp
 
-Both model repos resolve their data files relative to their own repo root
+All three model repos resolve their data files relative to their own repo root
 (`Path(__file__)`-relative); `policyengine_macro.core`'s svar_summary falls back to a
 checkout via MACROMOD_BOE_VAR_REPO only when boe_var is absent (it is
-installed here, so the fallback never fires). We bake the repos into the
+installed here, so the fallback never fires), and _frbus_repo() falls back to
+MACROMOD_FRB_REPO likewise. We bake the repos into the
 image at the SAME absolute paths and `pip install -e` them, so every path
 resolves in the container with zero patching:
   - obr_macro:  /Users/janansadeqian/obr-macroeconomic-model  (+ data/)
   - boe_var:    /Users/janansadeqian/boe-var-model            (+ data/, results/)
+  - frbus:      /Users/janansadeqian/us-frb-model             (+ vendor/, pruned)
 
 COST PROFILE
 ------------
@@ -32,6 +35,44 @@ COST PROFILE
 - max_containers=3 -> hard spend cap against abuse/fan-out.
 - timeout=600 -> allows high-draw forecasts (e.g. draws=6000) and the
   first-ever population data download (~125MB + dataset build) to finish.
+
+FRB/US (frbus_shock) COST AND RESOURCES
+---------------------------------------
+FRB/US is by far the CHEAPEST macro member here, and needed no change to
+cpu/memory/timeout:
+- Latency, measured on a laptop for the default 20-quarter window: ~0.1s to
+  read LONGBASE, ~0.7s to parse model.xml and symbolically differentiate the
+  284 equations into an analytic sparse Jacobian, ~2.3s for init_trac, and
+  ~0.2-0.5s per solve (~4.4ms per quarter). A COLD frbus_shock call is
+  therefore ~3s end to end. core._FRBUS_BASELINE_CACHE holds the compiled
+  model and its add-factored baseline per (policy_rule, start, end), so every
+  WARM call in the same container is just the shocked solve: ~0.3s.
+  frbus_list_variables and frbus_summary are static and instant.
+- Against the 600s timeout that is ~200x headroom. Even a 100-year window
+  would land near 18s.
+- Memory: the model state is a single ~860-column DataFrame over a quarterly
+  index plus the sparse Jacobian — tens of MB, an order of magnitude under
+  the population microsim's ~1.8GB peak that actually sizes this container.
+  The cache holds one such baseline per policy rule (3 rules max).
+- CPU: the solve is a scipy sparse LU on 284 equations and is effectively
+  single-threaded; it does not benefit from cpu=4 the way the OBR/SVAR runs
+  do, but it does not contend for it either.
+- Image cost: the repo is 251MB on disk but only LONGBASE.TXT (4.4MB) and
+  model.xml (533KB) are needed at runtime, so _FRB_IGNORE / _FRB_PRUNE cut it
+  to ~5MB in the image (see the comment on those constants).
+
+WHY FRB/US IS HOSTABLE AND OG-UK IS NOT
+---------------------------------------
+The distinction is not model size, it is what a single call has to compute.
+FRB/US here uses VAR (backward-looking) expectations, so each quarter is one
+Newton solve on a 284-equation system with a precomputed analytic Jacobian and
+NO iteration over the future: cost is linear in the horizon at ~4.4ms per
+quarter, and the data it needs is a 4.5MB text file that ships in the image.
+OG-UK has to find a general-equilibrium STEADY STATE — a fixed point over the
+whole lifecycle distribution — per scenario, measured at >17 minutes for one
+baseline solve, two solves per reform score, plus a PolicyEngine microdata
+calibration step. One is a bounded linear-time simulation, the other is an
+unbounded nested fixed-point search; only the first fits a 600s request.
 
 POPULATION DATA (population_reform_impact)
 ------------------------------------------
@@ -70,6 +111,7 @@ import modal
 HOME = "/Users/janansadeqian"
 OBR_REPO = f"{HOME}/obr-macroeconomic-model"
 BOE_REPO = f"{HOME}/boe-var-model"
+FRB_REPO = f"{HOME}/us-frb-model"
 INTEGRATION = str(Path(__file__).parent)
 
 # MACROMOD_IMAGE_SOURCE=github (used by CI) clones the model repos from
@@ -78,10 +120,63 @@ INTEGRATION = str(Path(__file__).parent)
 GITHUB_SOURCE = os.environ.get("MACROMOD_IMAGE_SOURCE") == "github"
 OBR_URL = "https://github.com/PolicyEngine/obr-macroeconomic-model"
 BOE_URL = "https://github.com/PolicyEngine/boe-var-model"
+FRB_URL = "https://github.com/PolicyEngine/us-frb-model"
 
 # Keep the image lean: skip the 412MB dashboard, VCS, caches, docs.
+# "**/.venv" matters more than it looks: a local checkout that has been set up
+# for development carries its own virtualenv (213MB in us-frb-model alone),
+# which add_local_dir would otherwise copy into the image — shadowing the
+# container's own site-packages with laptop-built wheels. Only the local-source
+# branch can hit this; a git clone never has one.
 _IGNORE = ["**/.git", "**/.github", "**/__pycache__", "**/*.egg-info",
-           "**/.pytest_cache"]
+           "**/.pytest_cache", "**/.venv", "**/.ruff_cache", "**/.mypy_cache"]
+
+# us-frb-model is ~251MB on disk but needs only two files at RUNTIME:
+#   vendor/data_only_package/LONGBASE.TXT            4.4MB  (the data vintage)
+#   vendor/pyfrbus_package/models/model.xml          533KB  (the equations)
+# Everything else under vendor/ is provenance material for the validation
+# workflow: the original .zip archives sitting alongside their own unpacked
+# contents (5.9MB of pure duplication), the Fed's EViews-era frbus_package
+# (3MB of PDFs and .prg files), the pyfrbus reference implementation and its
+# docs (only ever run by the model repo's own vendor-reference CI job, in a
+# throwaway venv), the EViews database and HISTDATA, and the committed vendor
+# reference CSV under tests/.
+#
+# Both files are resolved by policyengine_macro.core._frbus_repo() from
+# `frbus.__file__` — with the editable install below that is
+# <repo>/src/frbus/__init__.py, so the repo root is two levels up and the two
+# vendor paths must stay at their original locations. They do; only their
+# siblings are dropped. tests/test_frbus.py exercises exactly this resolution
+# path, and the exclusion list is verified by installing a filtered copy.
+_FRB_IGNORE = [
+    "**/*.zip",                              # archives duplicating unpacked dirs
+    "vendor/frbus_package/**",               # EViews package: docs, mods, programs
+    "vendor/pyfrbus_package/docs/**",
+    "vendor/pyfrbus_package/demos/**",
+    "vendor/pyfrbus_package/pyfrbus/**",     # reference impl; not imported here
+    "vendor/data_only_package/eviews_database/**",
+    "vendor/data_only_package/HISTDATA.TXT",  # history; we simulate from LONGBASE
+    "tests/**",
+    "scripts/**",
+    "uv.lock",
+]
+# The equivalent as shell `find -delete` for the github-clone branch, which
+# has no per-path ignore hook. Kept beside _FRB_IGNORE so the two cannot drift.
+_FRB_PRUNE = " && ".join([
+    f"rm -f {FRB_REPO}/vendor/*.zip",
+    f"rm -rf {FRB_REPO}/vendor/frbus_package",
+    f"rm -rf {FRB_REPO}/vendor/pyfrbus_package/docs "
+    f"{FRB_REPO}/vendor/pyfrbus_package/demos "
+    f"{FRB_REPO}/vendor/pyfrbus_package/pyfrbus",
+    f"rm -rf {FRB_REPO}/vendor/data_only_package/eviews_database "
+    f"{FRB_REPO}/vendor/data_only_package/HISTDATA.TXT",
+    f"rm -rf {FRB_REPO}/tests {FRB_REPO}/scripts",
+    # Fail the BUILD, not the first user request, if pruning took a file the
+    # adapters need. A missing model.xml would otherwise surface as a
+    # FileNotFoundError from the first frbus_shock call in production.
+    f"test -f {FRB_REPO}/vendor/data_only_package/LONGBASE.TXT",
+    f"test -f {FRB_REPO}/vendor/pyfrbus_package/models/model.xml",
+])
 
 image = (
     modal.Image.debian_slim(python_version="3.12")
@@ -111,6 +206,8 @@ if GITHUB_SOURCE:
     image = image.apt_install("git").run_commands(
         f"git clone --depth 1 {OBR_URL} {OBR_REPO}",
         f"git clone --depth 1 {BOE_URL} {BOE_REPO}",
+        f"git clone --depth 1 {FRB_URL} {FRB_REPO}",
+        _FRB_PRUNE,
         force_build=True,
     )
 else:
@@ -124,6 +221,8 @@ else:
         )
         .add_local_dir(BOE_REPO, remote_path=BOE_REPO, copy=True,
                        ignore=_IGNORE + ["docs/**"])
+        .add_local_dir(FRB_REPO, remote_path=FRB_REPO, copy=True,
+                       ignore=_IGNORE + _FRB_IGNORE)
     )
 
 image = (
@@ -132,8 +231,11 @@ image = (
                    copy=True, ignore=_IGNORE + ["modal_app.py"])
     # Editable installs keep each package's __file__ inside its repo, so the
     # repos' data/ and results/ directories resolve exactly as on the laptop.
+    # Editable installs keep frbus.__file__ inside its repo too, which is how
+    # _frbus_repo() finds vendor/ — a wheel install would NOT work, because
+    # vendor/ is not package data.
     .run_commands(
-        f"pip install -e {OBR_REPO} -e {BOE_REPO} "
+        f"pip install -e {OBR_REPO} -e {BOE_REPO} -e {FRB_REPO} "
         f"-e {HOME}/macro/integration"
     )
 )

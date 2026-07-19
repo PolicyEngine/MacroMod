@@ -25,7 +25,7 @@ def test_tool_names_are_exactly_the_golden_set():
     assert_surface(t.name for t in _registered())
 
 
-def test_tool_count_is_exactly_ten():
+def test_tool_count_matches_the_golden_count():
     assert len(_registered()) == GOLDEN_TOOL_COUNT
 
 

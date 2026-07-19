@@ -29,7 +29,7 @@ in structural-shock terms and forecasts it, but does not score reforms.
 | **OBR macroeconometric model** | shipped | [PolicyEngine/obr-macroeconomic-model](https://github.com/PolicyEngine/obr-macroeconomic-model) |
 | **Bank of England structural VAR (boe-svar)** | shipped (baseline/conditioning member: forecasts with bands, shock readings, revision narratives — does not score reforms) | [PolicyEngine/boe-var-model](https://github.com/PolicyEngine/boe-var-model) |
 | **PolicyEngine tax-benefit microsimulation** | shipped (household calculator, household reform impacts, and population-level scoring) | [PolicyEngine/policyengine.py](https://github.com/PolicyEngine/policyengine.py) |
-| **FRB/US (US macroeconometric model)** | shipped (from-scratch Python implementation of the Fed's model; VAR expectations, validated against pyfrbus; not yet wired into the CLI/MCP) | [PolicyEngine/us-frb-model](https://github.com/PolicyEngine/us-frb-model) |
+| **FRB/US (US macroeconometric model)** | shipped (from-scratch Python implementation of the Fed's model; VAR expectations, validated against pyfrbus; wired into the CLI and the hosted MCP server as `frbus_shock`) | [PolicyEngine/us-frb-model](https://github.com/PolicyEngine/us-frb-model) |
 | More model classes (incl. OG-USA) | planned | — |
 
 PolicyEngine is the *micro* member: person/household-resolution taxes and
@@ -96,10 +96,13 @@ models:
   claude mcp add --transport http policyengine-macro https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp
   ```
 
-  Ten tools: `score_reform` (a PolicyEngine reform — the same
+  Thirteen tools: `score_reform` (a PolicyEngine reform — the same
   `{parameter_path: value}` dict as the microsimulation tools — through a
   chosen macro model), `obr_shock` and `list_reform_variables` (raw OBR
-  variable shocks in model units), `forecast_uk`, `latest_shocks`,
+  variable shocks in model units), `frbus_shock`, `frbus_list_variables` and
+  `frbus_summary` (FRB/US impulse responses under a selectable monetary policy
+  rule; `score_reform` refuses `model='frbus'` because there is deliberately no
+  PolicyEngine-reform bridge for it), `forecast_uk`, `latest_shocks`,
   `model_summary` (SVAR), and the PolicyEngine microsimulation tools
   (`calculate_household`, `household_reform_impact`, `list_reform_parameters`,
   `population_reform_impact`). `score_reform` with `model='og'` works locally
@@ -171,7 +174,7 @@ non-real numbers as illustrative.
 - [x] Hosted MCP server (`https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp`, auto-deployed by CI)
 - [x] OG-UK steady-state scoring (`pe-macro score --model og` / `pe-macro og-score`, local only)
 - [x] Population-level PolicyEngine reform scoring (`population_reform_impact`, hosted and local)
-- [x] FRB/US Python implementation ([PolicyEngine/us-frb-model](https://github.com/PolicyEngine/us-frb-model); CLI/MCP wiring still to come)
+- [x] FRB/US Python implementation ([PolicyEngine/us-frb-model](https://github.com/PolicyEngine/us-frb-model)), wired into the CLI (`pe-macro frbus-shock`) and the hosted MCP server
 - [ ] Additional macroeconomic model classes (incl. OG-USA)
 
 ---

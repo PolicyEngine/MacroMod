@@ -60,6 +60,13 @@ def score_reform(
                     few minutes (one microsim run per year + two OBR solves).
             'microsim' — the PolicyEngine population costing itself (static,
                     no macro feedback), wrapped in the same ScoreResult.
+            'frbus' — NOT ACCEPTED, and deliberately so: it raises an error.
+                    FRB/US has no PolicyEngine-reform bridge, because no
+                    mapping exists today from a PolicyEngine US reform to
+                    FRB/US fiscal levers and inventing one would return
+                    plausible-looking wrong numbers. For FRB/US, use the
+                    frbus_shock tool with raw variable shocks in model units
+                    (frbus_list_variables lists the levers).
         start_year: Reform start year (default 2026).
         max_iter: og only — steady-state solver iteration cap (default 250).
         years: obr only — costing window length in years (default 5).
@@ -122,6 +129,103 @@ def list_reform_variables() -> list[dict]:
     takes PolicyEngine reform dicts, not these raw variables.)
     """
     return core.obr_list_variables()
+
+
+@mcp.tool()
+def frbus_shock(
+    var: str,
+    shock: float,
+    start: str = "2026Q1",
+    periods: int = 1,
+    horizon: int = 20,
+    policy_rule: str = "inertial_taylor",
+    variables: list[str] | None = None,
+    name: str | None = None,
+) -> dict:
+    """Shock one FRB/US variable and return the US impulse responses — the
+    US counterpart of obr_shock, using the Federal Reserve Board's FRB/US
+    model (VAR/backward-looking expectations, 284 endogenous equations,
+    April 2026 LONGBASE vintage).
+
+    Solves an add-factored baseline that reproduces LONGBASE to machine
+    precision, then the same model with the shock applied, and returns
+    per-quarter DEVIATIONS FROM BASELINE for the headline series: xgdp (real
+    GDP, %), lur (unemployment rate, pp), picxfe (core PCE inflation, pp),
+    pcpi (CPI price level, %) and rff (federal funds rate, pp).
+
+    NOTE: this takes raw model variables, NOT PolicyEngine reform dicts.
+    There is deliberately no PolicyEngine-reform bridge for FRB/US (see
+    score_reform), so this tool is the only supported entry point.
+
+    Args:
+        var: Lever to shock — call frbus_list_variables first. Most are
+            add-errors (`<name>_aerr`): 'rffintay_aerr' (monetary policy),
+            'egfe_aerr' (federal purchases), 'trp_aerr' (personal tax rate),
+            'trci_aerr' (corporate tax rate), 'ecnia_aerr' (consumption).
+            Endogenous variables cannot be shocked directly — their own
+            equation would overwrite the level, so shock the add-error.
+        shock: Shock size, added each shocked quarter. UNITS DIFFER PER LEVER
+            AND ARE NOT INTERCHANGEABLE. rffintay_aerr is in percentage points
+            (1.0 = a 100bp tightening); trp_aerr/trci_aerr are decimal rate
+            changes (0.01 = 1pp); egfe_aerr/ecnia_aerr and the other spending
+            levers are in LOG POINTS OF QUARTERLY GROWTH (0.01 ~ a 1% higher
+            level), NOT billions of dollars — passing a dollar-sized number
+            there diverges the solver and returns an error.
+        start: First shocked quarter, e.g. '2026Q1' (default).
+        periods: Quarters the shock is held from `start` (default 1 = a
+            single-quarter impulse, matching the Fed's demo).
+        horizon: Quarters simulated and reported (default 20 = 5 years).
+        policy_rule: How monetary policy responds — this materially changes
+            the answer and is often the economic point of the exercise:
+            'inertial_taylor' (default, the LONGBASE/validation rule),
+            'taylor' (non-inertial), or 'fixed_funds_rate' (funds rate held
+            on its baseline path, no endogenous monetary offset, so fiscal
+            multipliers are markedly larger). Each rule reads its OWN
+            add-error, so shocking 'rffintay_aerr' under a non-inertial rule
+            is rejected with an explanation rather than silently returning
+            all-zero responses.
+        variables: Optional extra model variables to report alongside the
+            headline series.
+        name: Optional label for the experiment.
+
+    Returns per-quarter rows, a `peaks` block giving each series' largest
+    absolute deviation and when it occurs, and `series_meaning` documenting
+    each series' units. Roughly 3 seconds cold, well under a second warm.
+    """
+    return core.frbus_shock(
+        var=var, shock=shock, start=start, periods=periods, horizon=horizon,
+        policy_rule=policy_rule, variables=variables, name=name,
+    )
+
+
+@mcp.tool()
+def frbus_list_variables() -> list[dict]:
+    """List the FRB/US levers that can be shocked with frbus_shock.
+
+    Returns each lever's name, description, units, a typical shock size, and
+    which monetary policy rule it requires (if any). Instant — call this
+    before frbus_shock, because units differ per lever and a shock sized for
+    the wrong units either diverges the solver or silently produces nonsense.
+    """
+    return core.frbus_list_variables()
+
+
+@mcp.tool()
+def frbus_summary() -> dict:
+    """Metadata and validation provenance for the FRB/US member.
+
+    No solve, so effectively instant once the model package is loaded (the
+    very first FRB/US call in a fresh container pays a ~3s import of frbus and
+    its scipy/sympy stack): what the model is (284 endogenous equations, April
+    2026 LONGBASE vintage, VAR expectations — MCE is not implemented), the
+    available monetary policy rules, and how the implementation was validated
+    against the Federal Reserve's own pyfrbus: the tracking invariant holds to
+    5.6e-17 and the 100bp monetary shock matches pyfrbus 1.0.0 to 6.0e-9
+    across all 284 variables. Also states plainly that FRB/US has NO
+    PolicyEngine-reform bridge and that frbus_shock is the supported entry
+    point.
+    """
+    return core.frbus_summary()
 
 
 @mcp.tool()

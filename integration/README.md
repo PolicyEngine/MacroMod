@@ -5,6 +5,10 @@ one CLI and one MCP server:
 
 - **OBR emulator** (`obr_macro`): runs the OBR's published model equations —
   raw exogenous-variable shocks via `obr_shock`.
+- **FRB/US** (`frbus`): the Federal Reserve Board's US macroeconometric
+  model (VAR expectations, 284 endogenous equations) — raw variable and
+  add-factor shocks via `frbus_shock`, under a selectable monetary policy
+  rule. There is deliberately NO PolicyEngine-reform bridge for FRB/US.
 - **UK SVAR** (`boe_var`): sign-identified Bayesian VAR for UK GDP/CPI
   forecasts and structural shock readings.
 - **PolicyEngine microsimulation** (`policyengine` from PyPI, v4): full
@@ -88,6 +92,11 @@ pe-macro compare --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
     --models microsim,obr                             # same reform, model classes side by side
 pe-macro obr-shock --var CGG --shock 1250 --periods 4 # £5bn/yr spending, 1 year
 pe-macro obr-shock --var TCPRO --shock -0.05          # 5pp corp tax cut (closure auto-on)
+pe-macro frbus-variables                              # shockable FRB/US levers + units
+pe-macro frbus-summary                                # FRB/US metadata + validation provenance
+pe-macro frbus-shock --var rffintay_aerr --shock 1.0  # 100bp US monetary tightening
+pe-macro frbus-shock --var egfe_aerr --shock 0.01 --periods 4 \
+    --policy-rule fixed_funds_rate                    # fiscal shock, no monetary offset
 pe-macro forecast --horizons 12 --draws 500           # YoY GDP & CPI, 68/90 bands
 pe-macro shocks --draws 500                           # P(sign) of latest-quarter shocks
 pe-macro summary                                      # instant, parses committed results
@@ -112,19 +121,35 @@ Money amounts are annual GBP (uk) or USD (us); reform rates are decimals
 import (it is loaded lazily).
 
 Add `--json` to any command for machine-readable output. Units: CGG/CGIPS
-shocks are £m per quarter; TCPRO is a decimal rate change. SVAR estimation
+shocks are £m per quarter; TCPRO is a decimal rate change. FRB/US units differ
+per lever and are not interchangeable — `rffintay_aerr` is in percentage
+points, `trp_aerr`/`trci_aerr` are decimal rate changes, and the spending and
+demand levers (`egfe_aerr`, `ecnia_aerr`, ...) are in log points of quarterly
+growth, NOT dollars; run `pe-macro frbus-variables` first. SVAR estimation
 results are cached in-process by draw count, so repeat calls are instant
 within one process (each CLI invocation is a fresh process; the cache mainly
 benefits the MCP server).
 
 ## MCP server
 
-Runs over stdio via `python -m policyengine_macro.mcp_server`, exposing ten tools:
+Runs over stdio via `python -m policyengine_macro.mcp_server`, exposing
+thirteen tools:
 `score_reform` (a PolicyEngine reform through a chosen macro model),
 `obr_shock` and `list_reform_variables` (raw OBR variable shocks),
+`frbus_shock`, `frbus_list_variables` and `frbus_summary` (FRB/US),
 `forecast_uk`, `latest_shocks`, `model_summary` (SVAR), and the PolicyEngine
 tools `calculate_household`, `household_reform_impact`,
 `list_reform_parameters`, `population_reform_impact`.
+
+`score_reform` deliberately REFUSES `model='frbus'`: no mapping exists today
+from a PolicyEngine US reform to FRB/US fiscal levers, and inventing one would
+return plausible-looking wrong numbers. `frbus_shock` (raw shocks in model
+units) is the supported FRB/US entry point.
+
+The `frbus` package must be installed EDITABLY (`pip install -e <checkout>`):
+`model.xml` and `LONGBASE.TXT` live in the model repo's `vendor/` directory and
+are not shipped inside the wheel, so the adapters resolve them from
+`frbus.__file__` (override with `MACROMOD_FRB_REPO`).
 
 Test locally with Claude Code:
 

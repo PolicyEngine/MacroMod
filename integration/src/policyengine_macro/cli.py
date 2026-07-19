@@ -180,6 +180,89 @@ def variables(as_json):
     click.echo(_table(res, ["var", "description", "units", "investment_closure"]))
 
 
+@main.command("frbus-shock")
+@click.option("--var", required=True,
+              help="Lever to shock (see `pe-macro frbus-variables`).")
+@click.option("--shock", required=True, type=float,
+              help="Shock size; UNITS DIFFER PER LEVER (pp for rffintay_aerr, "
+                   "decimal rate for trp_aerr, log points of quarterly growth "
+                   "for egfe_aerr/ecnia_aerr).")
+@click.option("--start", default=core.FRBUS_DEFAULT_START, show_default=True,
+              help="First shocked quarter, e.g. 2026Q1.")
+@click.option("--periods", default=1, show_default=True,
+              help="Quarters the shock is held (1 = single-quarter impulse).")
+@click.option("--horizon", default=core.FRBUS_DEFAULT_HORIZON, show_default=True,
+              help="Quarters simulated and reported.")
+@click.option("--policy-rule", default="inertial_taylor", show_default=True,
+              type=click.Choice(sorted(core.FRBUS_POLICY_RULES)),
+              help="Monetary policy reaction; changes the answer materially.")
+@click.option("--variable", "variables", multiple=True,
+              help="Extra model variable to report (repeatable).")
+@click.option("--name", default=None, help="Label for the experiment.")
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+def frbus_shock(var, shock, start, periods, horizon, policy_rule, variables,
+                name, as_json):
+    """Shock one FRB/US variable, in model units (US escape hatch)."""
+    res = core.frbus_shock(
+        var=var, shock=shock, start=start, periods=periods, horizon=horizon,
+        policy_rule=policy_rule, variables=list(variables) or None, name=name,
+    )
+    if as_json:
+        _emit_json(res)
+        return
+    click.echo(f"Experiment: {res['name']}  (var={res['var']}, "
+               f"shock={res['shock']:+g}, start={res['start']}, "
+               f"periods={res['periods']}, rule={res['policy_rule']})")
+    click.echo(f"Units: {res['units']}")
+    columns = ["period"] + [k for k in res["results"][0] if k != "period"]
+    click.echo(_table(res["results"], columns))
+    click.echo("\nPeak absolute deviations:")
+    for v, peak in res["peaks"].items():
+        click.echo(f"  {v:10s} {peak['value']:+.4f} in {peak['period']}"
+                   f"   ({res['series_meaning'][v]})")
+    if res.get("warning"):
+        click.echo(f"\nWARNING: {res['warning']}")
+
+
+@main.command("frbus-variables")
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+def frbus_variables(as_json):
+    """List the shockable FRB/US levers and their units."""
+    res = core.frbus_list_variables()
+    if as_json:
+        _emit_json(res)
+        return
+    click.echo(_table(res, ["var", "description", "units", "typical_shock",
+                            "requires_policy_rule"]))
+
+
+@main.command("frbus-summary")
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+def frbus_summary(as_json):
+    """FRB/US model metadata and validation provenance (instant)."""
+    res = core.frbus_summary()
+    if as_json:
+        _emit_json(res)
+        return
+    click.echo(f"{res['model']} — {res['implementation']}")
+    click.echo(f"  {res['equations']} endogenous equations, "
+               f"{res['data_vintage']}, {res['expectations']}")
+    click.echo(f"  source: {res.get('source', res.get('source_error'))}\n")
+    click.echo("Policy rules:")
+    for rule in res["policy_rules"]:
+        click.echo(f"  {rule['rule']:18s} {rule['description']}")
+    val = res["validation"]
+    click.echo("\nValidation:")
+    click.echo(f"  tracking invariant: {val['tracking_invariant']['value']:.1e} "
+               f"(gate {val['tracking_invariant']['gate']:.0e})")
+    click.echo(f"  vs pyfrbus 1.0.0:   {val['vs_vendor_pyfrbus']['value']:.1e} "
+               f"(gate {val['vs_vendor_pyfrbus']['gate']:.0e})")
+    mon = val["monetary_tightening_properties"]
+    click.echo(f"  {mon['shock']}: xgdp trough {mon['xgdp_trough_pct']}%, "
+               f"lur peak {mon['lur_peak_pp']}pp")
+    click.echo(f"\nReform bridge: {res['reform_bridge']}")
+
+
 @main.command()
 @click.option("--horizons", default=12, show_default=True, help="Forecast horizon in quarters.")
 @click.option("--draws", default=500, show_default=True, help="Posterior draws (more = slower, smoother).")

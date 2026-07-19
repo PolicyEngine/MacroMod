@@ -152,6 +152,467 @@ def obr_shock(
 
 
 # ---------------------------------------------------------------------------
+# FRB/US adapters
+# ---------------------------------------------------------------------------
+
+# Fallback checkout of us-frb-model, used only if the `frbus` package is
+# installed non-editably (a wheel does not ship vendor/). The hosted image and
+# the documented local setup both `pip install -e`, so __file__-relative
+# resolution normally wins and this never fires.
+FRB_REPO_ENV = "MACROMOD_FRB_REPO"
+
+# The model is only defined out to the LONGBASE horizon and the demo/validation
+# window is 2026Q1-2030Q4; these are the defaults every published number uses.
+FRBUS_DEFAULT_START = "2026Q1"
+FRBUS_DEFAULT_HORIZON = 20  # quarters
+
+# Monetary policy rule selectors. FRB/US picks the rule feeding `rffrule` from a
+# family of dmp* dummies; exactly one is switched on. This matters a lot: the
+# same shock under a fixed funds rate and under the inertial Taylor rule gives
+# materially different answers, because the endogenous policy response is the
+# main propagation channel.
+FRBUS_POLICY_RULES = {
+    "inertial_taylor": {
+        "description": "Inertial Taylor rule (dmpintay=1) — the LONGBASE "
+                       "default and the rule used in VALIDATION.md",
+        "switches": {"dmpintay": 1, "dmptay": 0, "dmpalt": 0, "dmprr": 0,
+                     "dmptlr": 0, "dmpex": 0},
+        "exogenize": [],
+        # Each rule reads its own add-error; a shock to another rule's error
+        # term is silently inert (see _frbus_check_rule_lever).
+        "shock_lever": "rffintay_aerr",
+    },
+    "taylor": {
+        "description": "Non-inertial (contemporaneous) Taylor rule (dmptay=1)",
+        "switches": {"dmpintay": 0, "dmptay": 1, "dmpalt": 0, "dmprr": 0,
+                     "dmptlr": 0, "dmpex": 0},
+        "exogenize": [],
+        "shock_lever": "rfftay_aerr",
+    },
+    "fixed_funds_rate": {
+        "description": "Funds rate held on its baseline path (rff exogenized) "
+                       "— no endogenous monetary response, so fiscal "
+                       "multipliers are markedly larger",
+        "switches": {},
+        "exogenize": ["rff"],
+        "shock_lever": None,
+    },
+}
+
+# Headline series always returned, with how a deviation from baseline is
+# meaningful for each. "pct" = percent difference in the level; "pp" = simple
+# difference, already in percentage points in model units.
+FRBUS_HEADLINE = {
+    "xgdp": ("pct", "Real GDP, % deviation from baseline"),
+    "lur": ("pp", "Unemployment rate, pp deviation from baseline"),
+    "picxfe": ("pp", "Core PCE inflation (annual rate), pp deviation"),
+    "pcpi": ("pct", "CPI price level, % deviation from baseline"),
+    "rff": ("pp", "Federal funds rate, pp deviation from baseline"),
+}
+
+# Curated shockable levers. UNITS ARE THE TRAP HERE and are stated per entry:
+# FRB/US behavioural equations are written in a mix of levels, rates and
+# log-differences, so the add-error `<var>_aerr` inherits the units of ITS
+# equation's left-hand side. egfe's equation is in log-differences, so
+# egfe_aerr is in log points of quarterly growth, NOT billions of dollars —
+# passing 10 there (as if it were $10bn) diverges the Newton solver.
+FRBUS_VARIABLES = [
+    {
+        "var": "rffintay_aerr",
+        "description": "Add-error on the inertial Taylor rule — the standard "
+                       "monetary policy shock (vendor demos/example1.py)",
+        "units": "percentage points on the funds rate (1.0 = 100bp tightening)",
+        "typical_shock": 1.0,
+        "requires_policy_rule": "inertial_taylor",
+    },
+    {
+        "var": "rfftay_aerr",
+        "description": "Add-error on the non-inertial Taylor rule — the "
+                       "monetary policy shock when policy_rule='taylor'",
+        "units": "percentage points on the funds rate (1.0 = 100bp tightening)",
+        "typical_shock": 1.0,
+        "requires_policy_rule": "taylor",
+    },
+    {
+        "var": "egfe_aerr",
+        "description": "Add-error on federal government purchases (defence + "
+                       "non-defence consumption and investment)",
+        "units": "LOG POINTS of quarterly growth in egfe (0.01 ~ a 1% higher "
+                 "level of federal purchases; egfe is ~4.6% of GDP, so 0.01 "
+                 "is roughly 0.046% of GDP). NOT billions of dollars — a "
+                 "shock of order 1 or more diverges the solver.",
+        "typical_shock": 0.01,
+        "requires_policy_rule": None,
+    },
+    {
+        "var": "egse_aerr",
+        "description": "Add-error on state and local government purchases",
+        "units": "log points of quarterly growth in egse (0.01 ~ a 1% higher "
+                 "level of S&L purchases)",
+        "typical_shock": 0.01,
+        "requires_policy_rule": None,
+    },
+    {
+        "var": "trp_aerr",
+        "description": "Add-error on the personal income tax rate",
+        "units": "decimal rate change (0.01 = a 1 percentage point rise in the "
+                 "effective personal tax rate)",
+        "typical_shock": 0.01,
+        "requires_policy_rule": None,
+    },
+    {
+        "var": "trci_aerr",
+        "description": "Add-error on the corporate income tax rate",
+        "units": "decimal rate change (0.01 = a 1pp rise in the effective "
+                 "corporate tax rate)",
+        "typical_shock": 0.01,
+        "requires_policy_rule": None,
+    },
+    {
+        "var": "ecnia_aerr",
+        "description": "Add-error on aggregate consumption — a direct demand "
+                       "shock",
+        "units": "log points of quarterly consumption growth (0.01 ~ 1% higher "
+                 "consumption; large, since consumption is ~68% of GDP)",
+        "typical_shock": 0.01,
+        "requires_policy_rule": None,
+    },
+    {
+        "var": "ebfi_aerr",
+        "description": "Add-error on business fixed investment",
+        "units": "log points of quarterly BFI growth (0.01 ~ 1% higher BFI)",
+        "typical_shock": 0.01,
+        "requires_policy_rule": None,
+    },
+]
+
+_FRBUS_VAR_INDEX = {v["var"]: v for v in FRBUS_VARIABLES}
+
+# Cache the compiled model + its add-factored baseline. Building an Frbus
+# instance symbolically differentiates 284 equations (~0.7s one-off) and
+# init_trac costs ~2.3s, so caching per (policy_rule, start, end) makes every
+# repeat call in a warm container a bare ~0.3s solve.
+_FRBUS_BASELINE_CACHE: dict[tuple[str, str, str], tuple] = {}
+
+
+def _import_frbus():
+    try:
+        import frbus  # noqa: F401
+        from frbus import Frbus, load_data
+    except ImportError as e:
+        raise ImportError(
+            "The FRB/US package `frbus` is not importable. "
+            "Install it with: pip install git+https://github.com/PolicyEngine/us-frb-model"
+        ) from e
+    return frbus, Frbus, load_data
+
+
+def _frbus_repo() -> Path:
+    """Locate the checkout holding vendor/ (model.xml + LONGBASE.TXT).
+
+    The package resolves nothing itself: `Frbus(path)` and `load_data(path)`
+    both take explicit paths, and vendor/ is not shipped inside the wheel. With
+    the editable install used by the Modal image and by local dev,
+    ``frbus.__file__`` is ``<repo>/src/frbus/__init__.py``, so the repo root is
+    two levels up. MACROMOD_FRB_REPO overrides for non-editable installs.
+    """
+    env = os.environ.get(FRB_REPO_ENV)
+    candidates = []
+    if env:
+        candidates.append(Path(env))
+    frbus_mod, _, _ = _import_frbus()
+    candidates.append(Path(frbus_mod.__file__).resolve().parents[2])
+    for root in candidates:
+        if (root / "vendor" / "pyfrbus_package" / "models" / "model.xml").exists():
+            return root
+    raise FileNotFoundError(
+        "Could not locate the us-frb-model checkout containing "
+        "vendor/pyfrbus_package/models/model.xml (tried: "
+        f"{', '.join(str(c) for c in candidates)}). Install frbus editably "
+        f"(pip install -e <checkout>) or set {FRB_REPO_ENV}."
+    )
+
+
+def _frbus_period(value, *, argument: str):
+    import pandas as pd
+
+    try:
+        return pd.Period(str(value), freq="Q")
+    except Exception as e:
+        raise ValueError(
+            f"{argument} must be a quarter like '2026Q1', got {value!r}"
+        ) from e
+
+
+def _frbus_baseline(policy_rule: str, start, end):
+    """Compiled model + add-factored baseline that solves to LONGBASE exactly.
+
+    After init_trac the tracking residuals are set so a baseline solve
+    reproduces the data to machine precision (VALIDATION.md Test 1, 5.6e-17);
+    every reported number is a deviation from THAT baseline, so the shock is
+    the only thing moving.
+    """
+    key = (policy_rule, str(start), str(end))
+    if key in _FRBUS_BASELINE_CACHE:
+        return _FRBUS_BASELINE_CACHE[key]
+
+    _, Frbus, load_data = _import_frbus()
+    repo = _frbus_repo()
+    data = load_data(str(repo / "vendor" / "data_only_package" / "LONGBASE.TXT"))
+    model = Frbus(str(repo / "vendor" / "pyfrbus_package" / "models" / "model.xml"))
+
+    spec = FRBUS_POLICY_RULES[policy_rule]
+    # Standard demo fiscal configuration: surplus-ratio targeting, so the
+    # solve has a stable long-run fiscal anchor instead of drifting debt.
+    data.loc[start:end, "dfpdbt"] = 0
+    data.loc[start:end, "dfpsrp"] = 1
+    for switch, value in spec["switches"].items():
+        data.loc[start:end, switch] = value
+    if spec["exogenize"]:
+        model.exogenize(list(spec["exogenize"]))
+
+    with_adds = model.init_trac(start, end, data)
+    _FRBUS_BASELINE_CACHE[key] = (model, with_adds)
+    return model, with_adds
+
+
+def _frbus_check_rule_lever(var: str, policy_rule: str) -> None:
+    """Refuse a shock that the chosen policy rule makes silently inert.
+
+    `rffintay_aerr` only enters `rffrule` when dmpintay=1. Under 'taylor' or
+    'fixed_funds_rate' it is still a valid column, the solve still converges,
+    and every response is exactly zero — which reads as "monetary policy has
+    no effect" rather than "you shocked a disconnected term". Same failure mode
+    as the OBR emulator's investment_closure trap, so it gets the same
+    treatment: a loud error, not a plausible-looking zero.
+    """
+    entry = _FRBUS_VAR_INDEX.get(var)
+    required = entry and entry.get("requires_policy_rule")
+    if required and required != policy_rule:
+        alt = FRBUS_POLICY_RULES[policy_rule]["shock_lever"]
+        hint = (
+            f"under policy_rule={policy_rule!r} the corresponding lever is "
+            f"{alt!r}"
+            if alt else
+            f"policy_rule={policy_rule!r} holds the funds rate on its baseline "
+            "path, so no monetary-rule add-error can move it; shock a fiscal "
+            "or demand lever instead to see multipliers under fixed rates"
+        )
+        raise ValueError(
+            f"{var!r} only feeds the policy rule when "
+            f"policy_rule={required!r}; with policy_rule={policy_rule!r} it is "
+            f"disconnected and every response would solve to exactly zero. "
+            f"Either pass policy_rule={required!r}, or {hint}."
+        )
+
+
+def frbus_list_variables() -> list[dict]:
+    """Shockable FRB/US levers with descriptions, units and policy-rule needs."""
+    return [dict(v) for v in FRBUS_VARIABLES]
+
+
+def frbus_shock(
+    var: str,
+    shock: float,
+    start: str = FRBUS_DEFAULT_START,
+    periods: int = 1,
+    horizon: int = FRBUS_DEFAULT_HORIZON,
+    policy_rule: str = "inertial_taylor",
+    variables: list[str] | None = None,
+    name: str | None = None,
+) -> dict:
+    """Shock one FRB/US exogenous variable or add-factor and return the IRFs.
+
+    The FRB/US analogue of obr_shock: a raw shock in model units, with no
+    PolicyEngine reform translation (there is deliberately no such bridge —
+    see score_reform). Solves an add-factored baseline that reproduces
+    LONGBASE exactly, then the same model with the shock applied, and returns
+    per-quarter deviations for the headline series plus anything in
+    ``variables``.
+
+    Units differ per lever and are NOT interchangeable — call
+    frbus_list_variables first. ``periods`` is how many quarters from ``start``
+    the shock is held (1 = a single-quarter impulse, the vendor demo).
+    """
+    import pandas as pd
+
+    if policy_rule not in FRBUS_POLICY_RULES:
+        raise ValueError(
+            f"policy_rule must be one of {tuple(FRBUS_POLICY_RULES)}, "
+            f"got {policy_rule!r}"
+        )
+    periods, horizon = int(periods), int(horizon)
+    if periods < 1:
+        raise ValueError(f"periods must be >= 1, got {periods}")
+    if horizon < periods:
+        raise ValueError(
+            f"horizon ({horizon}) must be at least periods ({periods})"
+        )
+    _frbus_check_rule_lever(var, policy_rule)
+
+    start_p = _frbus_period(start, argument="start")
+    end_p = start_p + horizon - 1
+    model, with_adds = _frbus_baseline(policy_rule, start_p, end_p)
+
+    if var not in with_adds.columns:
+        known = ", ".join(sorted(v["var"] for v in FRBUS_VARIABLES))
+        raise ValueError(
+            f"{var!r} is not a column of the FRB/US dataset. Curated levers: "
+            f"{known} (see frbus_list_variables). Endogenous variables cannot "
+            "be shocked directly — shock their add-error '<var>_aerr' instead, "
+            "because the equation would otherwise just overwrite the level."
+        )
+
+    shocked = with_adds.copy()
+    shock_end = start_p + periods - 1
+    shocked.loc[start_p:shock_end, var] += float(shock)
+    try:
+        sim = model.solve(start_p, end_p, shocked)
+    except Exception as e:
+        entry = _FRBUS_VAR_INDEX.get(var)
+        units = f" Units for {var}: {entry['units']}" if entry else ""
+        raise ValueError(
+            f"the FRB/US Newton solver failed for a {shock:+g} shock to {var!r} "
+            f"({e}). This is almost always a shock that is far too large for "
+            f"the variable's units.{units}"
+        ) from e
+
+    wanted = list(FRBUS_HEADLINE)
+    for extra in variables or []:
+        if extra not in with_adds.columns:
+            raise ValueError(f"requested variable {extra!r} is not in the model")
+        if extra not in wanted:
+            wanted.append(extra)
+
+    index = pd.period_range(start_p, end_p, freq="Q")
+    series: dict[str, list[float]] = {}
+    for v in wanted:
+        mode = FRBUS_HEADLINE.get(v, ("pct", ""))[0]
+        base, new = with_adds.loc[start_p:end_p, v], sim.loc[start_p:end_p, v]
+        if mode == "pct":
+            delta = 100.0 * (new / base - 1.0)
+        else:
+            delta = new - base
+        series[v] = [round(float(x), 6) for x in delta]
+
+    rows = [
+        {"period": str(p), **{v: series[v][i] for v in wanted}}
+        for i, p in enumerate(index)
+    ]
+
+    def _peak(values):
+        best = max(range(len(values)), key=lambda i: abs(values[i]))
+        return {"value": values[best], "period": str(index[best])}
+
+    peaks = {v: _peak(series[v]) for v in wanted}
+
+    result = {
+        "name": name or f"{var} shock {shock:+g}",
+        "var": var,
+        "shock": float(shock),
+        "units": _FRBUS_VAR_INDEX.get(var, {}).get("units", "model units"),
+        "start": str(start_p),
+        "periods": periods,
+        "horizon": horizon,
+        "policy_rule": policy_rule,
+        "policy_rule_description": FRBUS_POLICY_RULES[policy_rule]["description"],
+        "expectations": "VAR (backward-looking); MCE is not implemented",
+        "series_meaning": {
+            v: FRBUS_HEADLINE.get(v, ("pct", f"{v}, % deviation from baseline"))[1]
+            for v in wanted
+        },
+        "results": rows,
+        "peaks": peaks,
+    }
+
+    # A converged solve in which nothing moves is a mis-specified experiment,
+    # not a finding. The rule/lever guard catches the common case up front;
+    # this catches the rest (e.g. a shock of 0, or a lever that happens to be
+    # disconnected under the chosen configuration).
+    if all(abs(peaks[v]["value"]) < 1e-9 for v in FRBUS_HEADLINE):
+        result["warning"] = (
+            f"every headline response is numerically zero: the {shock:+g} shock "
+            f"to {var!r} did not propagate under policy_rule={policy_rule!r}. "
+            "Treat this as a mis-specified experiment, not as evidence of no "
+            "effect. Check the lever and its units with frbus_list_variables."
+        )
+    return result
+
+
+def frbus_summary() -> dict:
+    """Static metadata and validation provenance for the FRB/US member.
+
+    No solve: reports what the model is and how it was validated. Effectively
+    instant, except that the first call in a fresh process pays the one-off
+    ~3s import of frbus and its scipy/sympy stack via _frbus_repo().
+    The figures come from the model repo's VALIDATION.md and are the numbers
+    its CI gates on; they are stated here so a caller can see the provenance
+    without leaving the tool surface.
+    """
+    out = {
+        "model": "FRB/US (VAR expectations)",
+        "implementation": "frbus — PolicyEngine/us-frb-model, a from-scratch "
+                          "numpy/scipy/sympy reimplementation",
+        "upstream": "Federal Reserve Board FRB/US; model.xml, LONGBASE.TXT and "
+                    "the pyfrbus reference implementation are public domain",
+        "equations": 284,
+        "equation_note": "284 endogenous variables solved simultaneously per "
+                         "period by a damped Newton method with an analytic "
+                         "sparse Jacobian (xtol=1e-8)",
+        "data_vintage": "April 2026 LONGBASE",
+        "expectations": "VAR (backward-looking) only; MCE (model-consistent "
+                        "expectations) raises NotImplementedError",
+        "default_window": f"{FRBUS_DEFAULT_START} + {FRBUS_DEFAULT_HORIZON} quarters",
+        "policy_rules": [
+            {"rule": k, "description": v["description"],
+             "shock_lever": v["shock_lever"]}
+            for k, v in FRBUS_POLICY_RULES.items()
+        ],
+        "validation": {
+            "tracking_invariant": {
+                "metric": "max abs error, all 284 endogenous variables x 20 "
+                          "quarters, baseline solve vs LONGBASE after init_trac",
+                "value": 5.6e-17,
+                "gate": 1e-8,
+            },
+            "vs_vendor_pyfrbus": {
+                "metric": "max abs difference vs the Fed's pyfrbus 1.0.0 on the "
+                          "100bp rffintay_aerr experiment, all endos x 20 quarters",
+                "value": 6.0e-9,
+                "gate": 1e-6,
+                "note": "pyfrbus 1.1.1 differs from pyfrbus 1.0.0 by 1.3e-8 — "
+                        "the Fed's own two releases differ from each other by "
+                        "as much as this implementation differs from either, so "
+                        "the residual is solver tolerance, not semantics",
+            },
+            "monetary_tightening_properties": {
+                "shock": "100bp rffintay_aerr, 2026Q1, inertial Taylor rule",
+                "rff_impact_pp": 1.0,
+                "xgdp_trough_pct": -0.55,
+                "lur_peak_pp": 0.26,
+                "picxfe_trough_pp": -0.034,
+                "note": "consistent with the published FRB/US VAR simulation "
+                        "properties (output falls a few tenths to ~1% after "
+                        "~2 years; unemployment rises ~0.1-0.3pp)",
+            },
+        },
+        "reform_bridge": (
+            "NONE. There is deliberately no PolicyEngine-reform bridge for "
+            "FRB/US: no mapping exists today from a PolicyEngine US reform to "
+            "FRB/US fiscal levers, and inventing one would produce "
+            "plausible-looking wrong numbers. score_reform rejects "
+            "model='frbus'; frbus_shock (raw variable shocks in model units) "
+            "is the supported entry point."
+        ),
+    }
+    try:
+        out["source"] = str(_frbus_repo())
+    except Exception as e:  # frbus not installed: metadata is still useful
+        out["source_error"] = str(e)
+    return out
+
+
+# ---------------------------------------------------------------------------
 # UK SVAR adapters
 # ---------------------------------------------------------------------------
 
@@ -1526,6 +1987,23 @@ def obr_score_reform(
 
 SCORE_MODELS = ("og", "obr", "microsim")
 
+# Models that exist in the suite but deliberately have NO PolicyEngine-reform
+# bridge, mapped to the error explaining what to use instead. score_reform must
+# never silently accept one of these and return a number: there is no mapping
+# from a PolicyEngine reform to these models' levers, so anything it returned
+# would be a plausible-looking wrong answer.
+SCORE_MODELS_WITHOUT_REFORM_BRIDGE = {
+    "frbus": (
+        "FRB/US has no PolicyEngine-reform bridge, by design: there is no "
+        "mapping today from a PolicyEngine US reform to FRB/US fiscal levers, "
+        "and inventing one would produce plausible-looking wrong numbers. Raw "
+        "variable shocks are the supported entry point — use the frbus_shock "
+        "tool (or `pe-macro frbus-shock`) with a lever and shock size in model "
+        "units, and frbus_list_variables to discover the levers and their "
+        "units."
+    ),
+}
+
 
 def _validate_reform(reform) -> None:
     """Backwards-compatible alias: validate and discard the normalised form."""
@@ -1561,7 +2039,16 @@ def score_reform(
     - "microsim": PolicyEngine population microsimulation itself (static
       annual costing + distribution, no macro feedback). UK or US.
       Extra arg: dataset.
+
+    "frbus" is deliberately NOT accepted and raises: FRB/US has no
+    PolicyEngine-reform bridge (see SCORE_MODELS_WITHOUT_REFORM_BRIDGE), so
+    raw variable shocks via ``frbus_shock`` are the supported entry point.
     """
+    # Checked before country/reform validation so the caller gets the real
+    # reason ("frbus has no reform bridge") rather than being sent off to fix
+    # an unrelated argument first.
+    if model in SCORE_MODELS_WITHOUT_REFORM_BRIDGE:
+        raise ValueError(SCORE_MODELS_WITHOUT_REFORM_BRIDGE[model])
     country = _validate_country(country)
     reform = validate_reform(reform)
     if model not in SCORE_MODELS:

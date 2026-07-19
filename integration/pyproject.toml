@@ -22,6 +22,12 @@ dependencies = [
 models = [
     "obr-macro-model @ git+https://github.com/PolicyEngine/obr-macroeconomic-model",
     "boe_var @ git+https://github.com/PolicyEngine/boe-var-model",
+    # frbus is the ONE model package that must be installed EDITABLY to be
+    # usable: model.xml and LONGBASE.TXT live in the repo's vendor/ directory
+    # and are not package data, so core._frbus_repo() resolves them from
+    # frbus.__file__ (or MACROMOD_FRB_REPO). A plain wheel install imports
+    # fine but has no model to run — see integration/README.md.
+    "frbus @ git+https://github.com/PolicyEngine/us-frb-model",
     # [models] pulls the pinned policyengine-uk / policyengine-us country
     # packages that pe.uk / pe.us need at runtime.
     "policyengine[models]>=4,<5",
