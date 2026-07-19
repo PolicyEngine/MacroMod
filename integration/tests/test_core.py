@@ -101,6 +101,52 @@ def test_pe_household_us():
     json.dumps(res)
 
 
+@pytest.mark.slow
+def test_pe_household_us_state_code_changes_state_income_tax():
+    """CA and TX must differ: TX levies no state income tax.
+
+    Regression guard — the state is a HOUSEHOLD-level `state_code_str` and
+    PolicyEngine US silently defaults to CA, so a dropped state would return
+    a plausible-looking (but wrong) California answer for every state.
+    """
+    people = [{"age": 40, "employment_income": 200_000}]
+    tax_unit = {"filing_status": "SINGLE"}
+
+    def state_tax(code):
+        return core.pe_household(
+            "us", people, tax_unit=tax_unit,
+            household={"state_code_str": code},
+        )["summary"]["state_income_tax"]
+
+    ca, tx = state_tax("CA"), state_tax("TX")
+    assert tx == 0, f"TX has no state income tax, got {tx}"
+    assert ca > 0, f"CA should levy state income tax, got {ca}"
+    assert ca != tx
+
+
+def test_pe_household_us_rejects_wrong_state_key():
+    # `state_code` (person-level name) would be silently ignored by PE and
+    # fall back to the CA default; it must raise instead.
+    with pytest.raises(ValueError, match="state_code_str"):
+        core.pe_household("us", [{"age": 30}], household={"state_code": "TX"})
+
+
+def test_pe_household_us_rejects_invalid_state_code():
+    with pytest.raises(ValueError, match="two-letter US state"):
+        core.pe_household(
+            "us", [{"age": 30}], household={"state_code_str": "Texas"}
+        )
+    with pytest.raises(ValueError, match="two-letter US state"):
+        core.pe_household("us", [{"age": 30}], household={"state_code_str": "ZZ"})
+
+
+def test_validate_us_household_normalises_case():
+    assert core._validate_us_household({"state_code_str": "tx"}) == {
+        "state_code_str": "TX"
+    }
+    assert core._validate_us_household(None) is None
+
+
 def test_pe_household_bad_country():
     with pytest.raises(ValueError):
         core.pe_household("fr", [{"age": 30}])

@@ -669,6 +669,46 @@ def _validate_people(people, *, argument: str = "people") -> list[dict]:
     return people
 
 
+US_STATE_CODES = frozenset(
+    "AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN "
+    "MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA "
+    "WV WI WY".split()
+)
+
+
+def _validate_us_household(household):
+    """Catch US household dicts that would silently be ignored.
+
+    PolicyEngine US takes the state as household-level ``state_code_str``
+    and defaults to CA when it is absent. A misspelled key (``state_code``)
+    or a bad code therefore produced a silently-wrong California answer
+    instead of an error.
+    """
+    if household is None:
+        return None
+    if not isinstance(household, dict):
+        raise ValueError(
+            "household must be a dict, e.g. {\"state_code_str\": \"CA\"}."
+        )
+    household = dict(household)
+    if "state_code" in household and "state_code_str" not in household:
+        raise ValueError(
+            "US household uses the key 'state_code_str', not 'state_code'. "
+            'Example: {"state_code_str": "TX"}. (Passing the wrong key would '
+            "silently fall back to the CA default and return the wrong "
+            "state income tax.)"
+        )
+    state = household.get("state_code_str")
+    if state is not None:
+        if not isinstance(state, str) or state.upper() not in US_STATE_CODES:
+            raise ValueError(
+                f"state_code_str must be a two-letter US state or DC code, "
+                f"got {state!r}. Example: {{\"state_code_str\": \"TX\"}}."
+            )
+        household["state_code_str"] = state.upper()
+    return household
+
+
 def _pe_run(country, people, year, reform, benunit, tax_unit, household):
     # Validate country before importing PolicyEngine so bad input fails fast
     # with a clear ValueError even where PE is not installed (matches
@@ -677,6 +717,8 @@ def _pe_run(country, people, year, reform, benunit, tax_unit, household):
     people = _validate_people(people)
     if reform is not None:
         reform = validate_reform(reform)
+    if country == "us":
+        household = _validate_us_household(household)
     pe = _import_pe()
     if country == "uk":
         return pe.uk.calculate_household(
@@ -733,7 +775,7 @@ def pe_household(
     [{"age": 35, "employment_income": 50000}]. reform: optional
     {"gov.param.path": value} dict. UK groups people into a benunit; US uses
     tax_unit (e.g. {"filing_status": "SINGLE"}) and household
-    (e.g. {"state_code_str": "CA"}).
+    (e.g. {"state_code_str": "CA"}; defaults to CA if omitted).
     """
     country = _validate_country(country)
     result = _pe_run(country, people, year, reform, benunit, tax_unit, household)

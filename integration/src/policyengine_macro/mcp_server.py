@@ -200,7 +200,11 @@ def calculate_household(
         benunit: UK only, optional benefit-unit dict, e.g.
             {"would_claim_uc": true, "would_claim_child_benefit": true}.
         tax_unit: US only, optional, e.g. {"filing_status": "SINGLE"} or "JOINT".
-        household: Optional household dict. US: {"state_code_str": "CA"}.
+        household: Optional household dict. US: {"state_code_str": "CA"} --
+            the state is HOUSEHOLD-level and must use the key
+            `state_code_str` (two-letter code). If omitted, PolicyEngine US
+            defaults to CA, which materially changes state income tax
+            (e.g. TX and FL levy none), so always set it for US households.
             UK: {"rent": 12000, "region": "NORTH_WEST"}.
 
     Returns a dict with a headline `summary` (UK: per-person income tax and
