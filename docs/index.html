@@ -109,7 +109,7 @@
       </p>
       <ul>
         <li><strong>"How does this tax change affect UK growth and the deficit over the next 3–5 years?"</strong> — the OBR model. Near-term fiscal scoring in the language of the official forecast.</li>
-        <li><strong>"What does a 100bp Fed tightening — or a US fiscal shock — do to GDP, unemployment, and inflation?"</strong> — FRB/US, via <code>frbus_shock</code> on the hosted server or the CLI. Shocks to model variables, not PolicyEngine reforms. (VAR expectations only; model-consistent expectations, mcontrol, and stochastic simulations are not yet implemented.)</li>
+        <li><strong>"What does a 100bp Fed tightening — or a US fiscal shock — do to GDP, unemployment, and inflation?"</strong> — FRB/US, via <code>frbus_shock</code> on the hosted server or the CLI. Shocks to model variables, not PolicyEngine reforms.</li>
         <li><strong>"What does this reform do to work incentives, saving, and the long-run size of the economy?"</strong> — the OLG model, which captures how households of every age re-optimise over their lifetimes.</li>
         <li><strong>"What's driving UK GDP and inflation — and why did the forecast change?"</strong> — the structural VAR. It decomposes the latest data vintage (currently 2024 Q2) into named structural shocks, forecasts with credible bands, and splits a revision into news and reassessment. It does not score reforms.</li>
         <li><strong>"What does this reform mean for a nurse on £35,000 with two kids?"</strong> — PolicyEngine. It runs the actual UK or US statute for that exact family, before and after.</li>
@@ -166,39 +166,35 @@
       <h2>Each model has its own reference page.</h2>
     </div>
     <div class="prose">
-      <p>
-        Each model has a reference page covering its equations, inputs,
-        outputs and limitations.
-      </p>
       <div class="doc-index">
         <a href="/obr/">
           <span class="di-id">obr-macro · UK · hosted</span>
           <h3>OBR macroeconometric model</h3>
-          <p>A Python emulator of the OBR's own 372-equation forecasting model, solved by Gauss&ndash;Seidel iteration. Anchored mode reproduces the November 2025 EFO &mdash; not the March 2026 vintage, which the model has not been re-anchored to. Two equations are numerically inert for want of a <code>CORP</code> series; every published figure is computed that way.</p>
+          <p>The OBR publishes its equation listing as EViews source; this transpiles those 372 equations to Python and solves them, 636 variables over 17 thematic groups, with 253 exogenous inputs as the levers. Add-factors anchor the baseline to the November 2025 EFO &mdash; the March 2026 vintage has not been adopted. Two household-income equations are numerically inert, their inputs <code>MAJGDP</code> and <code>CORP</code> being absent from the databank, and every published figure is computed that way.</p>
           <span class="di-go">read the OBR reference →</span>
         </a>
         <a href="/svar/">
           <span class="di-id">boe-svar · UK · hosted</span>
           <h3>Bank of England structural VAR model</h3>
-          <p>A Python replication of the Bank of England's 8-variable Bayesian SVAR, identifying six named structural shocks via zero and sign restrictions. Data packaged to a 2024Q2 edge.</p>
+          <p>Brignone &amp; Piffer (2025), BoE Macro Technical Paper No. 3, shipped without a replication package; this rebuilds the pipeline end to end. Eight quarterly series, three global and five UK, estimated 1992Q1&ndash;2023Q2 under a Minnesota prior, with zero and sign restrictions naming six shocks. The frozen 2024Q2 edge is what makes its forecast scoreable out of sample.</p>
           <span class="di-go">read the SVAR reference →</span>
         </a>
         <a href="/frb-us/">
           <span class="di-id">frb-us · US · hosted</span>
           <h3>FRB/US</h3>
-          <p>A from-scratch Python implementation of the Fed's FRB/US model, built from the Board's public model definition (284 VAR-expectations equations) and April 2026 LONGBASE data. On the hosted server and the CLI as raw variable shocks under a selectable policy rule — it does not score PolicyEngine reforms.</p>
+          <p>Parses the Board's public <code>model.xml</code> rather than re-specifying it, and solves all 284 equations per quarter by damped Newton on an analytic sparse Jacobian, against April 2026 LONGBASE. Shocks are additions to an equation's error term, read under a selectable policy rule. Only the VAR-expectations path exists; <code>mcontrol</code>, model-consistent expectations and stochastic simulation do not.</p>
           <span class="di-go">read the FRB/US reference →</span>
         </a>
         <a href="/olg/">
           <span class="di-id">psl-og · UK · US · local</span>
           <h3>PSL overlapping generations model</h3>
-          <p>A structural general-equilibrium model of 80 age cohorts on OG-Core, with tax functions from PolicyEngine microdata. The UK integration (OG-UK) is wired today; the US side (OG-USA) is newer. Roughly 17 minutes per steady-state solve.</p>
+          <p>OG-Core, deployed through its OG-UK calibration: households aged 20 to 99 choosing labour supply and saving over their remaining lifetimes, with Gouveia&ndash;Strauss tax functions fitted to PolicyEngine microdata so the reform's shape across income and age is what the model sees. Solves a steady state or a 60-year transition path. The UK integration is wired; OG-USA is newer.</p>
           <span class="di-go">read the OLG reference →</span>
         </a>
         <a href="/pe/">
           <span class="di-id">pe-microsim · UK · US · hosted</span>
           <h3>PolicyEngine tax-benefit microsimulation</h3>
-          <p>PolicyEngine's UK &amp; US tax-benefit engine &mdash; the same one behind policyengine.org. Population runs use the <code>enhanced_frs_2023_24</code> dataset (53,000 households) for the UK and CPS microdata for the US.</p>
+          <p>Four layers: a simulation framework forked from OpenFisca, a statutory rule package per country, and the analyst-facing <code>policyengine</code> package on top, which pins the model and dataset versions each release certifies. Reforms are a dict of parameter path to new value, identical in shape at household and population level. Population runs use <code>enhanced_frs_2023_24</code> (53,000 households) and CPS microdata; household calculations need no data access at all.</p>
           <span class="di-go">read the PolicyEngine reference →</span>
         </a>
       </div>
@@ -212,13 +208,12 @@
     </div>
     <div class="prose">
       <p>
-        Each macro model documents its equations, implementation and
-        validation in a working paper, readable in the browser or as PDF.
-        LaTeX sources and the scripts that regenerate every figure live in
+        Readable in the browser or as PDF. LaTeX sources and the scripts that
+        regenerate every figure live in
         <a href="https://github.com/PolicyEngine/macro/tree/main/papers">papers/</a>,
-        so each number on a chart is traceable. pe-microsim has no paper: it
-        is documented as statute at
-        <a href="https://policyengine.org">policyengine.org</a>.
+        so each number on a chart is traceable to a committed artefact.
+        pe-microsim is the exception with no paper: its rules are documented
+        as statute at <a href="https://policyengine.org">policyengine.org</a>.
       </p>
       <div class="doc-index">
         <a href="/papers/obr-macro/">

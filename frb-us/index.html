@@ -139,9 +139,9 @@
         reproducing the estimated equation system an official institution
         actually relies on, rather than deriving behaviour from first
         principles the way the <a href="/olg/">overlapping-generations
-        model</a> does. It is hosted alongside the OBR emulator, but unlike the
-        OBR emulator it does not take a PolicyEngine reform object — it takes
-        shocks to model variables, and nothing else.
+        model</a> does. The two diverge on one point that shapes everything
+        below: the OBR emulator has a bridge from statute, and this one does
+        not.
       </p>
     </div>
   </section>
@@ -313,9 +313,8 @@ sim = model.solve(start, end, with_adds)
         cross-model range and CBO's central estimate of about 0.3.
       </p>
       <div class="callout">
-        <strong>It cannot</strong> score a PolicyEngine reform — there is no
-        static-costing bridge into it yet, unlike the
-        <a href="/obr/">OBR emulator</a>. It cannot do forward guidance or
+        <strong>It cannot</strong> score a PolicyEngine reform (section 06).
+        It cannot do forward guidance or
         any exercise needing model-consistent expectations. It cannot tell you
         who wins and loses — that is <a href="/pe/">PolicyEngine</a>. And it
         says nothing about the UK.

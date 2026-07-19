@@ -76,6 +76,7 @@
   overflow-x: auto;
   white-space: pre;
 }
+.copyblock[hidden] { display: none; }
 .copyblock code { flex: 1; }
 .copyblock button {
   border: 0; background: none; cursor: pointer; color: var(--paper-faint);
@@ -241,10 +242,9 @@
         Connect it. Or <em>code</em> it.
       </h1>
       <p class="lede reveal" style="--d:2; margin-left:auto; margin-right:auto;">
-        The fastest route is one URL pasted into Claude or ChatGPT — that is
-        the section below, and it takes about two minutes. A terminal CLI and
-        the raw Python packages follow, for when you want them. Free and open
-        source, no account and no key.
+        Three routes onto the same models, in descending order of hurry: a
+        connector you paste into a chat client, a terminal CLI, and the raw
+        Python packages. Free and open source, no account and no key.
       </p>
     </div>
   </section>
@@ -266,42 +266,18 @@
       <div class="pane" id="pane-mcp">
         <p class="status-note">live</p>
 
-        <div class="steps" data-for="claude">
+        <div class="steps">
           <div class="step">
             <span class="step-n mono">1</span>
             <p class="step-h">Copy the PolicyEngine Macro URL</p>
-            <p>Click the copy button — you'll paste it in the next step.</p>
             <div class="copyblock"><code>https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
           </div>
-          <div class="step">
+          <div class="step" data-for="claude">
             <span class="step-n mono">2</span>
             <p class="step-h">Open Settings → Connectors</p>
             <p>In Claude, add a <strong>custom connector</strong>, name it PolicyEngine Macro, and paste the URL.</p>
           </div>
-          <div class="step">
-            <span class="step-n mono">3</span>
-            <p class="step-h">Connect and ask</p>
-            <p>Click <strong>Add → Connect</strong>, then ask Claude to <em>score a £5bn government spending rise</em> or <em>forecast UK GDP and inflation</em>.</p>
-          </div>
-        </div>
-
-        <hr class="panel-divider" data-for="claude" />
-        <div class="steps" data-for="claude" style="margin-top: 0;">
-          <div class="step" style="grid-column: 1 / -1;">
-            <p class="step-h">Using Claude Code?</p>
-            <p>One command adds the same server to Claude Code:</p>
-            <div class="copyblock"><code>claude mcp add --transport http policyengine-macro https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
-          </div>
-        </div>
-
-        <div class="steps" data-for="chatgpt" hidden>
-          <div class="step">
-            <span class="step-n mono">1</span>
-            <p class="step-h">Copy the PolicyEngine Macro URL</p>
-            <p>Click the copy button — you'll paste it in the next step.</p>
-            <div class="copyblock"><code>https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
-          </div>
-          <div class="step">
+          <div class="step" data-for="chatgpt" hidden>
             <span class="step-n mono">2</span>
             <p class="step-h">Open Settings → Connectors</p>
             <p>In ChatGPT, enable <strong>Developer mode</strong> under Connectors, then <strong>Create</strong> a connector named PolicyEngine Macro and paste the URL.</p>
@@ -309,16 +285,17 @@
           <div class="step">
             <span class="step-n mono">3</span>
             <p class="step-h">Connect and ask</p>
-            <p>Save it, then ask ChatGPT to <em>score a £5bn government spending rise</em> or <em>forecast UK GDP and inflation</em>.</p>
+            <p>Confirm it — <strong>Add → Connect</strong> in Claude, <strong>Save</strong> in ChatGPT — then ask for <em>a £5bn government spending rise, scored</em> or <em>a UK GDP and inflation forecast</em>.</p>
           </div>
         </div>
 
-        <hr class="panel-divider" data-for="chatgpt" hidden />
-        <div class="steps" data-for="chatgpt" hidden style="margin-top: 0;">
+        <hr class="panel-divider" />
+        <div class="steps" style="margin-top: 0;">
           <div class="step" style="grid-column: 1 / -1;">
-            <p class="step-h">Using Codex?</p>
-            <p>One command adds the same server to OpenAI's Codex CLI:</p>
-            <div class="copyblock"><code>codex mcp add policyengine-macro --url https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
+            <p class="step-h">Working in a coding agent instead?</p>
+            <p>One command adds the same server to the terminal.</p>
+            <div class="copyblock" data-for="claude"><code>claude mcp add --transport http policyengine-macro https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
+            <div class="copyblock" data-for="chatgpt" hidden><code>codex mcp add policyengine-macro --url https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
           </div>
         </div>
 
@@ -695,11 +672,10 @@ results = run_reform(
       <details class="more">
         <summary>How it works, and the options</summary>
       <p>
-        Under the hood: the OBR's 372 published equations are transpiled to
-        Python and solved simultaneously by Gauss–Seidel each quarter. For a
-        shock the closure swaps — inventories absorb the residual and GDP
-        becomes endogenous — so output responds to the policy instead of being
-        held fixed.
+        Under the hood: 372 transpiled equations, solved simultaneously by
+        Gauss–Seidel each quarter, with the closure swapping for a shock so
+        that GDP becomes endogenous rather than held fixed. <a href="/obr/">The
+        model page</a> covers the solver, the anchoring and every lever.
       </p>
 
       <div class="dials">
@@ -866,14 +842,13 @@ us = pe.us.calculate_household(
       <details class="more">
         <summary>How it works, and the options</summary>
       <p>
-        Under the hood: PolicyEngine encodes the UK and US tax-and-benefit
-        rules as parameterised statute and computes each variable — income
-        tax, National Insurance, Universal Credit, SNAP, EITC, and the rest —
-        for the household you describe. Population-level analysis over
-        representative microdata is in the same package; population-level
-        reform scoring runs on the hosted MCP server too (the private
-        microdata credential is provisioned server-side) and locally with a
-        HUGGING_FACE_TOKEN.
+        Under the hood the call resolves a dependency graph of statutory
+        rules for the household you describe — <a href="/pe/">the model
+        page</a> has the mechanics. Worth knowing here: the same package runs
+        whole representative datasets, and population scoring works on the
+        hosted server with no setup (the gated-microdata credential is
+        provisioned server-side) but needs your own
+        <code>HUGGING_FACE_TOKEN</code> locally.
       </p>
 
       <div class="dials">
@@ -943,7 +918,7 @@ us = pe.us.calculate_household(
   }
   function applyClient() {
     var c = currentClient();
-    document.querySelectorAll(".pane .steps[data-for], .pane hr[data-for]").forEach(function (s) {
+    document.querySelectorAll(".pane [data-for]").forEach(function (s) {
       s.hidden = s.dataset.for !== c;
     });
   }
