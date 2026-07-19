@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://macromod.vercel.app/sitemap.xml
