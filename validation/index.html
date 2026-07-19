@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PolicyEngine Macro — validation</title>
+<meta name="description" content="Every PolicyEngine Macro model set beside its official counterpart: the OBR emulator against the November 2025 EFO and HMRC's ready reckoner, the structural VAR against Brignone and Piffer (2025), FRB/US against the Fed's pyfrbus, PolicyEngine against statute, and the OLG model against its calibration targets — with the verification gradient stated, not flattened." />
+<meta property="og:title" content="PolicyEngine Macro — validation" />
+<meta property="og:description" content="Our numbers next to the official ones, model by model — replications with published anchors, a statute-validated microsimulation, and one calibrated counterfactual with no ground truth." />
+<meta property="og:type" content="website" />
+<link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
+<meta name="theme-color" content="#FFFFFF" />
+
+<link rel="stylesheet" href="/vendor/fonts/fonts.css" />
+<link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body class="doc">
+<div class="grain" aria-hidden="true"></div>
+<canvas id="field" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="brand" href="/">
+    <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
+  </a>
+  <nav class="nav-links">
+    <a href="/#idea">idea</a>
+    <a href="/#models">models</a>
+    <a href="/validation/">validation</a>
+    <a href="/docs/">docs</a>
+    <a href="/connect/">use it</a>
+    <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero model-hero">
+    <div class="hero-inner">
+      <p class="eyebrow reveal" style="--d:0">validation</p>
+      <h1 class="reveal page-title" style="--d:1;">
+        Our numbers, next to <em>theirs</em>.
+      </h1>
+      <p class="lede reveal" style="--d:2">
+        Every model on this page is set beside the official or published
+        result it is answerable to — the OBR's forecast, HMRC's ready
+        reckoner, a Bank of England paper, the Fed's own solver, the statute
+        book, the national accounts. Where a like-for-like official number
+        exists, it is here with the deviation stated. Where none exists, the
+        page says so rather than manufacturing one.
+      </p>
+    </div>
+  </section>
+
+  <section id="gradient" class="band">
+    <div class="band-head">
+      <span class="kicker mono">01 — how to read this page</span>
+      <h2>Validation is a gradient, not a badge.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        The five models differ in <strong>how far they can be checked
+        against ground truth at all</strong>, and that difference matters
+        more than any single percentage on this page. Three are
+        <em>replications</em> with published anchors: obr-macro, boe-svar,
+        and frb-us each reproduce a specific published artefact, so a
+        deviation is a meaningful number.
+        <strong>pe-microsim</strong> is validated against statute itself —
+        checkable rule by rule, with no forecast error to speak of.
+        <strong>psl-og</strong> is a <em>structural counterfactual</em>:
+        calibrated to national-accounts targets, with no published result to
+        validate against. A replication you can audit against its anchor;
+        statute you can audit against the law; a calibrated counterfactual
+        you can only reason about.
+      </p>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>Model</th><th>Verification class</th><th>What it is checked against</th><th>Headline result</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>obr-macro</strong></td>
+            <td>Replication with a published anchor</td>
+            <td>OBR <em>Economic and Fiscal Outlook</em>, November 2025; HMRC ready reckoner; ONS outturns</td>
+            <td>Anchored GDP MAPE 0.18%, consumption 0.29%</td>
+          </tr>
+          <tr>
+            <td><strong>boe-svar</strong></td>
+            <td>Replication with a published anchor</td>
+            <td>Brignone &amp; Piffer (2025), BoE Macro Technical Paper No. 3; ONS outturns</td>
+            <td>FEVD shares 40.9% / 50.1% vs the paper's ~40% / ~50%</td>
+          </tr>
+          <tr>
+            <td><strong>frb-us</strong></td>
+            <td>Replication with a published anchor</td>
+            <td>The Fed's LONGBASE database and <code>pyfrbus</code> solver; Coenen et al. and CBO multiplier ranges</td>
+            <td>Tracking invariant 5.6&times;10<sup>&minus;17</sup> — machine precision</td>
+          </tr>
+          <tr>
+            <td><strong>pe-microsim</strong></td>
+            <td>Validated against statute</td>
+            <td>UK and US law, rule by rule, for an exact household</td>
+            <td>Exact household arithmetic — not an approximation</td>
+          </tr>
+          <tr>
+            <td><strong>psl-og</strong></td>
+            <td class="vc-warn">Calibrated counterfactual — no ground truth</td>
+            <td>ONS and OBR aggregates as calibration <em>targets</em>, not as a validation set</td>
+            <td>Targets met by construction; no published replication exists</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout">
+        A match on an <em>imposed</em> or <em>targeted</em> quantity is
+        anchoring, not validation. Several of the strongest-looking numbers
+        below — the OBR emulator's anchored fit, the OLG model's calibration
+        targets — are true by construction, and are labelled as such. The
+        numbers that carry evidential weight are the ones the model had to
+        <em>deliver</em>: out-of-sample forecasts, reform costings against an
+        independent official costing, and solver residuals.
+      </div>
+    </div>
+  </section>
+
+  <section id="obr" class="band">
+    <div class="band-head">
+      <span class="kicker mono">02 — obr-macro</span>
+      <h2>Against the OBR's own forecast, and HMRC's reckoner.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        The emulator is anchored to the November 2025 EFO using the OBR's own
+        add-factor device, so reproducing the published aggregates is a
+        by-construction <em>invariant</em> — any deviation is a broken
+        transmission chain, not a forecast error. Real GDP tracks the
+        published path to a mean absolute percentage error of
+        <strong>0.18%</strong> and consumption to <strong>0.29%</strong>;
+        continuous integration hard-fails the build if either exceeds 1%.
+      </p>
+      <figure class="vfig">
+        <svg class="vchart" viewBox="0 0 760 326" role="img" aria-label="Anchored emulator deviation from the November 2025 EFO by quarter. Real GDP runs between minus 0.18 and plus 0.32 per cent; consumption between minus 0.30 and plus 0.53 per cent. Both stay far inside the plus or minus 1 per cent CI gate.">
+<title>obr-macro: anchored baseline vs November 2025 EFO, quarterly deviation</title>
+<line class="vc-s1" x1="58" y1="26" x2="84" y2="26"/><circle class="vc-s1-dot" cx="71" cy="26" r="3"/>
+<text class="vc-lab" x="92" y="30">real GDP (peak +0.32%)</text>
+<line class="vc-s2" x1="288" y1="26" x2="314" y2="26"/><circle class="vc-s2-dot" cx="301" cy="26" r="3"/>
+<text class="vc-lab vc-lab2" x="322" y="30">consumption (peak +0.53%)</text>
+<line class="vc-grid" x1="58" y1="286.0" x2="724" y2="286.0"/>
+<text class="vc-tick" x="48" y="290.0" text-anchor="end">-0.6%</text>
+<line class="vc-grid" x1="58" y1="230.5" x2="724" y2="230.5"/>
+<text class="vc-tick" x="48" y="234.5" text-anchor="end">-0.3%</text>
+<line class="vc-axis" x1="58" y1="175.0" x2="724" y2="175.0"/>
+<text class="vc-tick" x="48" y="179.0" text-anchor="end">0</text>
+<line class="vc-grid" x1="58" y1="119.5" x2="724" y2="119.5"/>
+<text class="vc-tick" x="48" y="123.5" text-anchor="end">+0.3%</text>
+<line class="vc-grid" x1="58" y1="64.0" x2="724" y2="64.0"/>
+<text class="vc-tick" x="48" y="68.0" text-anchor="end">+0.6%</text>
+<text class="vc-tick" x="58.0" y="306" text-anchor="middle">2025Q1</text>
+<text class="vc-tick" x="300.2" y="306" text-anchor="middle">2026Q1</text>
+<text class="vc-tick" x="542.4" y="306" text-anchor="middle">2027Q1</text>
+<text class="vc-tick" x="724.0" y="306" text-anchor="middle">2027Q4</text>
+<path class="vc-s1" d="M58.0 165.6 L118.5 188.7 L179.1 200.1 L239.6 204.6 L300.2 208.9 L360.7 160.3 L421.3 149.7 L481.8 140.8 L542.4 133.1 L602.9 126.8 L663.5 120.6 L724.0 115.6"/>
+<circle class="vc-s1-dot" cx="58.0" cy="165.6" r="3"/>
+<circle class="vc-s1-dot" cx="118.5" cy="188.7" r="3"/>
+<circle class="vc-s1-dot" cx="179.1" cy="200.1" r="3"/>
+<circle class="vc-s1-dot" cx="239.6" cy="204.6" r="3"/>
+<circle class="vc-s1-dot" cx="300.2" cy="208.9" r="3"/>
+<circle class="vc-s1-dot" cx="360.7" cy="160.3" r="3"/>
+<circle class="vc-s1-dot" cx="421.3" cy="149.7" r="3"/>
+<circle class="vc-s1-dot" cx="481.8" cy="140.8" r="3"/>
+<circle class="vc-s1-dot" cx="542.4" cy="133.1" r="3"/>
+<circle class="vc-s1-dot" cx="602.9" cy="126.8" r="3"/>
+<circle class="vc-s1-dot" cx="663.5" cy="120.6" r="3"/>
+<circle class="vc-s1-dot" cx="724.0" cy="115.6" r="3"/>
+<path class="vc-s2" d="M58.0 159.5 L118.5 197.5 L179.1 216.2 L239.6 223.7 L300.2 230.7 L360.7 150.8 L421.3 133.4 L481.8 118.7 L542.4 106.1 L602.9 95.7 L663.5 85.5 L724.0 77.3"/>
+<circle class="vc-s2-dot" cx="58.0" cy="159.5" r="3"/>
+<circle class="vc-s2-dot" cx="118.5" cy="197.5" r="3"/>
+<circle class="vc-s2-dot" cx="179.1" cy="216.2" r="3"/>
+<circle class="vc-s2-dot" cx="239.6" cy="223.7" r="3"/>
+<circle class="vc-s2-dot" cx="300.2" cy="230.7" r="3"/>
+<circle class="vc-s2-dot" cx="360.7" cy="150.8" r="3"/>
+<circle class="vc-s2-dot" cx="421.3" cy="133.4" r="3"/>
+<circle class="vc-s2-dot" cx="481.8" cy="118.7" r="3"/>
+<circle class="vc-s2-dot" cx="542.4" cy="106.1" r="3"/>
+<circle class="vc-s2-dot" cx="602.9" cy="95.7" r="3"/>
+<circle class="vc-s2-dot" cx="663.5" cy="85.5" r="3"/>
+<circle class="vc-s2-dot" cx="724.0" cy="77.3" r="3"/>
+</svg>
+        <figcaption>CI hard-fails at &#177;1.00% &#8212; off the top and bottom of this frame. MAPE over the horizon: 0.18% (GDP), 0.29% (consumption). Quarterly deviation of the anchored emulator from the published November 2025 EFO, 2025Q1–2027Q4. Computed from <code>papers/obr-macro/figures/fig_anchored_data.csv</code>; matches the selected quarters in the paper's comparison table (+0.05%, &minus;0.16%, +0.19%, +0.32% on GDP).</figcaption>
+      </figure>
+      <p>
+        The independent check is the reform costing. Raising the basic rate
+        of income tax by 1pp from April 2026 scores at <strong>£6.46bn</strong>
+        in 2026&ndash;27 through the PolicyEngine static-costing bridge,
+        against HMRC's ready-reckoner figure of <strong>£6.9bn</strong> — a
+        deviation of &minus;6.4%, inside the £6&ndash;8bn range spanned by
+        recent published vintages. The gap widens in later years
+        (&minus;15.6% by 2028&ndash;29) where HMRC's figures embed
+        administrative-data fiscal drag that survey microdata capture less
+        fully.
+      </p>
+      <figure class="vfig">
+        <svg class="vchart" viewBox="0 0 760 304" role="img" aria-label="PolicyEngine static costing of a 1pp basic-rate rise against HMRC&#8217;s ready reckoner: 6.46 versus 6.9 billion pounds in 2026-27, and 6.92 versus 8.2 billion in 2028-29.">
+<title>obr-macro: 1p on the basic rate, ours vs HMRC ready reckoner (£bn/yr)</title>
+<line class="vc-axis" x1="64" y1="258.0" x2="724" y2="258.0"/>
+<text class="vc-tick" x="54" y="262.0" text-anchor="end">0</text>
+<line class="vc-grid" x1="64" y1="211.6" x2="724" y2="211.6"/>
+<text class="vc-tick" x="54" y="215.6" text-anchor="end">2</text>
+<line class="vc-grid" x1="64" y1="165.2" x2="724" y2="165.2"/>
+<text class="vc-tick" x="54" y="169.2" text-anchor="end">4</text>
+<line class="vc-grid" x1="64" y1="118.8" x2="724" y2="118.8"/>
+<text class="vc-tick" x="54" y="122.8" text-anchor="end">6</text>
+<line class="vc-grid" x1="64" y1="72.4" x2="724" y2="72.4"/>
+<text class="vc-tick" x="54" y="76.4" text-anchor="end">8</text>
+<line class="vc-grid" x1="64" y1="26.0" x2="724" y2="26.0"/>
+<text class="vc-tick" x="54" y="30.0" text-anchor="end">10</text>
+<rect class="vc-b1" x="141.9" y="108.1" width="79.2" height="149.9"/>
+<text class="vc-val" x="181.5" y="100.1" text-anchor="middle">6.46</text>
+<text class="vc-tick" x="181.5" y="276" text-anchor="middle">ours</text>
+<rect class="vc-b2" x="233.0" y="97.9" width="79.2" height="160.1"/>
+<text class="vc-val" x="272.6" y="89.9" text-anchor="middle">6.90</text>
+<text class="vc-tick" x="272.6" y="276" text-anchor="middle">HMRC</text>
+<text class="vc-lab" x="229.0" y="296" text-anchor="middle">basic rate +1pp, 2026–27</text>
+<rect class="vc-b1" x="471.9" y="97.5" width="79.2" height="160.5"/>
+<text class="vc-val" x="511.5" y="89.5" text-anchor="middle">6.92</text>
+<text class="vc-tick" x="511.5" y="276" text-anchor="middle">ours</text>
+<rect class="vc-b2" x="563.0" y="67.8" width="79.2" height="190.2"/>
+<text class="vc-val" x="602.6" y="59.8" text-anchor="middle">8.20</text>
+<text class="vc-tick" x="602.6" y="276" text-anchor="middle">HMRC</text>
+<text class="vc-lab" x="559.0" y="296" text-anchor="middle">basic rate +1pp, 2028–29</text>
+</svg>
+        <figcaption>£bn/yr. 2028–29 emulator figure interpolated between scored endpoints (£6.46bn 2026, £7.38bn 2030). PolicyEngine's static costing of a 1pp basic-rate rise against HMRC's <em>Direct effects of illustrative tax changes</em> (June 2025 vintage). Source: obr-macro working paper, comparison table panel B.</figcaption>
+      </figure>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th></th><th>Ours</th><th>Official</th><th>Deviation</th></tr></thead>
+        <tbody>
+          <tr><td colspan="4"><strong>Anchored levels vs EFO Nov 2025, £bn/qtr</strong></td></tr>
+          <tr><td>Real GDP, 2025Q1</td><td>703.8</td><td>703.5</td><td>+0.05%</td></tr>
+          <tr><td>Real GDP, 2027Q4</td><td>733.2</td><td>730.8</td><td>+0.32%</td></tr>
+          <tr><td>Consumption, 2025Q1</td><td>429.6</td><td>429.2</td><td>+0.08%</td></tr>
+          <tr><td>Consumption, 2027Q4</td><td>446.7</td><td>444.4</td><td>+0.53%</td></tr>
+          <tr><td colspan="4"><strong>Basic rate +1pp vs HMRC ready reckoner, £bn/yr</strong></td></tr>
+          <tr><td>2026&ndash;27</td><td>6.46</td><td>6.9</td><td>&minus;6.4%</td></tr>
+          <tr><td>2028&ndash;29 (interpolated)</td><td>6.92</td><td>8.2</td><td>&minus;15.6%</td></tr>
+          <tr><td>2030 (end of window)</td><td>7.38</td><td>≈8.2</td><td>&minus;10.0%</td></tr>
+          <tr><td colspan="4"><strong>Tracking error vs the published EFO path, MAPE 2025Q1&ndash;2027Q4</strong></td></tr>
+          <tr><td>Anchored (GDP / consumption)</td><td>0.18% / 0.29%</td><td colspan="2">CI gate &lt;1% — passes</td></tr>
+          <tr><td>Held add-factors (GDP / consumption)</td><td>2.2% / 3.6%</td><td colspan="2">within band</td></tr>
+          <tr><td class="vc-warn">Free-running, raw (GDP / consumption)</td><td class="vc-warn">5.70% / 9.45%</td><td colspan="2" class="vc-warn">over band — report-only, and weak</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>
+        <strong>The honest scorecard.</strong> The last row is the one that
+        matters for anyone tempted to read the 0.18% as forecasting skill.
+        The same equations that track the EFO to 0.18% when anchored miss it
+        by <strong>5.70%</strong> free-running — precisely the gap the OBR's
+        own add-factor judgement closes in the official process, and the
+        reason reform deltas are always scored against the anchored baseline
+        rather than the raw one. The free-running score is de-seeded, with
+        passthrough variables excluded, and is published report-only.
+      </p>
+      <p>
+        <strong>Forecast versus outturn.</strong> Comparing one forecast
+        vintage with another tests agreement, not accuracy. Against ONS
+        outturns published since anchoring, quarter-on-quarter real GDP
+        growth ran 0.1% in 2025Q2, 0.2% in Q3, 0.2% in Q4 and 0.6% in
+        2026Q1. The emulator's path (0.15, 0.14, 0.25, 0.37) tracks the three
+        2025 quarters to within 0.06 percentage points, but — like the
+        November EFO it inherits (0.28, 0.20, 0.27, 0.39) — misses the strong
+        2026Q1 outturn by roughly a quarter of a point. Two caveats govern
+        the reading: this is primarily a test of the OBR's November vintage,
+        the emulator's own contribution being the 0.02&ndash;0.13 point gap
+        between the two model rows; and ONS quarterly estimates are
+        themselves revised, so the outturn is a moving target.
+      </p>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>Real GDP, % q/q</th><th>Emulator</th><th>EFO Nov 2025</th><th>ONS outturn</th></tr></thead>
+        <tbody>
+          <tr><td>2025Q2</td><td>0.15</td><td>0.28</td><td>0.1</td></tr>
+          <tr><td>2025Q3</td><td>0.14</td><td>0.20</td><td>0.2</td></tr>
+          <tr><td>2025Q4</td><td>0.25</td><td>0.27</td><td>0.2</td></tr>
+          <tr><td>2026Q1</td><td>0.37</td><td>0.39</td><td>0.6</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="vlinks mono">
+        <a href="/papers/obr-macro/main.pdf">working paper (pdf) →</a>
+        <a href="/obr/">obr-macro model page →</a>
+      </p>
+    </div>
+  </section>
+
+  <section id="svar" class="band">
+    <div class="band-head">
+      <span class="kicker mono">03 — boe-svar</span>
+      <h2>Against a Bank of England paper, and against outturns.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        The replication target is Brignone &amp; Piffer (2025), Bank of
+        England Macro Technical Paper No. 3. Its headline calibration figure
+        is the share of UK forecast-error variance attributed to identified
+        global shocks — world demand, energy, and supply — at the one-year
+        horizon: roughly <strong>40%</strong> for GDP and roughly
+        <strong>50%</strong> for CPI. The full 10,000-draw production run
+        yields <strong>40.9%</strong> and <strong>50.1%</strong>, deviations
+        of a percentage point or less.
+      </p>
+      <figure class="vfig">
+        <svg class="vchart" viewBox="0 0 760 304" role="img" aria-label="Share of UK forecast-error variance attributed to global shocks at the one-year horizon: our production run gives 40.9 per cent for GDP against the paper&#8217;s roughly 40 per cent, and 50.1 per cent for CPI against roughly 50 per cent.">
+<title>boe-svar: global-shock FEVD shares, ours vs Brignone &amp; Piffer (2025)</title>
+<line class="vc-axis" x1="64" y1="258.0" x2="724" y2="258.0"/>
+<text class="vc-tick" x="54" y="262.0" text-anchor="end">0%</text>
+<line class="vc-grid" x1="64" y1="180.7" x2="724" y2="180.7"/>
+<text class="vc-tick" x="54" y="184.7" text-anchor="end">20%</text>
+<line class="vc-grid" x1="64" y1="103.3" x2="724" y2="103.3"/>
+<text class="vc-tick" x="54" y="107.3" text-anchor="end">40%</text>
+<line class="vc-grid" x1="64" y1="26.0" x2="724" y2="26.0"/>
+<text class="vc-tick" x="54" y="30.0" text-anchor="end">60%</text>
+<rect class="vc-b1" x="141.9" y="99.9" width="79.2" height="158.1"/>
+<text class="vc-val" x="181.5" y="91.9" text-anchor="middle">40.9</text>
+<text class="vc-tick" x="181.5" y="276" text-anchor="middle">ours</text>
+<rect class="vc-b2" x="233.0" y="103.3" width="79.2" height="154.7"/>
+<text class="vc-val" x="272.6" y="95.3" text-anchor="middle">40.0</text>
+<text class="vc-tick" x="272.6" y="276" text-anchor="middle">paper</text>
+<text class="vc-lab" x="229.0" y="296" text-anchor="middle">UK GDP, 1-yr horizon</text>
+<rect class="vc-b1" x="471.9" y="64.3" width="79.2" height="193.7"/>
+<text class="vc-val" x="511.5" y="56.3" text-anchor="middle">50.1</text>
+<text class="vc-tick" x="511.5" y="276" text-anchor="middle">ours</text>
+<rect class="vc-b2" x="563.0" y="64.7" width="79.2" height="193.3"/>
+<text class="vc-val" x="602.6" y="56.7" text-anchor="middle">50.0</text>
+<text class="vc-tick" x="602.6" y="276" text-anchor="middle">paper</text>
+<text class="vc-lab" x="559.0" y="296" text-anchor="middle">UK CPI, 1-yr horizon</text>
+</svg>
+        <figcaption>Global shocks = world demand + energy + supply. Ours = 10,000-draw production run; paper values approximate. Global-shock FEVD shares at the one-year horizon: the production run against the paper's published values. Source: <code>papers/boe-svar/figures/comparison_numbers.json</code> and the paper's validation table.</figcaption>
+      </figure>
+      <p>
+        The deliberately cheap unweighted CI configuration lands at 47.4% and
+        42.4% — 7&ndash;8 points off, in opposite directions for the two
+        variables. That gap is itself informative rather than embarrassing:
+        the importance weights correct the Arias et al. (2018)
+        zero-restriction sampler towards the uniform-over-rotations
+        posterior, and applying them moves both shares onto the published
+        values. Both configurations sit inside the wide [30, 60]% acceptance
+        band that CI enforces, which is chosen to catch gross regressions
+        without being flaky to Monte-Carlo variation.
+      </p>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>Global share, 1-yr FEVD</th><th>Paper</th><th>CI config (fast)</th><th>Production (10k draws)</th><th>Deviation, CI / production</th></tr></thead>
+        <tbody>
+          <tr><td>UK GDP</td><td>~40%</td><td>47.4%</td><td>40.9%</td><td>+7.4 / +0.9 pp</td></tr>
+          <tr><td>UK CPI</td><td>~50%</td><td>42.4%</td><td>50.1%</td><td>&minus;7.6 / +0.1 pp</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>
+        <strong>Out-of-sample.</strong> Forecasting seven quarters ahead from
+        a frozen 2024Q2 data edge, the root-mean-squared error over
+        2024Q3&ndash;2026Q1 is <strong>0.32 percentage points</strong> for
+        both GDP growth and CPI inflation, with <strong>all fourteen
+        outturns inside the 68% credible bands</strong>. The scorecard is
+        mixed in an informative way: activity is tracked well throughout,
+        while the medians progressively undershoot the 2025 inflation
+        re-acceleration — outturns of 3.5% and 3.8% against medians of 3.2%,
+        still inside the band but on its upper half. The model was right that
+        the hump would mean-revert and wrong, by up to 0.6 points, about its
+        peak.
+      </p>
+      <p>
+        No official counterpart exists for those RMSEs. The authors'
+        companion paper (Staff Working Paper No. 1,165, January 2026) is a
+        methods paper on a different, four-variable SVAR; it publishes no
+        root-mean-squared errors, coverage rates or benchmark comparisons, so
+        the forecast numbers here stand without an official yardstick and are
+        reported as such.
+      </p>
+      <p class="vlinks mono">
+        <a href="/papers/boe-svar/main.pdf">working paper (pdf) →</a>
+        <a href="/svar/">boe-svar model page →</a>
+      </p>
+    </div>
+  </section>
+
+  <section id="frbus" class="band">
+    <div class="band-head">
+      <span class="kicker mono">04 — frb-us</span>
+      <h2>Against the Fed's own solver — and against the Fed's own noise floor.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        The tracking invariant is the sharpest test in the suite: after
+        <code>init_trac</code>, solving the baseline must reproduce the Fed's
+        LONGBASE database exactly for all 284 endogenous variables in all 20
+        quarters. The maximum absolute error across all 5,680
+        variable-quarters is <strong>5.6&times;10<sup>&minus;17</sup></strong>
+        — machine precision, against a CI gate of 10<sup>&minus;8</sup>.
+      </p>
+      <p>
+        The shock-response comparison needs a yardstick, and the honest one
+        is <em>the reference implementation's own version-to-version
+        variation</em>. Our responses match the vendored <code>pyfrbus</code>
+        1.0.0 to <strong>6.0&times;10<sup>&minus;9</sup></strong> and the
+        current 1.1.1 release to
+        <strong>1.4&times;10<sup>&minus;8</sup></strong>. But the Board's two
+        releases — whose <code>model.xml</code> and LONGBASE are
+        byte-identical, differing only in the Newton routine's LU-factorisation
+        reuse — <strong>differ from each other by
+        1.3&times;10<sup>&minus;8</sup></strong>. Our agreement therefore sits
+        at the scale of the reference implementation's own numerical noise,
+        not at some tolerance we chose. All three residuals concentrate in the
+        same near-zero series (<code>wpsn</code>, <code>zgap05</code>).
+      </p>
+      <figure class="vfig">
+        <svg class="vchart" viewBox="0 0 760 300" role="img" aria-label="Log-scale residuals for FRB/US. Our tracking invariant is 5.6e-17, machine precision. Our shock responses match pyfrbus 1.0.0 to 6.0e-9 and 1.1.1 to 1.4e-8, while the Fed&#8217;s own two releases differ from each other by 1.3e-8.">
+<title>frb-us: residuals against the Fed&#8217;s pyfrbus, log scale</title>
+<line class="vc-grid" x1="380.0" y1="26" x2="380.0" y2="264.0"/>
+<text class="vc-tick" x="380.0" y="284.0" text-anchor="middle">1e-18</text>
+<line class="vc-grid" x1="442.5" y1="26" x2="442.5" y2="264.0"/>
+<text class="vc-tick" x="442.5" y="284.0" text-anchor="middle">1e-16</text>
+<line class="vc-grid" x1="505.1" y1="26" x2="505.1" y2="264.0"/>
+<text class="vc-tick" x="505.1" y="284.0" text-anchor="middle">1e-14</text>
+<line class="vc-grid" x1="567.6" y1="26" x2="567.6" y2="264.0"/>
+<text class="vc-tick" x="567.6" y="284.0" text-anchor="middle">1e-12</text>
+<line class="vc-grid" x1="630.2" y1="26" x2="630.2" y2="264.0"/>
+<text class="vc-tick" x="630.2" y="284.0" text-anchor="middle">1e-10</text>
+<line class="vc-grid" x1="692.7" y1="26" x2="692.7" y2="264.0"/>
+<text class="vc-tick" x="692.7" y="284.0" text-anchor="middle">1e-8</text>
+<text class="vc-lab vc-rowlab" x="366" y="55.0" text-anchor="end">ours vs LONGBASE (tracking invariant)</text>
+<rect class="vc-b1" x="380" y="34.0" width="54.7" height="34"/>
+<text class="vc-val" x="442.7" y="55.0">5.6e-17</text>
+<text class="vc-lab vc-rowlab" x="366" y="103.0" text-anchor="end">pyfrbus 1.1.1 vs LONGBASE</text>
+<rect class="vc-b3" x="380" y="82.0" width="314.0" height="34"/>
+<text class="vc-val" x="702.0" y="103.0">1.1e-08</text>
+<text class="vc-lab vc-rowlab" x="366" y="151.0" text-anchor="end">ours vs pyfrbus 1.0.0 (shock)</text>
+<rect class="vc-b1" x="380" y="130.0" width="305.8" height="34"/>
+<text class="vc-val" x="693.8" y="151.0">6.0e-09</text>
+<text class="vc-lab vc-rowlab" x="366" y="199.0" text-anchor="end">ours vs pyfrbus 1.1.1 (shock)</text>
+<rect class="vc-b1" x="380" y="178.0" width="317.3" height="34"/>
+<text class="vc-val" x="705.3" y="199.0">1.4e-08</text>
+<text class="vc-lab vc-rowlab" x="366" y="247.0" text-anchor="end">pyfrbus 1.1.1 vs 1.0.0 — the Fed&#8217;s own two releases</text>
+<rect class="vc-b2" x="380" y="226.0" width="316.3" height="34"/>
+<text class="vc-val" x="704.3" y="247.0">1.3e-08</text>
+</svg>
+        <figcaption>Maximum absolute residuals, log scale — lower is closer. The bottom bar is the framing one: the Fed's own two releases disagree by as much as we disagree with either. On the tracking invariant, pyfrbus 1.1.1 reproduces LONGBASE to 1.1&times;10<sup>&minus;8</sup> against this implementation's 5.6&times;10<sup>&minus;17</sup>. Source: papers/frb-us validation tables.</figcaption>
+      </figure>
+      <p>
+        <strong>Multipliers against the published ranges.</strong> A
+        government-purchases shock of 1% of GDP gives a year-1 multiplier of
+        <strong>0.72</strong> under the Taylor rule, inside the
+        0.7&ndash;1.0 no-accommodation range in Coenen et al. (2012); under a
+        fixed funds rate the year-2 multiplier is <strong>0.99</strong>,
+        matching the Board's own "roughly one" characterisation of the pegged
+        case and sitting just below the 1.1&ndash;1.2 cross-model
+        accommodation range. A personal tax cut of 1% of GDP ex ante gives
+        <strong>0.22 rising to 0.32</strong> over years 1&ndash;2, inside both
+        the 0.2&ndash;0.4 cross-model range and CBO's central estimate of
+        about 0.3.
+      </p>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>Quantity</th><th>Ours</th><th>Published</th><th>Reading</th></tr></thead>
+        <tbody>
+          <tr><td>Tracking invariant, max abs. error</td><td>5.6&times;10<sup>&minus;17</sup></td><td>CI gate &lt;10<sup>&minus;8</sup>; pyfrbus 1.1.1 gives 1.1&times;10<sup>&minus;8</sup></td><td>machine precision</td></tr>
+          <tr><td>Shock responses vs pyfrbus 1.0.0</td><td>6.0&times;10<sup>&minus;9</sup></td><td>—</td><td>at the reference's noise floor</td></tr>
+          <tr><td>Shock responses vs pyfrbus 1.1.1</td><td>1.4&times;10<sup>&minus;8</sup></td><td>1.1.1 vs 1.0.0: 1.3&times;10<sup>&minus;8</sup></td><td>the Fed's releases differ as much as we do</td></tr>
+          <tr><td>Gov. purchases multiplier, yr 1, Taylor rule</td><td>0.72</td><td>0.7&ndash;1.0 (Coenen et al. 2012)</td><td>inside range</td></tr>
+          <tr><td>Gov. purchases multiplier, yr 2, fixed funds rate</td><td>0.99</td><td>"roughly one" pegged; 1.1&ndash;1.2 with accommodation</td><td>matches the Board's characterisation</td></tr>
+          <tr><td>Personal tax cut multiplier, yrs 1&ndash;2</td><td>0.22 → 0.32</td><td>0.2&ndash;0.4; CBO central ≈0.3</td><td>inside both ranges</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>
+        Two scope caveats. Only the VAR-expectations path was exercised in
+        the version comparison; model-consistent expectations are not
+        implemented here, so forward-guidance-style exercises are out of
+        scope. And published 100bp funds-rate responses are read off the 2014
+        FEDS Note charts, so those comparisons are approximate by nature —
+        our output-gap trough of &minus;0.50pp against the Note's ≈&minus;0.4pp
+        is within vintage and shock-design differences, not an exact match.
+      </p>
+      <p class="vlinks mono">
+        <a href="/papers/frb-us/main.pdf">working paper (pdf) →</a>
+        <a href="https://github.com/PolicyEngine/us-frb-model">frb-us code →</a>
+      </p>
+    </div>
+  </section>
+
+  <section id="pe" class="band">
+    <div class="band-head">
+      <span class="kicker mono">05 — pe-microsim</span>
+      <h2>Against statute itself.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        The microsimulation is a different kind of object from the four macro
+        members, and it is validated differently. It does not forecast, so it
+        has no forecast error; it encodes UK and US tax and benefit law as
+        parameterised statute and computes every variable for a specific
+        household. The ground truth is <strong>the law</strong> — checkable
+        rule by rule, line by line, against the legislation and the official
+        guidance. For an exact household, the arithmetic is exact, not an
+        approximation.
+      </p>
+      <p>
+        That is a strong form of validation for the question it answers
+        ("what does this reform mean for a nurse on £35,000 with two kids?")
+        and it does not transfer to population aggregates, where the binding
+        constraint is the microdata rather than the rules: population-level
+        scoring runs on a 53,000-household enhanced Family Resources Survey
+        for the UK and CPS microdata for the US. The OBR emulator's costing
+        comparison above is the clearest read on how those aggregates land
+        against an official costing — £6.46bn against HMRC's £6.9bn — and the
+        residual is attributable to survey-versus-administrative data
+        vintage, baseline policy assumptions, and HMRC's embedded
+        taxable-income elasticities.
+      </p>
+      <p class="vlinks mono">
+        <a href="/pe/">pe-microsim model page →</a>
+        <a href="https://policyengine.org">policyengine.org →</a>
+      </p>
+    </div>
+  </section>
+
+  <section id="olg" class="band">
+    <div class="band-head">
+      <span class="kicker mono">06 — psl-og</span>
+      <h2>No ground truth. Calibration targets instead.</h2>
+    </div>
+    <div class="prose">
+      <div class="callout">
+        <strong>Read this section differently.</strong> Unlike the OBR
+        emulator, the structural VAR, and FRB/US, the overlapping-generations
+        member has <em>no published ground truth to replicate</em>. What
+        follows is a comparison of the deployed calibration's targets against
+        current official UK aggregates. Where the model matches, that is
+        because the quantity was imposed or targeted — it is anchoring, not
+        validation, and it is labelled as such in every row. This model is a
+        structural counterfactual: you can audit its assumptions and its
+        code, but you cannot check its answer against anyone's published
+        answer, because there isn't one.
+      </div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>Quantity</th><th>Official UK value</th><th>Source</th><th>Model treatment</th><th>Deviation</th></tr></thead>
+        <tbody>
+          <tr><td>Government debt-to-GDP</td><td>95.1% (May 2026); OBR March 2026 forecast 94.4%</td><td>ONS public sector finances</td><td class="vc-warn">imposed via closure target</td><td>&minus;0.7pp vs latest ONS</td></tr>
+          <tr><td>Household saving ratio</td><td>8.9% (2026Q1, down from 9.6%)</td><td>ONS quarterly sector accounts</td><td class="vc-warn">targeted through β</td><td>0 by construction</td></tr>
+          <tr><td>Potential growth</td><td>≈1.1% / yr</td><td>OBR EFO</td><td class="vc-warn">imposed, g<sub>y</sub> = 0.011</td><td>≈0</td></tr>
+          <tr><td>Depreciation / capital</td><td>≈6&ndash;7% (CFC / net stock)</td><td>ONS capital stocks bulletin</td><td class="vc-warn">imposed, δ = 0.065</td><td>within range</td></tr>
+          <tr><td>Labour share of income</td><td>≈0.59&ndash;0.60, rising in 2024</td><td>ONS labour-share series / Blue Book 2025</td><td>1&minus;γ set from factor shares</td><td>≲1pp</td></tr>
+          <tr><td>Net capital stock</td><td>£5.6tn (2024), ≈2× GDP on the business-capital concept</td><td>ONS capital stocks bulletin</td><td><strong>emergent</strong> — checked, not imposed</td><td>concept-adjusted; no published reconciliation</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>
+        The distinction in the treatment column is the whole point. Imposed
+        quantities — depreciation, potential growth, the debt target — cannot
+        disagree with the data, so a zero deviation there carries no
+        information. The genuinely over-identifying checks are the ones the
+        steady state must <em>deliver</em>: the capital&ndash;output ratio and
+        the interest rate consistent with the calibrated (γ, δ, β) triple.
+        These emerge in an economically sensible range in the deployed
+        configuration, but <strong>no systematic published reconciliation of
+        achieved-versus-target moments exists</strong> for OG-UK 0.3.0, and
+        the working paper declines to manufacture one. Producing that
+        reconciliation from logged solves is the single most valuable next
+        step for this member.
+      </p>
+      <p>
+        Two dating caveats: the official column reports figures current at
+        mid-2026 while the deployed calibration was frozen against slightly
+        earlier vintages, and the saving ratio is volatile quarter to
+        quarter, so β is matched to a smoothed level rather than the latest
+        print. Two structural caveats carried over from OG-Core: the ability
+        types and lifetime earnings profiles are still the US tax-microdata
+        estimates, and UK re-estimation is an open task.
+      </p>
+      <p class="vlinks mono">
+        <a href="/papers/psl-og/main.pdf">working paper (pdf) →</a>
+        <a href="/olg/">psl-og model page →</a>
+      </p>
+    </div>
+  </section>
+
+  <section id="sources" class="band">
+    <div class="band-head">
+      <span class="kicker mono">07 — provenance</span>
+      <h2>Where every number came from.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        Every figure on this page is taken from a working paper in the
+        <a href="https://github.com/PolicyEngine/macro/tree/main/papers">papers/</a>
+        directory or from the committed figure data those papers are built
+        from — nothing here is estimated, rounded from memory, or reproduced
+        from a secondary source. The charts are hand-authored SVG computed
+        directly from the same CSV and JSON artefacts; the site ships no
+        third-party charting library.
+      </p>
+      <ul>
+        <li><strong>Anchored deviations, forecast-vs-outturn</strong> — <code>papers/obr-macro/figures/fig_anchored_data.csv</code> and <code>fig_outturn_data.csv</code>; consolidated in <code>sections/comparison.tex</code>.</li>
+        <li><strong>1p basic-rate costing</strong> — <code>papers/obr-macro/sections/results.tex</code>, against HMRC, <em>Direct effects of illustrative tax changes</em>, June 2025.</li>
+        <li><strong>Free-running scorecard</strong> — <code>papers/obr-macro/sections/comparison.tex</code>, panel D.</li>
+        <li><strong>FEVD shares</strong> — <code>papers/boe-svar/figures/comparison_numbers.json</code>; paper values from Brignone &amp; Piffer (2025), BoE Macro Technical Paper No. 3.</li>
+        <li><strong>SVAR forecast RMSE and coverage</strong> — <code>papers/boe-svar/sections/results.tex</code>; underlying quarterly bands in <code>figures/figure_numbers.json</code>.</li>
+        <li><strong>FRB/US residuals and multipliers</strong> — <code>papers/frb-us/sections/validation.tex</code> and <code>sections/comparison.tex</code>; model outputs in <code>figures/results.json</code>.</li>
+        <li><strong>OLG calibration targets</strong> — <code>papers/psl-og/sections/comparison.tex</code>, against ONS public sector finances, sector accounts, capital stocks, and the OBR EFO.</li>
+      </ul>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="/docs/">Read the docs</a>
+        <a class="btn btn-ghost" href="https://github.com/PolicyEngine/macro/tree/main/papers">Browse the papers</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot foot-bar">
+  <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
+  <nav class="foot-nav mono">
+    <a href="/validation/">validation</a>
+    <a href="/docs/">docs</a>
+    <a href="/connect/">use it</a>
+    <a href="https://github.com/PolicyEngine/macro">GitHub</a>
+    <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
+  </nav>
+</footer>
+
+<script src="/field.js" defer></script>
+<script src="/reveal.js" defer></script>
+</body>
+</html>

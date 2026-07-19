@@ -899,3 +899,64 @@ h2 {
 .foot-nav .foot-pe img { height: 18px; }
 
 .cta-sub { max-width: 64ch; margin: 0 auto 30px; text-align: center; font-size: var(--fs-body); line-height: 1.65; color: var(--paper-faint); }
+
+/* ==========================================================================
+   Validation page — comparison charts and provenance styling
+   Used by /validation/. Charts are hand-authored inline SVG (no third-party JS)
+   and inherit the site's light/dark tokens through currentColor and var().
+   ========================================================================== */
+
+.model-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 10px; }
+
+.vfig { margin: 32px 0 30px; }
+.vfig figcaption {
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--paper-faint);
+}
+.vfig figcaption code { font-size: var(--fs-code-inline); }
+
+.vchart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  padding: 14px 10px 6px;
+  background: var(--surface);
+}
+.vchart text { font-family: var(--mono); fill: var(--paper-dim); }
+.vchart .vc-tick { font-size: 11px; }
+.vchart .vc-lab { font-size: 12px; fill: var(--paper); }
+.vchart .vc-lab2 { fill: var(--amber-soft); }
+.vchart .vc-rowlab { font-size: 11.5px; fill: var(--paper-dim); }
+.vchart .vc-val { font-size: 12px; fill: var(--paper); font-weight: 600; }
+.vchart .vc-note { font-size: 10.5px; fill: var(--paper-faint); }
+.vchart .vc-grid { stroke: var(--line-soft); stroke-width: 1; }
+.vchart .vc-axis { stroke: var(--line); stroke-width: 1.5; }
+
+/* series 1 = ours, series 2 = the official/published counterpart */
+.vchart .vc-s1 { fill: none; stroke: var(--amber); stroke-width: 2; stroke-linejoin: round; }
+.vchart .vc-s1-dot { fill: var(--amber); }
+.vchart .vc-s2 { fill: none; stroke: var(--amber-soft); stroke-width: 2; stroke-dasharray: 5 4; stroke-linejoin: round; }
+.vchart .vc-s2-dot { fill: var(--amber-soft); }
+.vchart .vc-b1 { fill: var(--amber); }
+.vchart .vc-b2 { fill: color-mix(in srgb, var(--paper) 34%, transparent); }
+.vchart .vc-b3 { fill: color-mix(in srgb, var(--paper) 18%, transparent); }
+
+/* flags a row whose "match" is imposed by construction, or a known weak result */
+.vc-warn { color: var(--paper-faint); }
+.prose td.vc-warn, .prose th.vc-warn { font-style: italic; }
+
+.vlinks { display: flex; flex-wrap: wrap; gap: 8px 26px; margin-top: 26px; font-size: var(--fs-small); }
+
+@media (max-width: 620px) {
+  .vchart { padding: 10px 4px 4px; }
+  .vchart .vc-tick { font-size: 13px; }
+  .vchart .vc-lab, .vchart .vc-val { font-size: 14px; }
+  .vchart .vc-rowlab { font-size: 12.5px; }
+  .vchart .vc-note { font-size: 12px; }
+}
