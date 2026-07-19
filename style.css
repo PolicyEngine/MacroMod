@@ -959,6 +959,7 @@ h2 {
   .vchart .vc-lab, .vchart .vc-val { font-size: 14px; }
   .vchart .vc-rowlab { font-size: 12.5px; }
   .vchart .vc-note { font-size: 12px; }
+}
 
 /* ============================================================
    doc index cards (shared: /docs/ and /papers/)
