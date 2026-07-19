@@ -43,101 +43,150 @@
         Eighty cohorts. <em>One</em> economy.
       </h1>
       <p class="lede reveal" style="--d:2">
-        OG-UK is an overlapping-generations model of the UK economy, built on
-        <strong>OG-Core</strong> with a UK calibration from ONS, OBR, Bank of
-        England, and GOV.UK data. It accepts PolicyEngine tax-and-benefit
-        reforms and direct <strong>structural parameter overrides</strong> —
-        TFP, corporation tax, demographics, spending — and solves the
-        long-run response of labour supply, saving, investment, wages,
-        interest rates, revenue, and debt, plus the year-by-year transition
-        path. This page documents the UK integration; the US integration
-        (OG-USA), on the same OG-Core, is newer.
+        OG-UK is an overlapping-generations general-equilibrium model of the
+        UK, built on <strong>OG-Core</strong> with a UK calibration from ONS,
+        OBR, Bank of England and GOV.UK data. It takes PolicyEngine
+        tax-and-benefit reforms and direct structural overrides — TFP,
+        corporation tax, demographics, spending — and solves the long-run
+        response of labour supply, saving, investment, wages, interest rates,
+        revenue and debt, plus the year-by-year transition path. This page
+        documents the UK integration; the US integration (OG-USA), on the same
+        OG-Core, is newer.
       </p>
       <div class="hero-cta reveal" style="--d:3">
-        <a class="btn btn-primary" href="#quickstart">Quickstart</a>
+        <a class="btn btn-primary" href="#run">Run it</a>
         <a class="btn btn-ghost" href="https://github.com/PSLmodels/OG-UK">Read the code</a>
-        <a class="btn btn-ghost" href="/papers/psl-og/main.pdf">Working paper (PDF)</a>
+        <a class="btn btn-ghost" href="/papers/psl-og/">Working paper</a>
       </div>
       <div class="callout reveal" style="--d:4">
-        <strong>Status — local only.</strong> OG-UK is not on the hosted MCP
-        server: a single steady-state solve takes
-        <strong>17+&nbsp;minutes</strong> and a transition path can take
-        <strong>hours</strong>, so you run it on your own machine. It is a
-        <strong>calibrated structural model, not a validated
-        replication</strong> — a structural counterfactual with no published
-        ground truth, unlike the OBR and SVAR replications on this site.
+        <strong>Standing.</strong> Two things shape everything below. First,
+        <strong>local only</strong>: a single steady-state solve has been
+        measured at over <strong>17 minutes</strong> on a laptop, a reform
+        score needs two, and a transition path takes <strong>hours</strong> —
+        incompatible with a hosted tool whose other members answer in seconds,
+        so it runs on your own machine. Second, unlike the
+        <a href="/obr/">OBR emulator</a> and the <a href="/svar/">SVAR</a>,
+        it is a <strong>calibrated structural model with no published ground
+        truth to replicate</strong>. Its outputs are structural
+        counterfactuals — internally consistent answers conditional on its
+        assumptions — not validated forecasts. Section 05 says what checks
+        <em>are</em> available.
       </div>
     </div>
   </section>
 
-  <section id="model" class="band">
+  <section id="what" class="band">
     <div class="band-head">
-      <span class="kicker mono">01 — how it works</span>
+      <span class="kicker mono">01 — what it is</span>
       <h2>Households age, the economy clears.</h2>
     </div>
     <div class="prose">
       <p>
         The model tracks <strong>80 annual cohorts</strong> — households aged
-        20 to 99, entering at 20 and facing age-specific mortality. Each cohort
-        chooses labour supply and saving over its remaining lifetime; firms
-        rent that capital and labour; the government taxes, spends, and issues
-        debt. Two solves are on offer: the <strong>steady state</strong> ("where
-        does the economy settle under this policy?") and the
-        <strong>transition path</strong> — a 60-year, year-by-year solve of how
-        it gets there, which is what a budget profile needs.
+        20 to 99, entering at 20 and facing age-specific mortality. Each
+        cohort chooses labour supply and saving over its remaining lifetime;
+        firms rent that capital and labour; the government taxes, spends and
+        issues debt. Two solves are on offer: the <strong>steady state</strong>
+        ("where does the economy settle under this policy?") and the
+        <strong>transition path</strong> — a 60-year, year-by-year solve of
+        how it gets there, which is what a budget profile needs.
       </p>
       <p>
-        The UK calibration is anchored to national accounts and official data:
-        depreciation from ONS capital-stocks data (6.5%/yr), potential-output
-        growth from the OBR EFO (1.1%/yr), the discount factor matched to the
-        ONS household saving ratio, the world interest rate to Bank of England
-        gilt-yield data, and a Frisch labour-supply elasticity of 0.35
-        (Blundell, MaCurdy &amp; Meghir). Demographics — population by age,
-        mortality, immigration — come from UN data for the UK. Model outputs
-        are then mapped back to current-price £bn against ONS GDP, consumption,
-        investment, and debt series.
-      </p>
-      <p>
-        Taxes enter as <strong>estimated tax functions</strong>: OG-UK runs
-        PolicyEngine-UK on household microdata under baseline and reform,
-        computes each person's effective and marginal rates, and fits smooth
-        Gouveia–Strauss schedules the optimising households respond to
-        (section 04).
+        It is the suite's <strong>long-run structural member</strong>. Where
+        the <a href="/obr/">OBR emulator</a> answers "what does this do to
+        the next twelve quarters of the official forecast?", this one answers
+        "where does the economy end up, and why?" — with the behavioural
+        mechanism visible rather than estimated.
       </p>
     </div>
   </section>
 
-  <section id="install" class="band">
+  <section id="how" class="band">
     <div class="band-head">
-      <span class="kicker mono">02 — install</span>
-      <h2>Clone, sync, run.</h2>
+      <span class="kicker mono">02 — how it works</span>
+      <h2>Calibrated to the UK, taxed by statute.</h2>
     </div>
     <div class="prose">
       <p>
-        OG-UK is a Python package; the recommended setup uses
-        <a href="https://docs.astral.sh/uv/">uv</a>. The PolicyEngine enhanced-FRS
-        microdata is downloaded on first run and requires a HuggingFace token
-        with read access to <code>policyengine/policyengine-uk-data</code>.
+        The UK calibration is anchored to official data: depreciation from ONS
+        capital-stocks data (<strong>6.5%/yr</strong>), potential-output growth
+        from the OBR EFO (<strong>1.1%/yr</strong>), the discount factor
+        matched to the ONS household saving ratio, the world interest rate to
+        Bank of England gilt-yield data, and a Frisch labour-supply elasticity
+        of <strong>0.35</strong> (Blundell, MaCurdy &amp; Meghir).
+        Demographics — population by age, mortality, immigration — come from
+        UN data. Outputs map back to current-price £bn against live ONS
+        series, falling back to cached values if ONS is unreachable.
+      </p>
+      <p>
+        Taxes are not stylized wedges. OG-UK runs
+        <a href="/pe/">PolicyEngine-UK</a> on household microdata under
+        baseline and reform, computes marginal rates by perturbation — add £1
+        of employment (or dividend) income per adult, rerun, read the change
+        in net income — and fits three-parameter <strong>Gouveia–Strauss</strong>
+        schedules to the effective-rate microdata for each year of a
+        three-year budget window. The marginal-rate schedules are the
+        analytical derivatives of the same fitted parameters, so ETR and MTRs
+        are consistent by construction, and the model sees the reform's true
+        shape across the income and age distribution.
+      </p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>dial</th><th>choices</th><th>trade-off</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>mode</strong></td>
+            <td><code>solve_steady_state()</code> · <code>run_transition_path()</code></td>
+            <td>long-run answer, &gt;17 min per solve · full 60-year path, multiple hours for baseline + reform</td>
+          </tr>
+          <tr>
+            <td><strong>age_specific</strong></td>
+            <td><code>"pooled"</code> · <code>"brackets"</code> · <code>"each"</code></td>
+            <td>one tax function for all ages (fastest, most stable) · one per age bracket (4 groups, split at state pension age) · one per single year of age (80 functions, slowest)</td>
+          </tr>
+          <tr>
+            <td><strong>multi_sector</strong></td>
+            <td><code>False</code> · <code>True</code></td>
+            <td>one production sector · eight industries calibrated from ONS Blue Book supply-and-use tables by SIC section; needed for sector-level questions like energy price shocks</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <p class="opt-note">
+        start with <code>pooled</code> + single-sector and scale up only once
+        the fast run answers your question. non-converging solve? raise
+        <code>max_iter</code> (default 250), fall back to <code>pooled</code>,
+        and check whether the reform is extreme — OLG models can diverge on
+        very large shocks.
+      </p>
+    </div>
+  </section>
+
+  <section id="run" class="band">
+    <div class="band-head">
+      <span class="kicker mono">03 — how to run it</span>
+      <h2>Clone, sync, score.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        A Python package (3.11+); the recommended setup uses
+        <a href="https://docs.astral.sh/uv/">uv</a>. The PolicyEngine
+        enhanced-FRS microdata is downloaded on first run and is gated: you
+        need a <code>HUGGING_FACE_TOKEN</code> with read access to
+        <code>policyengine/policyengine-uk-data</code>.
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>git clone https://github.com/PSLmodels/OG-UK.git
 cd OG-UK
 uv sync
 export HUGGING_FACE_TOKEN=hf_your_token_here
 uv run python examples/run_oguk.py</code></pre></div>
-      <p class="opt-note">Python 3.11+. prefer conda? <code>conda env create -f environment.yml && conda activate oguk-dev && pip install -e .</code> works too. the example script solves baseline and reform (a 1pp basic-rate rise) and prints £bn impacts.</p>
-    </div>
-  </section>
-
-  <section id="quickstart" class="band">
-    <div class="band-head">
-      <span class="kicker mono">03 — quickstart</span>
-      <h2>Score a reform in four steps.</h2>
-    </div>
-    <div class="prose">
+      <p class="opt-note">
+        the example script solves baseline and reform (a 1pp basic-rate rise)
+        and prints £bn impacts — budget half an hour. prefer conda?
+        <code>conda env create -f environment.yml &amp;&amp; conda activate oguk-dev &amp;&amp; pip install -e .</code>
+        works too.
+      </p>
       <p>
-        The whole scoring loop is: build a reform, solve baseline and reform,
-        map to £bn. Here is the complete program for raising the basic rate of
-        income tax from 20% to 21%.
+        The whole scoring loop in one program — raising the basic rate of
+        income tax from 20% to 21%:
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime
 <span class="kw">from</span> policyengine.core <span class="kw">import</span> ParameterValue, Policy
@@ -154,7 +203,7 @@ reform = Policy(
     ],
 )
 
-<span class="cm"># 2. solve baseline and reform steady states (slow — see note below)</span>
+<span class="cm"># 2. solve baseline and reform steady states — ~17 min each</span>
 baseline  = solve_steady_state(start_year=2026)          <span class="cm"># no policy = baseline</span>
 reform_ss = solve_steady_state(start_year=2026, policy=reform)
 
@@ -165,149 +214,40 @@ impact = map_to_real_world(baseline, reform_ss)
 <span class="kw">print</span>(f<span class="kw">"GDP change: {impact.gdp_change:+.1f}bn ({impact.gdp_pct:+.3f}%)"</span>)
 <span class="kw">print</span>(f<span class="kw">"Tax revenue change: {impact.tax_revenue_change:+.1f}bn"</span>)
 <span class="kw">print</span>(f<span class="kw">"Interest rate: {impact.r_baseline:.2%} → {impact.r_reform:.2%}"</span>)</code></pre></div>
-      <div class="callout">
-        <strong>Runtime:</strong> a single steady-state solve takes over
-        <strong>17&nbsp;minutes</strong> on a laptop, and the script above
-        needs two. Budget half an hour or more end-to-end, and much longer
-        for a transition path.
-      </div>
-    </div>
-  </section>
-
-  <section id="policyengine" class="band">
-    <div class="band-head">
-      <span class="kicker mono">04 — the PolicyEngine connection</span>
-      <h2>Reforms are statute, not stylized wedges.</h2>
-    </div>
-    <div class="prose">
-      <p>
-        A reform is a PolicyEngine <code>Policy</code> object — actual
-        parameters of the UK tax and benefit system. OG-UK uses
-        <strong>PolicyEngine-UK</strong>, an open-source microsimulation model
-        built on the Family Resources Survey, HMRC's Survey of Personal Incomes,
-        the Living Costs and Food Survey, and the Wealth and Assets Survey. It
-        computes each filer's effective tax rate and marginal tax rates on
-        labor and capital income under the reform, then OG-UK fits parametric
-        tax functions to that microdata — so the model sees the reform's true
-        shape across the income and age distribution, not a single stylized
-        wedge.
-      </p>
-      <div class="table-scroll"><table>
-        <thead><tr><th>parameter path</th><th>what it is</th></tr></thead>
-        <tbody>
-          <tr><td><code>gov.hmrc.income_tax.rates.uk[0].rate</code></td><td>basic rate (20%)</td></tr>
-          <tr><td><code>gov.hmrc.income_tax.rates.uk[1].rate</code></td><td>higher rate (40%)</td></tr>
-          <tr><td><code>gov.hmrc.income_tax.rates.uk[2].rate</code></td><td>additional rate (45%)</td></tr>
-          <tr><td><code>gov.hmrc.income_tax.allowances.personal_allowance.amount</code></td><td>personal allowance (£12,570)</td></tr>
-          <tr><td><code>gov.hmrc.national_insurance.class_1.rates.employee.main</code></td><td>NI main rate</td></tr>
-          <tr><td><code>gov.hmrc.national_insurance.class_1.rates.employee.higher</code></td><td>NI upper rate</td></tr>
-        </tbody>
-      </table></div>
       <p>
         Stack several <code>ParameterValue</code>s in one <code>Policy</code>
-        to score a package — a rate rise plus an allowance change scores as one
-        combined reform.
+        to score a package. Common parameter paths:
+        <code>gov.hmrc.income_tax.rates.uk[0..2].rate</code> (basic 20%,
+        higher 40%, additional 45%),
+        <code>gov.hmrc.income_tax.allowances.personal_allowance.amount</code>
+        (£12,570), and
+        <code>gov.hmrc.national_insurance.class_1.rates.employee.main</code>
+        / <code>.higher</code>.
       </p>
       <p>
-        Concretely, OG-UK computes marginal rates by perturbation — add £1 of
-        employment income (or dividend income) per adult, rerun PolicyEngine-UK,
-        and read off the change in household net income — then fits
-        three-parameter <strong>Gouveia–Strauss</strong> tax functions to the
-        effective-rate microdata for each year of a three-year budget window.
-        The marginal-rate schedules are the analytical derivatives of the same
-        fitted parameters, so ETR and MTRs are mathematically consistent by
-        construction. The <code>age_specific</code> option (section 05)
-        controls whether one function is fit for all ages, one per age bracket,
-        or one per single year of age.
+        Shocks that are <em>not</em> tax-and-benefit statute go through
+        <code>param_overrides</code>, a dict of OG-Core parameters applied on
+        top of everything else. Corporation tax lives here, not in
+        PolicyEngine — it is a structural parameter of the macro model:
       </p>
-      <div class="callout">
-        Corporation tax is <strong>not</strong> a PolicyEngine parameter — it's a
-        structural parameter of the macro model. Shock it with
-        <code>param_overrides={"cit_rate": [[0.26]]}</code> (see section 06).
-      </div>
-    </div>
-  </section>
-
-  <section id="options" class="band">
-    <div class="band-head">
-      <span class="kicker mono">05 — the options</span>
-      <h2>Three dials: mode, tax functions, sectors.</h2>
-    </div>
-    <div class="prose">
-      <div class="table-scroll"><table>
-        <thead><tr><th>dial</th><th>choices</th><th>trade-off</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>mode</strong></td>
-            <td><code>solve_steady_state()</code> · <code>run_transition_path()</code></td>
-            <td>long-run answer (measured at &gt;17 min per solve on a laptop) · full 60-year path, expect multiple hours for baseline + reform</td>
-          </tr>
-          <tr>
-            <td><strong>age_specific</strong></td>
-            <td><code>"pooled"</code> · <code>"brackets"</code> · <code>"each"</code></td>
-            <td>one tax function for all ages (fastest, most stable) · one per age bracket (4 groups, split at state pension age) · one per single year of age (80 functions, slowest)</td>
-          </tr>
-          <tr>
-            <td><strong>multi_sector</strong></td>
-            <td><code>False</code> · <code>True</code></td>
-            <td>one production sector · eight industries calibrated from ONS Blue Book supply-and-use tables by SIC section (energy, construction, manufacturing, …); needed for sector-level questions like energy price shocks</td>
-          </tr>
-        </tbody>
-      </table></div>
-      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="cm"># first pass: fast and stable</span>
-ss = solve_steady_state(start_year=2026, policy=reform)
-
-<span class="cm"># more accurate tax functions, 8 industries</span>
-ss = solve_steady_state(start_year=2026, policy=reform,
-                        age_specific=<span class="kw">"brackets"</span>, multi_sector=<span class="kw">True</span>)</code></pre></div>
-      <p class="opt-note">
-        start with <code>pooled</code> + 1-sector; scale up only once the fast run
-        answers your question. non-converging solve? raise <code>max_iter</code>
-        (default 250), fall back to <code>pooled</code>, and check whether the
-        reform is extreme — OLG models can diverge on very large shocks.
-      </p>
-    </div>
-  </section>
-
-  <section id="shocks" class="band">
-    <div class="band-head">
-      <span class="kicker mono">06 — structural shocks</span>
-      <h2>Beyond statute: TFP, corporation tax, spending.</h2>
-    </div>
-    <div class="prose">
-      <p>
-        Both solvers accept <code>param_overrides</code> — a dict of OG-Core
-        parameters applied on top of everything else. Use it for shocks that
-        aren't tax-and-benefit statute.
-      </p>
-      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="cm"># corporation tax cut (27% effective → 25%)</span>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="cm"># corporation tax cut to 25%</span>
 ss = solve_steady_state(param_overrides={<span class="kw">"cit_rate"</span>: [[0.25]]})
 
 <span class="cm"># productivity: +0.4% TFP level shock</span>
 ss = solve_steady_state(param_overrides={<span class="kw">"Z"</span>: [[1.004]]})
 
-<span class="cm"># combine a statutory reform with a structural shock in one run</span>
+<span class="cm"># statutory reform, structural shock, and finer tax functions in one run</span>
 ss = solve_steady_state(policy=reform,
-                        param_overrides={<span class="kw">"cit_rate"</span>: [[0.25]]})</code></pre></div>
+                        param_overrides={<span class="kw">"cit_rate"</span>: [[0.25]]},
+                        age_specific=<span class="kw">"brackets"</span>, multi_sector=<span class="kw">True</span>)</code></pre></div>
       <div class="callout">
         Use <code>Z</code> (TFP) for productivity shocks — never
-        <code>g_y_annual</code>, which is the balanced-growth normalisation the
-        model detrends by, not a productivity lever.
+        <code>g_y_annual</code>, which is the balanced-growth normalisation
+        the model detrends by, not a productivity lever.
       </div>
-    </div>
-  </section>
-
-  <section id="transition" class="band">
-    <div class="band-head">
-      <span class="kicker mono">07 — the transition path</span>
-      <h2>The fiscal-year profile a budget needs.</h2>
-    </div>
-    <div class="prose">
       <p>
-        The steady state answers "where does the economy settle?" The
-        transition path answers "what happens each year on the way there" —
-        60 years of it, solved for baseline and reform in one call. It runs on
-        Dask workers — pass a client (it will spin up its own if you don't).
+        The transition path answers "what happens each year on the way
+        there" — 60 years, baseline and reform in one call, on Dask workers:
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">from</span> dask.distributed <span class="kw">import</span> Client
 <span class="kw">from</span> oguk <span class="kw">import</span> run_transition_path, map_transition_to_real_world
@@ -321,20 +261,29 @@ impact = map_transition_to_real_world(base_tp, reform_tp)
 <span class="cm"># impact.years            → ["2026-27", "2027-28", ...]</span>
 <span class="cm"># impact.gdp_change[t]    → £bn change from baseline in year t</span>
 <span class="cm"># same arrays for consumption, investment, revenue, debt</span></code></pre></div>
+      <p class="opt-note">
+        transition paths are available through the <code>oguk</code> API but
+        are <strong>not</strong> wired into the PolicyEngine Macro CLI yet —
+        the CLI is steady-state only. Two commands are wired:
+        <code>pe-macro og-baseline</code> and
+        <code>pe-macro og-score --reform '{"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}'</code>,
+        both on the fast configuration (pooled tax functions, single sector,
+        steady state).
+      </p>
     </div>
   </section>
 
-  <section id="outputs" class="band band-result">
+  <section id="answers" class="band">
     <div class="band-head">
-      <span class="kicker mono">08 — outputs</span>
+      <span class="kicker mono">04 — what it can answer</span>
       <h2>Everything maps back to £bn.</h2>
     </div>
     <div class="prose">
       <p>
-        <code>map_to_real_world()</code> returns a <code>MacroImpact</code> with,
-        for each aggregate, the reform level, the change from baseline, and the
-        percent change — all current-price £bn — plus baseline and reform
-        interest rates.
+        <code>map_to_real_world()</code> returns a <code>MacroImpact</code>
+        carrying, for each aggregate, the reform level, the change from
+        baseline, and the percent change — all current-price £bn — plus
+        baseline and reform interest rates:
       </p>
       <ul>
         <li><code>.gdp</code> / <code>.gdp_change</code> / <code>.gdp_pct</code></li>
@@ -346,45 +295,96 @@ impact = map_transition_to_real_world(base_tp, reform_tp)
         The £bn mapping is GDP-anchored: one scale factor (real-world GDP ÷
         model GDP) converts model-unit changes, with levels anchored to live
         ONS series (GDP, consumption, investment, government, debt ratio) and
-        HMRC total receipts — falling back to cached values if ONS is
-        unreachable.
+        HMRC total receipts.
       </p>
+      <div class="callout">
+        <strong>It cannot</strong> give you a quarterly path, a costing on the
+        OBR's forecast basis, or a distributional table. Those are the
+        <a href="/obr/">OBR emulator</a> and
+        <a href="/pe/">PolicyEngine</a> respectively. And it should not be
+        read as a forecast of anything — see below.
+      </div>
     </div>
   </section>
 
-  <section id="status" class="band">
+  <section id="trust" class="band band-result">
     <div class="band-head">
-      <span class="kicker mono">09 — status &amp; integration</span>
-      <h2>Where it plugs in today.</h2>
+      <span class="kicker mono">05 — how far to trust it</span>
+      <h2>No ground truth. Here is what can be checked instead.</h2>
     </div>
     <div class="prose">
       <p>
-        OG-UK is wired into the PolicyEngine Macro CLI as two commands:
-        <code>og-baseline</code> (baseline steady state, model units) and
-        <code>og-score</code> (score a PolicyEngine reform — one or more parameter changes,
-        baseline + reform steady states mapped to £bn). Both use the fast
-        configuration: pooled tax functions, single sector, steady state only.
+        There is no published counterpart to replicate, so there is no
+        headline accuracy number, and any page that gave you one would be
+        misleading you. What exists instead is three weaker but honest checks,
+        set out in full in the <a href="/papers/psl-og/">working paper</a>:
       </p>
-      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pe-macro og-baseline
-pe-macro og-score --reform <span class="kw">'{"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}'</span></code></pre></div>
-      <p>
-        Two prerequisites. First, the calibration needs the gated PolicyEngine
-        <strong>enhanced-FRS microdata</strong>: set
-        <code>HUGGING_FACE_TOKEN</code> to a token with read access to
-        <code>policyengine/policyengine-uk-data</code>. Second, a
-        <strong>version pin</strong>: oguk 0.3.0 pins
-        <code>policyengine-uk==2.88.0</code>, and policyengine-uk ≥ 2.89
-        renamed its dataset files — mixing the two fails with a
-        <code>KeyError</code> at calibration time, so keep the pinned version
-        in the environment that runs OG-UK.
-      </p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>check</th><th>what it establishes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Calibration targets vs official UK aggregates</strong></td>
+            <td>The imposed and targeted quantities match by construction — that is anchoring, not validation, and the paper's tables label which is which. The over-identifying checks are the <em>emergent</em> quantities, the capital–output ratio and the steady-state interest rate, for which no published reconciliation yet exists.</td>
+          </tr>
+          <tr>
+            <td><strong>Parameters vs OG-Core / OG-USA defaults</strong></td>
+            <td>Deployed choices are set against framework defaults and the published De Backer–Evans–Phillips tax-function estimates, including their fit statistics.</td>
+          </tr>
+          <tr>
+            <td><strong>Against the OBR's own UK OLG model</strong></td>
+            <td>OBR Working Paper No. 22 (2025) is the closest available external check, and its headline experiment is the same 1pp basic-rate change used as the running example here. For the rise, WP 22 reports GDP per person −0.1%, hours −0.2%, productivity +0.1% through composition, and just over £8bn in real income tax (~0.3% of GDP) against HMRC's ~£6–8bn static yield. A systematic side-by-side comparison is on the roadmap, not done.</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+    <p class="chart-note" style="max-width: 80ch;">
+      Read point estimates as model-consistent magnitudes and signs, not
+      forecasts: two defensible OLG models can disagree materially on the
+      long-run effect of the same reform. Note also that WP 22 solves by
+      value-function iteration in under two minutes where this model uses
+      Newton root-finding plus time-path iteration at ~17 minutes — a
+      difference in method, not in ambition. Wider suite evidence:
+      <a href="/validation/">validation</a>.
+    </p>
+  </section>
+
+  <section id="caveats" class="band">
+    <div class="band-head">
+      <span class="kicker mono">06 — limits</span>
+      <h2>Experimental-grade wiring, stated plainly.</h2>
+    </div>
+    <div class="prose">
+      <div class="table-scroll"><table>
+        <thead><tr><th>limit</th><th>detail</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Version pin</strong></td>
+            <td>The integration pins <code>oguk==0.3.0</code>, which pins <code>policyengine-uk==2.88.0</code>. Versions ≥ 2.89 renamed the microdata dataset keys (<code>enhanced_frs_2023_24_&lt;year&gt;</code> → <code>populace_uk_*</code>), so mixing them fails with a <code>KeyError</code> at calibration time. The adapter traps this and raises an actionable error. Upstream has moved on; lifting the pin is roadmap work, and until it lands the OLG member scores against a slightly older statute vintage than <a href="/pe/">the microsimulation member</a>. A declared inconsistency, not a hidden one.</td>
+          </tr>
+          <tr>
+            <td><strong>Gated data</strong></td>
+            <td>Calibration needs the private enhanced-FRS microdata, so a <code>HUGGING_FACE_TOKEN</code> with access is a hard prerequisite.</td>
+          </tr>
+          <tr>
+            <td><strong>Thin CI</strong></td>
+            <td>CI cannot exercise a seventeen-minute solve on every commit, so regressions in solve behaviour are caught by scheduled runs and by hand, not continuously.</td>
+          </tr>
+          <tr>
+            <td><strong>Steady-state-only in the CLI</strong></td>
+            <td>Transition paths exist in the <code>oguk</code> API but are not wired into the scorer, so the model cannot yet speak to fiscal-year profiles through the suite.</td>
+          </tr>
+          <tr>
+            <td><strong>Ability profiles not UK-estimated</strong></td>
+            <td>Lifetime-ability profiles are inherited rather than re-estimated on UK microdata. On the roadmap.</td>
+          </tr>
+        </tbody>
+      </table></div>
       <div class="callout">
         Want to see the model before running it? The
-        <a href="https://og-model-dashboard.vercel.app">OG-UK dashboard</a> is a
-        live explainer with a worked +1pp basic-rate simulation, a
+        <a href="https://og-model-dashboard.vercel.app">OG-UK dashboard</a> is
+        a live explainer with a worked +1pp basic-rate simulation, a
         scrollytelling methodology walk-through, runnable code for every step,
-        and a side-by-side comparison with the OBR's own UK OLG model
-        (Working Paper No. 22, 2025).
+        and a side-by-side with the OBR's UK OLG model.
       </div>
     </div>
   </section>
@@ -393,6 +393,8 @@ pe-macro og-score --reform <span class="kw">'{"gov.hmrc.income_tax.rates.uk[0].r
     <h2>Run it yourself, or let your agent run it.</h2>
     <div class="hero-cta">
       <a class="btn btn-primary" href="https://github.com/PSLmodels/OG-UK">github.com/PSLmodels/OG-UK</a>
+      <a class="btn btn-ghost" href="/papers/psl-og/">Working paper</a>
+      <a class="btn btn-ghost" href="/validation/">Validation</a>
       <a class="btn btn-ghost" href="/connect/">Connect it to your AI</a>
     </div>
   </section>

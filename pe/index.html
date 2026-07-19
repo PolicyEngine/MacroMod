@@ -43,17 +43,29 @@
         The economy, one <em>household</em> at a time.
       </h1>
       <p class="lede reveal" style="--d:2">
-        PolicyEngine.py is the <strong>micro</strong> member of the suite:
-        a tax-benefit microsimulation package for the UK and US that computes
-        a specific family's taxes, benefits, and net income under current law
-        or a reform — the same engine that powers
+        PolicyEngine.py is the <strong>micro</strong> member of the suite: a
+        tax-benefit microsimulation package for the UK and US that computes a
+        specific family's taxes, benefits and net income under current law or
+        a reform — the same engine that powers
         <a href="https://policyengine.org">policyengine.org</a>. Where the
         macro members trace a reform through the whole economy, this one
-        answers at person and household resolution.
+        answers at person and household resolution, in seconds.
       </p>
       <div class="hero-cta reveal" style="--d:3">
-        <a class="btn btn-primary" href="#quickstart">Quickstart</a>
+        <a class="btn btn-primary" href="#run">Run it</a>
         <a class="btn btn-ghost" href="https://github.com/PolicyEngine/policyengine.py">Read the code</a>
+        <a class="btn btn-ghost" href="https://pypi.org/project/policyengine/">PyPI</a>
+      </div>
+      <div class="callout reveal" style="--d:4">
+        <strong>Standing.</strong> This is the most directly checkable member
+        of the suite and the only one with no model error to report: it is
+        validated against <em>statute</em>, and household arithmetic is exact
+        — you can reproduce the worked example in section 03 with a
+        calculator. The real caveats are scope and vintage, not accuracy: it
+        is a <strong>static</strong> microsimulation with no general
+        equilibrium, and UK population runs use
+        <code>enhanced_frs_2023_24</code>. Upstream now publishes an FRS
+        2024-25 vintage; <strong>we have not adopted it</strong>.
       </div>
     </div>
   </section>
@@ -65,63 +77,78 @@
     </div>
     <div class="prose">
       <p>
-        The package encodes the UK and US tax-and-benefit rules as
-        parameterised statute and computes every variable for a household
-        you describe — for the UK: income tax, National Insurance,
-        Universal Credit, Child Benefit, Pension Credit; for the US: federal
-        and state income tax, payroll tax, SNAP, TANF, EITC, CTC, SSI, and
-        Social Security. A reform is a flat dict of parameter path → new
-        value — the same shape at household and population level; re-run
-        the same family under the new law and read the difference.
+        The package encodes UK and US tax-and-benefit rules as parameterised
+        statute and computes every variable for a household you describe —
+        for the UK: income tax, National Insurance, Universal Credit, Child
+        Benefit, Pension Credit; for the US: federal and state income tax,
+        payroll tax, SNAP, TANF, EITC, CTC, SSI and Social Security. A reform
+        is a flat dict of parameter path → new value, the same shape at
+        household and population level.
       </p>
       <p>
-        The stack has four layers: <code>policyengine-core</code> (the
-        simulation framework, originally forked from OpenFisca),
-        <code>policyengine-uk</code> and <code>policyengine-us</code> (the
-        statutory rules per country), and <code>policyengine</code> — the
-        analyst-facing package this page covers, which adds dataset
-        management, reforms, structured outputs, and version-pinned release
-        bundles for reproducibility.
+        Four layers: <code>policyengine-core</code> (the simulation framework,
+        originally forked from OpenFisca), <code>policyengine-uk</code> and
+        <code>policyengine-us</code> (the statutory rules per country), and
+        <code>policyengine</code> — the analyst-facing package this page
+        covers, which adds dataset management, reforms, structured outputs
+        and version-pinned release bundles for reproducibility.
       </p>
       <p>
-        Within PolicyEngine Macro it is the complement to the macro engines. The OLG
-        model already consumes PolicyEngine's effective and marginal rates to
-        build its tax functions; this page is the direct route to the engine
-        itself — for "what does this reform do to <em>this family</em>?"
-        rather than "what does it do to GDP?".
+        Within the suite it is the complement to the macro engines, and it
+        feeds two of them: the <a href="/olg/">OLG model</a> consumes its
+        effective and marginal rates to build tax functions, and the
+        <a href="/obr/">OBR emulator</a> takes its static costing as the
+        direct effect and returns the second-round one. This page is the
+        direct route to the engine itself.
       </p>
     </div>
   </section>
 
-  <section id="install" class="band">
+  <section id="how" class="band">
     <div class="band-head">
-      <span class="kicker mono">02 — install</span>
-      <h2>One package, two countries.</h2>
+      <span class="kicker mono">02 — how it works</span>
+      <h2>Rules, entities, and a dependency graph.</h2>
     </div>
     <div class="prose">
       <p>
-        Published on PyPI as
-        <a href="https://pypi.org/project/policyengine/"><code>policyengine</code></a>.
-        The base install is the shared analysis tooling only; add the
-        <code>[models]</code> extra to pull the pinned UK + US country
-        models, or a country extra for just one.
+        Every quantity in the system — an allowance, a taper, a means test —
+        is a variable with a formula and a set of dated parameters. Asking for
+        one variable resolves the graph beneath it, so a household net-income
+        figure is computed from the statutory chain rather than approximated
+        by a schedule. Variables are attached to <strong>entities</strong>,
+        and the entity structure differs by country: the UK has three
+        (person, benefit unit, household), the US six (person, tax unit, SPM
+        unit, family, marital unit, household), because US programmes are
+        assessed on differently drawn units.
+      </p>
+      <p>
+        A reform re-dates a parameter and re-resolves the same graph, which is
+        why the household and population APIs take reforms in the identical
+        format. Each release pins the country-model and dataset versions it
+        certifies, so a published estimate can be traced to the exact bundle
+        that produced it.
+      </p>
+    </div>
+  </section>
+
+  <section id="run" class="band">
+    <div class="band-head">
+      <span class="kicker mono">03 — how to run it</span>
+      <h2>A household in one call.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        Published on PyPI. The base install is shared tooling only; add
+        <code>[models]</code> for the pinned UK + US country models, or a
+        single country extra.
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pip install policyengine            <span class="cm"># shared tooling, no country models</span>
 pip install "policyengine[models]"  <span class="cm"># + pinned UK and US models</span>
 pip install "policyengine[uk]"      <span class="cm"># UK model only</span>
 pip install "policyengine[us]"      <span class="cm"># US model only</span></code></pre></div>
-    </div>
-  </section>
-
-  <section id="quickstart" class="band">
-    <div class="band-head">
-      <span class="kicker mono">03 — quickstart</span>
-      <h2>A household in one call.</h2>
-    </div>
-    <div class="prose">
       <p>
-        Describe the people, pick a year, and read the results. Pass a
-        <code>reform</code> dict to run the same household under changed law.
+        Describe the people, pick a year, read the results. Household
+        calculations need no data access and no credentials.
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">import</span> policyengine <span class="kw">as</span> pe
 
@@ -144,27 +171,17 @@ us = pe.us.calculate_household(
 )
 <span class="kw">print</span>(us.tax_unit.income_tax, us.household.household_net_income)</code></pre></div>
       <p class="opt-note">
-        run the same household with and without the <code>reform</code>
-        argument and difference the results — that is the household-level
-        reform impact. For the £50,000 UK earner above, raising the basic
-        rate from 20% to 25%
+        run the same household with and without <code>reform</code> and
+        difference the results — that is the household-level reform impact.
+        For the UK earner above, raising the basic rate to 25%
         (<code>{"gov.hmrc.income_tax.rates.uk[0].rate": 0.25}</code>) adds
-        £1,872 of income tax — 5pp on ~£37.4k of basic-rate income — and
-        cuts net income by the same £1,872.
+        <strong>£1,872</strong> of income tax and cuts net income by the same
+        amount.
       </p>
-    </div>
-  </section>
-
-  <section id="population" class="band">
-    <div class="band-head">
-      <span class="kicker mono">04 — beyond one household</span>
-      <h2>Population analysis on representative microdata.</h2>
-    </div>
-    <div class="prose">
       <p>
-        The same package runs whole representative datasets — the UK Family
-        Resources Survey (enhanced), the US CPS — through the model, so you
-        can aggregate any variable by decile, entity, or demographic:
+        The same package runs whole representative datasets — the enhanced UK
+        Family Resources Survey, the US CPS — so any variable can be
+        aggregated by decile, entity or demographic:
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">import</span> policyengine <span class="kw">as</span> pe
 <span class="kw">from</span> policyengine.core <span class="kw">import</span> Simulation
@@ -180,59 +197,143 @@ agg = Aggregate(simulation=simulation, variable=<span class="kw">"universal_cred
                 aggregate_type=AggregateType.SUM, entity=<span class="kw">"benunit"</span>)
 agg.run()
 <span class="kw">print</span>(f<span class="kw">"Total UC spending: £{agg.result / 1e9:.1f}bn"</span>)</code></pre></div>
-      <p>
-        For baseline-vs-reform comparisons at population scale, the package
-        bundles canonical workflows — <code>pe.uk.economic_impact_analysis</code>
-        and its US counterpart — plus structured output types
-        (<code>Aggregate</code>, <code>ChangeAggregate</code>,
-        <code>IntraDecileImpact</code>) for decile changes, program
-        statistics, poverty, inequality, and regional impacts. Each release
-        pins the country-model and dataset versions it certifies, so a
-        published estimate can be traced to the exact bundle that produced it.
-      </p>
       <div class="callout">
-        UK population microdata lives in a private Hugging Face repository —
-        set <code>HUGGING_FACE_TOKEN</code> from an account with access before
-        running UK population examples. Household calculations need no data
-        access at all.
+        UK population microdata is in a gated Hugging Face repository — set
+        <code>HUGGING_FACE_TOKEN</code> from an account with access to
+        <code>policyengine/policyengine-uk-data</code> before running UK
+        population examples. On the hosted MCP server this credential is
+        provisioned server-side, so hosted population scoring needs nothing
+        from you.
       </div>
     </div>
   </section>
 
-  <section id="outputs" class="band band-result">
+  <section id="answers" class="band">
     <div class="band-head">
-      <span class="kicker mono">05 — outputs & scope</span>
-      <h2>What it answers — and what it doesn't yet.</h2>
+      <span class="kicker mono">04 — what it can answer</span>
+      <h2>From one family to the whole distribution.</h2>
+    </div>
+    <div class="prose">
+      <div class="table-scroll"><table>
+        <thead><tr><th>question</th><th>how</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>What does this reform do to this family?</strong></td>
+            <td><code>calculate_household</code> / <code>household_reform_impact</code> — every tax, benefit and income variable at person, benefit-unit/tax-unit and household level. Live on the hosted MCP server and the <code>pe-macro</code> CLI.</td>
+          </tr>
+          <tr>
+            <td><strong>What does it cost, and who wins?</strong></td>
+            <td><code>population_reform_impact</code> and <code>pe.uk.economic_impact_analysis</code> — budgetary impact, decile changes, winners and losers, poverty, inequality, regional impacts. Hosted, with the enhanced-FRS credential provisioned server-side.</td>
+          </tr>
+          <tr>
+            <td><strong>What levers exist?</strong></td>
+            <td><code>list_reform_parameters</code> — the parameter tree you can write reforms against.</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <div class="callout">
+        <strong>It cannot</strong> tell you what a reform does to GDP,
+        interest rates, or the fiscal forecast. It is static and
+        partial-equilibrium by design: behavioural responses are optional and
+        post-hoc (e.g. labour-supply elasticities), and there is no general
+        equilibrium at all. That second act is precisely what the macro
+        members add — <a href="/obr/">short-run</a> and
+        <a href="/olg/">long-run</a>.
+      </div>
+    </div>
+  </section>
+
+  <section id="trust" class="band band-result">
+    <div class="band-head">
+      <span class="kicker mono">05 — how far to trust it</span>
+      <h2>Validated against statute, not against a forecast.</h2>
     </div>
     <div class="prose">
       <p>
-        Outputs are per-entity variables: incomes, each tax, each benefit,
-        and net income at person, benefit-unit/tax-unit, and household level —
-        plus aggregates and distributional statistics over microdata.
-        Honest scope notes:
+        The verification question here is different in kind from the rest of
+        the suite. There is no forecast error to report, because the model is
+        not forecasting: it is applying published rules. The claim is that it
+        applies them correctly, and that claim is checkable by hand. For the
+        £50,000 UK earner in section 03: £50,000 − £12,570 personal allowance
+        = £37,430 of basic-rate income; at 20% that is <strong>£7,486</strong>
+        of income tax, at 8% <strong>£2,994</strong> of National Insurance,
+        leaving <strong>£39,520</strong> net. Raising the basic rate 5pp adds
+        5% of £37,430 = <strong>£1,872</strong>. Every figure printed by the
+        code sample is the arithmetic of statute, exactly.
       </p>
-      <ul>
-        <li>It is a <strong>static microsimulation</strong> at heart — reforms are modelled statically, with optional post-hoc behavioural responses (e.g. labour supply elasticities). No general equilibrium: that second act is exactly what the macro members of the suite add.</li>
-        <li><strong>Integration status:</strong> the household tools (<code>calculate_household</code>, <code>household_reform_impact</code>, <code>list_reform_parameters</code>) are live on the hosted MCP server and the <code>pe-macro</code> CLI. Population reform scoring (<code>population_reform_impact</code>: budgetary impact, deciles, winners/losers) is hosted too — the private enhanced-FRS credential is provisioned server-side — and runs locally with a <code>HUGGING_FACE_TOKEN</code>.</li>
-        <li>Two countries: UK and US.</li>
-      </ul>
+      <p>
+        What is <em>not</em> exact is anything resting on survey microdata —
+        population aggregates inherit sampling error, imputation and ageing
+        assumptions from the enhanced FRS and the CPS, so a headline
+        budgetary cost is an estimate in a way a household calculation is
+        not. Comparisons of PolicyEngine's static costings against official
+        sources are set out for the UK 1p basic-rate case in the
+        <a href="/papers/obr-macro/">OBR emulator working paper</a>: £6.46bn
+        in 2026 rising to £7.38bn by 2030, inside the range of HMRC's June
+        2025 ready reckoner (£6.9bn rising to ~£8.2bn), toward its lower end.
+        Suite-wide evidence: <a href="/validation/">validation</a>.
+      </p>
     </div>
     <div class="metrics">
+      <div class="metric">
+        <span class="metric-label mono">household arithmetic</span>
+        <span class="metric-val">exact</span>
+        <span class="metric-note">statute applied, not estimated</span>
+      </div>
       <div class="metric">
         <span class="metric-label mono">countries</span>
         <span class="metric-val">2</span>
         <span class="metric-note">UK · US tax-benefit systems</span>
       </div>
       <div class="metric">
-        <span class="metric-label mono">UK entities</span>
-        <span class="metric-val">3</span>
-        <span class="metric-note">person · benefit unit · household</span>
+        <span class="metric-label mono">UK / US entities</span>
+        <span class="metric-val">3<span class="metric-vs">/ 6</span></span>
+        <span class="metric-note">benefit unit vs tax unit, SPM unit, family, marital unit</span>
       </div>
-      <div class="metric">
-        <span class="metric-label mono">US entities</span>
-        <span class="metric-val">6</span>
-        <span class="metric-note">person · tax unit · SPM unit · family · marital unit · household</span>
-      </div>
+    </div>
+  </section>
+
+  <section id="caveats" class="band">
+    <div class="band-head">
+      <span class="kicker mono">06 — limits</span>
+      <h2>Scope and vintage.</h2>
+    </div>
+    <div class="prose">
+      <div class="table-scroll"><table>
+        <thead><tr><th>limit</th><th>detail</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Static, no general equilibrium</strong></td>
+            <td>Reforms are modelled statically with optional post-hoc behavioural responses. Prices, wages and output do not move.</td>
+          </tr>
+          <tr>
+            <td><strong>UK data vintage</strong></td>
+            <td>UK population runs use <code>enhanced_frs_2023_24</code>. Upstream now publishes an FRS 2024-25 vintage, which this integration has <strong>not</strong> adopted.</td>
+          </tr>
+          <tr>
+            <td><strong>Survey-based aggregates</strong></td>
+            <td>Population estimates inherit sampling, imputation and ageing error. HMRC's own costings use administrative Survey of Personal Incomes data and embed taxable-income elasticities, so differences of a few hundred million on a broad-based rate change are expected.</td>
+          </tr>
+          <tr>
+            <td><strong>Gated UK microdata</strong></td>
+            <td>A <code>HUGGING_FACE_TOKEN</code> with access is required locally. Household calculations are unaffected.</td>
+          </tr>
+          <tr>
+            <td><strong>Statute-vintage divergence with OLG</strong></td>
+            <td>This package tracks the latest release; the <a href="/olg/">OLG member</a> is pinned to <code>policyengine-uk==2.88.0</code>, so the two can disagree about baseline statute. A declared inconsistency.</td>
+          </tr>
+          <tr>
+            <td><strong>Two countries</strong></td>
+            <td>UK and US only.</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <p class="opt-note">
+        no standalone working paper for this member yet — its behaviour is
+        documented through the country model repositories and, where it feeds
+        the macro members, in the <a href="/papers/obr-macro/">OBR</a> and
+        <a href="/papers/psl-og/">OLG</a> papers.
+      </p>
     </div>
   </section>
 
@@ -241,7 +342,7 @@ agg.run()
     <div class="hero-cta">
       <a class="btn btn-primary" href="https://github.com/PolicyEngine/policyengine.py">github.com/PolicyEngine/policyengine.py</a>
       <a class="btn btn-ghost" href="https://pypi.org/project/policyengine/">PyPI: policyengine</a>
-      <a class="btn btn-ghost" href="https://policyengine.org">policyengine.org</a>
+      <a class="btn btn-ghost" href="/validation/">Validation</a>
       <a class="btn btn-ghost" href="/connect/">Connect it to your AI</a>
     </div>
   </section>

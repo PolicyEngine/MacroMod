@@ -44,27 +44,29 @@
       </h1>
       <p class="lede reveal" style="--d:2">
         An independent emulator of the OBR's published macroeconomic model —
-        the 372-equation system behind the UK's official forecast, transpiled
-        from the October 2025 EViews listing and solved simultaneously. Shock
-        a tax rate or a spending line and read the deviation quarter by
-        quarter, anchored to the November 2025 Economic and Fiscal Outlook.
+        372 equations transpiled from the October 2025 EViews listing and
+        solved simultaneously, anchored to the <strong>November 2025 Economic
+        and Fiscal Outlook</strong>. Shock a tax rate or a spending line and
+        read the deviation quarter by quarter, in about 30–40 seconds a solve.
       </p>
       <div class="hero-cta reveal" style="--d:3">
         <a class="btn btn-primary" href="https://obr-macroeconomic-model.vercel.app/">Explore it live</a>
-        <a class="btn btn-ghost" href="#quickstart">Quickstart</a>
+        <a class="btn btn-ghost" href="#run">Run it</a>
         <a class="btn btn-ghost" href="https://github.com/PolicyEngine/obr-macroeconomic-model">Read the code</a>
-        <a class="btn btn-ghost" href="/papers/obr-macro/main.pdf">Working paper (PDF)</a>
+        <a class="btn btn-ghost" href="/papers/obr-macro/">Working paper</a>
       </div>
-    </div>
-  </section>
-
-  <section class="band">
-    <div class="prose">
-      <div class="callout">
-        <strong>PolicyEngine Macro's OBR model is an independent implementation
-        based on the OBR's published model code and forecast data.</strong> It
-        is not produced, maintained, or endorsed by the OBR, and its results
-        should not be presented as official OBR estimates.
+      <div class="callout reveal" style="--d:4">
+        <strong>Standing.</strong> This is an independent Python
+        re-implementation of the OBR's published model code and forecast
+        data. It is <strong>not produced, maintained, or endorsed by the
+        OBR</strong>, and its results are not official OBR estimates. The
+        anchored baseline reproduces the published EFO by construction and is
+        hard-gated in CI; the free-running model is documented as weak and is
+        reported, not relied on. Both numbers are on this page, and the
+        evidence is in <a href="/validation/">validation</a> and the
+        <a href="/papers/obr-macro/">working paper</a>. Anchored to the
+        November 2025 EFO — a March 2026 EFO exists and we have not
+        re-anchored to it.
       </div>
     </div>
   </section>
@@ -80,68 +82,89 @@
         Accounts — first built by HM Treasury in 1970 and jointly maintained
         by the OBR and the Treasury since 2010. The OBR publishes its full
         equation listing, but as EViews source that few can run. This project
-        transpiles that listing to Python and solves it, so the equations
-        behind the official forecast become something you can open, shock,
-        and inspect: <strong>372 published equations</strong> in
-        <strong>17 thematic groups</strong>, over <strong>636
-        variables</strong>.
+        transpiles that listing to Python and solves it:
+        <strong>372 published equations</strong> in <strong>17 thematic
+        groups</strong> over <strong>636 variables</strong> — 29
+        econometrically estimated, 216 identities, 138 calibrated or technical
+        relationships, and 253 exogenous inputs, which are the judgements and
+        assumptions you get to change.
       </p>
       <p>
-        The anchored baseline reproduces the published Economic and Fiscal
-        Outlook by construction — the add-factors are set so it matches. In
-        raw mode, with those corrections off, only some headline variables
-        fall within calibration bands; we report that gradient openly.
+        It is a <strong>structural macroeconometric model</strong> in the
+        HM Treasury / Cowles-Commission tradition. Where the
+        <a href="/olg/">OLG model</a> derives behaviour from optimising
+        households and firms, this one reproduces the estimated relationships
+        the official forecaster actually relies on.
       </p>
       <p>
-        This is a <strong>structural macroeconometric model</strong> in the
-        HM Treasury / Cowles-Commission tradition. Where the OLG model
-        derives behaviour from optimising households and firms, this one
-        reproduces the estimated relationships and identities the official
-        forecaster relies on: 29 equations econometrically estimated, 216
-        identities, 138 calibrated or technical relationships, and 253
-        exogenous inputs — the judgements and assumptions you get to change.
+        The live dashboard at
+        <a href="https://obr-macroeconomic-model.vercel.app/">obr-macroeconomic-model.vercel.app</a>
+        is the fastest way in: five tabs covering where the model sits among
+        DSGE, HANK and OLG families; the transpile–solve–shock pipeline and
+        the calibration scorecard; an interactive scenario explorer whose
+        every figure is real solver output; a searchable glossary of all 636
+        codes with their ONS series; and every published EViews line beside
+        its transpiled Python.
       </p>
     </div>
   </section>
 
-  <section id="explorer" class="band">
+  <section id="how" class="band">
     <div class="band-head">
-      <span class="kicker mono">02 — the live explorer</span>
-      <h2>The interactive documentation.</h2>
+      <span class="kicker mono">02 — how it works</span>
+      <h2>Transpile, solve, swap the closure.</h2>
     </div>
     <div class="prose">
+      <div class="table-scroll"><table>
+        <thead><tr><th>stage</th><th>what it does</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Transpile</strong></td>
+            <td>Rewrites every EViews line — <code>dlog()</code>, <code>@elem</code>, lags like <code>X(-1)</code>, error-correction terms — into an equivalent Python expression, compiled once per solve.</td>
+          </tr>
+          <tr>
+            <td><strong>Initialise</strong></td>
+            <td>Loads history from the OBR's detailed forecast tables. Of the 261 endogenous variables the listing referenced but the outlook did not print, <strong>199 had ONS series codes</strong>; a vendored 348-series ONS snapshot supplies them, giving the circular fiscal and financial sub-blocks real balancing data.</td>
+          </tr>
+          <tr>
+            <td><strong>Gauss–Seidel solve</strong></td>
+            <td>The equations depend on each other, so each quarter is solved simultaneously: cycle, update, repeat to convergence. Quarters then solve sequentially forward. A twelve-quarter anchored solve takes roughly <strong>30–40 seconds</strong> single-threaded; a reform run is two such solves.</td>
+          </tr>
+          <tr>
+            <td><strong>Anchor</strong></td>
+            <td>Add-factors — the residuals reconciling each behavioural equation to data — are set so the baseline reproduces the published EFO. This is the OBR's own device, used the OBR's own way.</td>
+          </tr>
+          <tr>
+            <td><strong>Closure swap</strong></td>
+            <td>The GDP identity is switched off in the OBR file, so for a shock <code>GDPM</code> is swapped in and inventories (<code>DINV</code>) become the residual — output responds to the policy instead of being fixed.</td>
+          </tr>
+          <tr>
+            <td><strong>Shock &amp; compare</strong></td>
+            <td>Solves shocked and baseline paths with identical structure and reports the difference, isolating the policy effect from the underlying forecast.</td>
+          </tr>
+        </tbody>
+      </table></div>
       <p>
-        The model ships with a live dashboard — the fastest way to understand
-        it. Five tabs: <strong>About</strong> (where the model sits among
-        DSGE, HANK and OLG families, and how its blocks wire together),
-        <strong>How it works</strong> (the transpile-solve-shock pipeline and
-        the calibration scorecard), <strong>Explore scenarios</strong>
-        (interactive charts of real solver output, baseline vs shocked),
-        <strong>Variables</strong> (a searchable glossary of all 636 codes
-        with their ONS series), and <strong>Equations</strong> (every
-        published EViews line beside its transpiled Python).
+        For forecasting rather than one-off shocks, the emulator fits
+        add-factors over a base window of <strong>2024Q1–2025Q4</strong>,
+        <strong>holds them constant</strong>, and projects to
+        <strong>2027Q4</strong> with exogenous inputs held at their last
+        value. Scenario solves run twelve quarters, 2025Q1–2027Q4.
       </p>
-      <div class="callout">
-        <strong><a href="https://obr-macroeconomic-model.vercel.app/">obr-macroeconomic-model.vercel.app</a></strong>
-        — browse the equations, hover the variables, and run the scenario
-        explorer in your browser. Every figure in the Explore tab is real
-        solver output, computed once and stored with the page.
-      </div>
     </div>
   </section>
 
-  <section id="quickstart" class="band">
+  <section id="run" class="band">
     <div class="band-head">
-      <span class="kicker mono">03 — quickstart</span>
+      <span class="kicker mono">03 — how to run it</span>
       <h2>Shock a variable, read the deviation.</h2>
     </div>
     <div class="prose">
       <p>
-        The package installs straight from GitHub — the OBR equation listing,
-        the November 2025 EFO forecast tables, and the ONS input snapshot ship
-        inside the package. A reform is one call: pick an exogenous variable,
-        apply a shock (levels are £m per quarter), read the deviation from
-        baseline.
+        The package installs straight from GitHub — the equation listing, the
+        November 2025 EFO forecast tables, and the ONS snapshot ship inside
+        it, so there is no data step. A reform is one call: pick an exogenous
+        variable, apply a shock, read the deviation from baseline.
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pip install git+https://github.com/PolicyEngine/obr-macroeconomic-model</code></pre></div>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">from</span> obr_macro <span class="kw">import</span> run_reform
@@ -157,71 +180,16 @@ results = run_reform(
 <span class="cm"># ΔGDP ≈ £1.25bn in the impact quarter, near-flat thereafter —</span>
 <span class="cm"># under the demand closure the impact multiplier is ~1 by construction</span></code></pre></div>
       <p class="opt-note">
-        run the five bundled scenarios with charts:
-        <code>python -m obr_macro.reform_analysis</code> — a £5bn spending
-        rise, 5pp corporation-tax cut and rise, £10bn public investment
-        (£3bn nominal <code>CGIPS</code> per quarter), and a £10bn austerity
-        cut. Charts land in <code>outputs/</code>.
+        two solves, so about a minute. run the five bundled scenarios with
+        charts via <code>python -m obr_macro.reform_analysis</code> — a £5bn
+        spending rise, a 5pp corporation-tax cut and rise, £10bn public
+        investment (£3bn nominal <code>CGIPS</code> per quarter), and a £10bn
+        austerity cut. Charts land in <code>outputs/</code>.
       </p>
-    </div>
-  </section>
-
-  <section id="how" class="band">
-    <div class="band-head">
-      <span class="kicker mono">04 — how it works</span>
-      <h2>Transpile, solve, swap the closure.</h2>
-    </div>
-    <div class="prose">
       <p>
-        The engine turns a static equation listing into a live policy tool in
-        five stages:
-      </p>
-      <div class="table-scroll"><table>
-        <thead><tr><th>stage</th><th>what it does</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>Transpile</strong></td>
-            <td>Rewrites every EViews line — <code>dlog()</code>, <code>@elem</code>, lags like <code>X(-1)</code>, error-correction terms — into an equivalent Python expression.</td>
-          </tr>
-          <tr>
-            <td><strong>Initialise</strong></td>
-            <td>Loads history from the OBR's detailed forecast tables; any variable a published equation needs but the data doesn't supply is created and seeded.</td>
-          </tr>
-          <tr>
-            <td><strong>Gauss–Seidel solve</strong></td>
-            <td>The 372 equations depend on each other, so each quarter is solved simultaneously: cycle through the equations, update values, repeat until nothing moves.</td>
-          </tr>
-          <tr>
-            <td><strong>Closure swap</strong></td>
-            <td>The GDP identity is switched off in the OBR file, so for a shock <code>GDPM</code> is swapped in and inventories (<code>DINV</code>) become the residual — output responds to the policy instead of being fixed.</td>
-          </tr>
-          <tr>
-            <td><strong>Shock &amp; compare</strong></td>
-            <td>Solves the shocked and baseline paths with identical model structure and reports the difference, isolating the policy effect from the underlying forecast.</td>
-          </tr>
-        </tbody>
-      </table></div>
-      <div class="callout">
-        Of the 261 endogenous variables the published listing referenced but
-        the OBR's outlook did not print, <strong>199 had ONS series
-        codes</strong> — pulling those observed series (a 348-series ONS
-        snapshot, vendored with the package) gave the circular fiscal and
-        financial sub-blocks real balancing data and stopped them diverging.
-      </div>
-    </div>
-  </section>
-
-  <section id="variables" class="band">
-    <div class="band-head">
-      <span class="kicker mono">05 — the levers</span>
-      <h2>253 exogenous inputs, 383 solved variables.</h2>
-    </div>
-    <div class="prose">
-      <p>
-        Every variable is in one of two camps — the test is whether it has its
-        own equation. Reforms enter through the 253 exogenous inputs
-        (fiscal levers, market assumptions, world demand, demographics); the
-        results come out of the 383 the model solves. The most useful:
+        Reforms enter through the 253 exogenous inputs; results come out of
+        the 383 the model solves. The test is simply whether a variable has
+        its own equation. The most useful levers:
       </p>
       <div class="table-scroll"><table>
         <thead><tr><th>code</th><th>variable</th><th>role &amp; units</th></tr></thead>
@@ -231,125 +199,160 @@ results = run_reform(
           <tr><td><code>TCPRO</code></td><td>Corporation tax rate</td><td>exogenous — rate, e.g. −0.05 for a 5pp cut</td></tr>
           <tr><td><code>R</code> / <code>GILT</code> / <code>RX</code></td><td>Bank Rate · gilt yields · exchange rate</td><td>exogenous — monetary &amp; market assumptions</td></tr>
           <tr><td><code>GDPM</code></td><td>GDP at market prices</td><td>endogenous — headline output</td></tr>
-          <tr><td><code>CONS</code></td><td>Private consumption</td><td>endogenous — solved each quarter</td></tr>
+          <tr><td><code>CONS</code></td><td>Private consumption</td><td>endogenous</td></tr>
           <tr><td><code>IBUS</code> / <code>IF</code></td><td>Business / total investment</td><td>endogenous</td></tr>
           <tr><td><code>LFSUR</code></td><td>Unemployment rate</td><td>endogenous — rate, pp</td></tr>
         </tbody>
       </table></div>
       <p class="opt-note">
-        the full searchable glossary — all 636 codes, descriptions, ONS series
-        and equations — is the
+        the full searchable glossary — all 636 codes with descriptions, ONS
+        series and equations — is the
         <a href="https://obr-macroeconomic-model.vercel.app/">dashboard's Variables and Equations tabs</a>.
       </p>
     </div>
   </section>
 
-  <section id="forecasting" class="band">
+  <section id="answers" class="band">
     <div class="band-head">
-      <span class="kicker mono">06 — forecasting</span>
-      <h2>The OBR's own method: held add-factors.</h2>
+      <span class="kicker mono">04 — what it can answer</span>
+      <h2>Second-round effects on a static costing.</h2>
     </div>
     <div class="prose">
       <p>
-        Beyond one-off shocks, the emulator forecasts the way the OBR does:
-        compute the residuals (add-factors) that reconcile each behavioural
-        equation to recent data over a base window of
-        <strong>2024Q1–2025Q4</strong>, <strong>hold them constant</strong>,
-        and project eight quarters forward to 2027Q4. Exogenous inputs are
-        held at their last value, and the frozen corrections anchor the
-        model's structural dynamics — a genuine forecast, not a replay of the
-        input. Scenario solves run twelve quarters, 2025Q1–2027Q4.
+        The emulator's designed job is the second half of the official
+        workflow: microsimulation supplies the direct Exchequer effect, the
+        macro model supplies the economy-wide feedback. A static-costing
+        bridge wires <a href="/pe/">PolicyEngine's microsimulation</a> into
+        the emulator so a statutory reform can be scored end to end.
       </p>
+      <p>
+        Worked example — 1p on the basic rate of income tax from April 2026,
+        scored 2026–2030. PolicyEngine puts the direct yield at
+        <strong>£6.46bn in 2026</strong>, rising to <strong>£7.38bn by
+        2030</strong>; HMRC's June 2025 ready reckoner puts 1p at £6.9bn in
+        2026–27 rising to about £8.2bn, so the static costing sits inside the
+        official range, toward its lower end. Converted to a quarterly
+        <code>HHDI</code> shock of −£1.62bn to −£1.85bn and propagated through
+        the consumption function, GDP falls <strong>0.020% on impact in
+        2026Q1, 0.040% by 2026Q4, and 0.057% by 2027Q4</strong> — the sign
+        and order of magnitude the OBR's own indirect-effect conventions
+        imply.
+      </p>
+      <div class="callout">
+        <strong>It cannot</strong> tell you who wins and loses — pair it with
+        <a href="/pe/">PolicyEngine</a> for distributional analysis. It
+        cannot give you a long-run structural counterfactual — that is the
+        <a href="/olg/">OLG model</a>. And it cannot tell you what state the
+        economy is in today — that is the <a href="/svar/">SVAR</a>.
+      </div>
     </div>
   </section>
 
-  <section id="calibration" class="band band-result">
+  <section id="trust" class="band band-result">
     <div class="band-head">
-      <span class="kicker mono">07 — calibration</span>
-      <h2>Held-add-factor forecast vs the OBR.</h2>
+      <span class="kicker mono">05 — how far to trust it</span>
+      <h2>Excellent anchored. Weak free-running. Both published.</h2>
     </div>
     <div class="prose">
       <p>
-        Scored against the OBR's published outlook over the projected window,
-        the core real block tracks closely; the incomes and profit blocks are
-        harder. Of 16 headline variables, 10 are actually computed by the
-        model, and 6 of those land within band.
+        There are three configurations and they earn very different levels of
+        trust. Anchored is a by-construction invariant, not a forecast claim:
+        the add-factors absorb the tracking error, which is exactly what
+        anchoring means, and CI hard-fails the build if it slips.
       </p>
     </div>
     <div class="metrics">
       <div class="metric">
-        <span class="metric-label mono">real GDP</span>
+        <span class="metric-label mono">anchored — real GDP</span>
+        <span class="metric-val">0.18<span class="metric-vs">% MAPE</span></span>
+        <span class="metric-note">vs published EFO; CI fails at 1%</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label mono">anchored — consumption</span>
+        <span class="metric-val">0.29<span class="metric-vs">% MAPE</span></span>
+        <span class="metric-note">vs published EFO; CI fails at 1%</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label mono">held-add-factor forecast</span>
         <span class="metric-val">2.2<span class="metric-vs">% MAPE</span></span>
-        <span class="metric-note">within band</span>
+        <span class="metric-note">real GDP; 6 of 10 computed variables in band</span>
       </div>
       <div class="metric">
-        <span class="metric-label mono">consumption</span>
-        <span class="metric-val">3.6<span class="metric-vs">% MAPE</span></span>
-        <span class="metric-note">within band</span>
-      </div>
-      <div class="metric">
-        <span class="metric-label mono">unemployment</span>
-        <span class="metric-val">0.75<span class="metric-vs">pp</span></span>
-        <span class="metric-note">within band</span>
-      </div>
-      <div class="metric">
-        <span class="metric-label mono">current account</span>
-        <span class="metric-val">0.9<span class="metric-vs">% of GDP</span></span>
-        <span class="metric-note">within band</span>
+        <span class="metric-label mono">free-running</span>
+        <span class="metric-val">5.70<span class="metric-vs">% MAPE</span></span>
+        <span class="metric-note">real GDP; 4 of 11 computed in band — report-only</span>
       </div>
     </div>
+    <div class="prose">
+      <div class="table-scroll"><table>
+        <thead><tr><th>configuration</th><th>what it is</th><th>how it scores</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Anchored</strong></td>
+            <td>Add-factors on, matched to the November 2025 EFO. The configuration every reform score uses.</td>
+            <td>GDP 0.18% MAPE, consumption 0.29% over 2025Q1–2027Q4. Hard-gated in CI, alongside finiteness and a 0.5%-of-GDP expenditure-identity check. Structural sign invariants gated too.</td>
+          </tr>
+          <tr>
+            <td><strong>Held add-factors</strong></td>
+            <td>Add-factors fitted 2024Q1–2025Q4, held flat, projected to 2027Q4 — a genuine forecast.</td>
+            <td>GDP 2.2%, consumption 3.6%, unemployment 0.75pp, current account 0.9% of GDP, trade balance 0.11% — in band. Business investment ~18%, household income ~12%, company profits ~47% — over band.</td>
+          </tr>
+          <tr>
+            <td><strong>Free-running</strong></td>
+            <td>De-seeded, add-factors off. The raw structural dynamics with no OBR judgement.</td>
+            <td><strong>Weak, and reported as such.</strong> GDP 5.70%, consumption 9.45%, household income 14.76%, business investment 15.48%, company profits 54.57%. The model contracts 1–2%/yr while the EFO grows.</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
     <p class="chart-note" style="max-width: 80ch;">
-      Held-add-factor forecast, base 2024Q1–2025Q4 projected to 2027Q4,
-      versus the OBR. "Within band" collapses per-metric thresholds — rates
-      within 1.0pp, net balances within 1.5% of GDP, levels within 10% MAPE.
-      The trade balance also sits within band (0.11% of GDP); business
-      investment (17.9%), company profits (47.4%) and household income (~12%)
-      sit over band. Two further honesty caveats from the repository's own
-      scorecards: the forecast is initialised at the EFO values it is scored
-      against, which flatters the fit; and with the add-factors switched off
-      entirely, the raw de-seeded model tracks the OBR poorly — the
-      add-factors are doing real work, exactly as they do in the OBR's own
-      process.
+      "In band" collapses per-metric thresholds — rates within 1.0pp, net
+      balances within 1.5% of GDP, levels within 10% MAPE. Two caveats travel
+      with the forecast configuration: it is initialised at the EFO values it
+      is scored against, and its add-factor base window extends into quarters
+      that are themselves OBR forecast rather than outturn, so the held
+      add-factors partly encode "agree with the OBR". Full scorecards in the
+      <a href="/papers/obr-macro/">working paper</a>; charts and source data
+      in <a href="/validation/">validation</a>.
     </p>
   </section>
 
   <section id="caveats" class="band">
     <div class="band-head">
-      <span class="kicker mono">08 — caveats</span>
-      <h2>An emulator, not the OBR.</h2>
+      <span class="kicker mono">06 — limits</span>
+      <h2>What is broken, and what is merely absent.</h2>
     </div>
     <div class="prose">
-      <p>
-        Results depend entirely on your assumptions — they are not OBR
-        forecasts. This is an independent Python re-implementation, and its
-        limits are documented:
-      </p>
       <div class="table-scroll"><table>
-        <thead><tr><th>caveat</th><th>detail</th></tr></thead>
+        <thead><tr><th>limit</th><th>detail</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Approximated add-factors</strong></td>
-            <td>Recent corrections are averaged and held flat over the forecast. The OBR's judgemental, quarter-by-quarter add-factors are not reproduced.</td>
+            <td><strong>Two household-income equations never fire</strong></td>
+            <td>The listing's only bare <code>log()</code> left-hand sides — <code>log(HHTFA)</code> and <code>log(NDIVHH)</code> — do not execute, because their right-hand-side inputs <code>MAJGDP</code> and <code>CORP</code> are absent from the databank entirely. The profits → dividends → household-income channel therefore does not run: a 5pp corporation-tax rise moves <code>FYCPR</code> by −£1,780m while ΔNDIVHH is exactly zero. A parser fix landed and is numerically inert; reviving the channel needs a <code>CORP</code> series, a calibration decision we have not made. Every published figure is computed with these channels inert.</td>
           </tr>
           <tr>
             <td><strong>Impact multiplier ~1 by construction</strong></td>
-            <td>Under the demand closure a spending shock lands directly in the GDP identity and the behavioural second round is largely inactive — the OBR's published impact multiplier for current spending is ~0.45.</td>
+            <td>Under the demand closure a spending shock lands directly in the GDP identity and the behavioural second round is largely inactive. The OBR's published impact multiplier for current spending is ~0.45.</td>
           </tr>
           <tr>
             <td><strong>Corporation-tax channel unstable</strong></td>
-            <td>The investment closure activates the OBR's published TCPRO → cost-of-capital → investment chain, but the re-solved path does not converge here; corp-tax scenarios are excluded from the dashboard explorer until recalibrated. The business-investment equation is itself reconstructed from the OBR's commented, truncated published line.</td>
+            <td>The investment closure activates the published <code>TCPRO</code> → cost-of-capital → investment chain, but the re-solved path does not converge; corp-tax scenarios are excluded from the dashboard explorer until recalibrated. The business-investment equation is itself reconstructed from the OBR's commented, truncated published line.</td>
           </tr>
           <tr>
             <td><strong>Passthrough channels</strong></td>
-            <td>Exports, imports and CPI are exogenous in this setup, held at the OBR value — dead channels score 0.00% error without being behavioural wins.</td>
+            <td>Exports, imports and CPI are exogenous in this setup, held at the OBR value. They score 0.00% error without being behavioural wins — 10 of 21 scorecard lines are passthroughs and are labelled as such.</td>
+          </tr>
+          <tr>
+            <td><strong>Approximated add-factors</strong></td>
+            <td>Recent corrections are averaged and held flat. The OBR's judgemental, quarter-by-quarter add-factors are not reproduced.</td>
+          </tr>
+          <tr>
+            <td><strong>Vintage</strong></td>
+            <td>October 2025 equation listing, November 2025 EFO, current-vintage ONS series. Where the ONS has revised history the identities don't close exactly, and that slack lands in the add-factors. The March 2026 EFO has not been adopted.</td>
           </tr>
           <tr>
             <td><strong>No behavioural micro</strong></td>
-            <td>Aggregate equations only — no household- or firm-level behavioural responses. Pair with PolicyEngine's microsimulation for distributional analysis.</td>
-          </tr>
-          <tr>
-            <td><strong>Data vintage</strong></td>
-            <td>Current-vintage ONS series merged into an autumn-2025 EFO baseline; where the ONS has revised history the identities don't close exactly, and that slack lands in the add-factors.</td>
+            <td>Aggregate equations only. Distributional questions belong to <a href="/pe/">PolicyEngine</a>.</td>
           </tr>
         </tbody>
       </table></div>
@@ -360,8 +363,9 @@ results = run_reform(
     <h2>Open the equations behind the official forecast.</h2>
     <div class="hero-cta">
       <a class="btn btn-primary" href="https://obr-macroeconomic-model.vercel.app/">Explore it live</a>
-      <a class="btn btn-ghost" href="https://github.com/PolicyEngine/obr-macroeconomic-model">github.com/PolicyEngine/obr-macroeconomic-model</a>
-      <a class="btn btn-ghost" href="/docs/">Read the docs</a>
+      <a class="btn btn-ghost" href="/papers/obr-macro/">Working paper</a>
+      <a class="btn btn-ghost" href="/validation/">Validation</a>
+      <a class="btn btn-ghost" href="https://github.com/PolicyEngine/obr-macroeconomic-model">Read the code</a>
     </div>
   </section>
 </main>
