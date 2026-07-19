@@ -5,31 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — open models for the economy</title>
 <meta name="description" content="PolicyEngine Macro is PolicyEngine's suite of five open economic models: an OBR macroeconometric emulator and a Bank of England structural VAR for the UK, a Python implementation of the Fed's FRB/US model for the US, and the PSL overlapping-generations model and PolicyEngine tax-benefit microsimulation for both. Score reforms, simulate shocks, forecast GDP and inflation, and study long-run structural change — with each model's validation stated as a gradient, not a badge." />
-<meta property="og:title" content="PolicyEngine Macro" />
-<meta property="og:description" content="Open macroeconomic models — reforms, shocks, forecasts, and long-run structural analysis. UK and US models, hosted and local; microsimulation for both countries." />
+<link rel="canonical" href="https://macromod.vercel.app/" />
 <meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
+<meta property="og:title" content="PolicyEngine Macro" />
+<meta property="og:description" content="Five open economic models for the UK and US — reforms, shocks, forecasts, and long-run structural analysis, each with its validation stated as a gradient rather than a badge." />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
 <link rel="stylesheet" href="/vendor/fonts/fonts.css" />
 <link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
-<link rel="stylesheet" href="./style.css" />
+<link rel="stylesheet" href="/style.css" />
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
 </head>
 <body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 <canvas id="field" aria-hidden="true"></canvas>
 
 <header class="nav">
-  <a class="brand" href="#top">
+  <a class="brand" href="/">
     <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
   </a>
-  <nav class="nav-links">
-    <a href="#idea">idea</a>
-    <a href="#models">models</a>
-    <a href="#pipeline">pipeline</a>
-    <a href="/validation/">validation</a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="/#idea">idea</a>
+    <a href="/#models">models</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
     <a href="/docs/">docs</a>
-    <a href="/papers/">papers</a>
     <a href="/connect/">use it</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
   </nav>
@@ -82,17 +112,10 @@
         microsimulation for the household detail underneath.
       </p>
       <p>
-        We publish what each one is worth. <strong>Validation is a gradient,
-        not a badge.</strong> Three models are replications with published
-        anchors, and we report the gap: the OBR emulator tracks the November
-        2025 EFO with a GDP MAPE of 0.18%, the structural VAR posts an
-        out-of-sample RMSE of 0.32pp with 14 of 14 outturns inside its 68%
-        bands, and FRB/US matches the Fed's own pyfrbus 1.0.0 to 6.0&times;10⁻⁹
-        on shock responses. The microsimulation is validated against statute.
-        The overlapping-generations model has <em>no</em> published ground
-        truth — it is a calibrated counterfactual, and we say so rather than
-        dress it as a replication. <a href="/validation/">See the
-        numbers beside the official ones →</a>
+        Opening an engine up is only half of it. The other half is publishing
+        what each one is worth — which is the subject of
+        <a href="#validation">its own section below</a>, because it is the
+        thing most model suites leave unsaid.
       </p>
     </div>
   </section>
@@ -112,19 +135,6 @@
       </p>
     </div>
     <div class="strategy-grid">
-      <a class="strategy-card" href="/olg/">
-        <header><span class="card-id mono">psl-og</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-country">US</span><span class="tag tag-local">local only</span></span></header>
-        <h3>PSL overlapping generations model</h3>
-        <p>
-          A dynamic general-equilibrium model of 80 age cohorts working,
-          saving, and retiring — built on OG-Core, with tax functions
-          estimated from PolicyEngine microdata. Solves the long-run steady
-          state and the year-by-year transition path for GDP, investment,
-          consumption, revenue, and debt. Calibrated to targets rather than
-          replicated against a published model — there is none to replicate.
-        </p>
-        <span class="strategy-paper-link mono">read the model →</span>
-      </a>
       <a class="strategy-card" href="/obr/">
         <header><span class="card-id mono">obr-macro</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>OBR macroeconometric model</h3>
@@ -149,6 +159,32 @@
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
+      <a class="strategy-card" href="/frb-us/">
+        <header><span class="card-id mono">frb-us</span><span class="tag-row"><span class="tag tag-country">US</span><span class="tag tag-local">local only</span></span></header>
+        <h3>FRB/US</h3>
+        <p>
+          A from-scratch Python implementation of the Fed's large-scale US
+          macroeconometric model, built from the Board's public model
+          definition and April 2026 LONGBASE data. Reproduces LONGBASE to
+          5.6&times;10⁻¹⁷ and matches the Fed's own pyfrbus 1.0.0 shock
+          responses to 6.0&times;10⁻⁹; VAR expectations only, with
+          model-consistent expectations not yet implemented.
+        </p>
+        <span class="strategy-paper-link mono">read the model →</span>
+      </a>
+      <a class="strategy-card" href="/olg/">
+        <header><span class="card-id mono">psl-og</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-country">US</span><span class="tag tag-local">local only</span></span></header>
+        <h3>PSL overlapping generations model</h3>
+        <p>
+          A dynamic general-equilibrium model of 80 age cohorts working,
+          saving, and retiring — built on OG-Core, with tax functions
+          estimated from PolicyEngine microdata. Solves the long-run steady
+          state and the year-by-year transition path for GDP, investment,
+          consumption, revenue, and debt. Calibrated to targets rather than
+          replicated against a published model — there is none to replicate.
+        </p>
+        <span class="strategy-paper-link mono">read the model →</span>
+      </a>
       <a class="strategy-card" href="/pe/">
         <header><span class="card-id mono">pe-microsim</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-country">US</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>PolicyEngine tax-benefit microsimulation</h3>
@@ -160,37 +196,66 @@
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
-      <a class="strategy-card" href="https://github.com/PolicyEngine/us-frb-model">
-        <header><span class="card-id mono">frb-us</span><span class="tag-row"><span class="tag tag-country">US</span><span class="tag tag-local">local</span></span></header>
-        <h3>FRB/US</h3>
-        <p>
-          A from-scratch Python implementation of the Fed's large-scale US
-          macroeconometric model, built from the public model definition and
-          April 2026 LONGBASE data. Reproduces LONGBASE to 5.6&times;10⁻¹⁷ and
-          matches pyfrbus 1.0.0 shock responses to 6.0&times;10⁻⁹;
-          model-consistent expectations not yet implemented.
-        </p>
-        <span class="strategy-paper-link mono">read the code →</span>
-      </a>
     </div>
     <p class="next-invite mono">
       <span class="tag tag-wip">next</span> new model classes are in design —
-      <a href="https://github.com/PolicyEngine/macro/issues/new?title=Model+suggestion:+&labels=model-suggestion">tell us which model we should add next →</a>
+      <a href="https://github.com/PolicyEngine/macro/issues/new?title=Model+suggestion:+&amp;labels=model-suggestion">tell us which model we should add next →</a>
     </p>
   </section>
 
-  <section id="pipeline" class="band">
+  <section id="validation" class="band">
     <div class="band-head">
-      <span class="kicker mono">03 — the workflow</span>
+      <span class="kicker mono">03 — validation</span>
+      <h2>Validation is a gradient, not a badge.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        Most model suites publish a badge. We publish the distance to the
+        thing we are answerable to — and, where there is nothing to be
+        answerable to, we say that instead of manufacturing a number. The five
+        models fall into <strong>three classes</strong>, and the class matters
+        more than any single percentage.
+      </p>
+      <div class="table-scroll">
+      <table>
+        <caption>The verification gradient, model by model</caption>
+        <thead><tr><th scope="col">Model</th><th scope="col">Verification class</th><th scope="col">Headline result</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><strong>obr-macro</strong></th><td>Replication with a published anchor</td><td>Tracks the November 2025 EFO to a GDP MAPE of 0.18%</td></tr>
+          <tr><th scope="row"><strong>boe-svar</strong></th><td>Replication with a published anchor</td><td>Out-of-sample RMSE 0.32pp, 14 of 14 outturns inside the 68% bands</td></tr>
+          <tr><th scope="row"><strong>frb-us</strong></th><td>Replication with a published anchor</td><td>Matches the Fed's own pyfrbus 1.0.0 to 6.0&times;10⁻⁹ on shock responses</td></tr>
+          <tr><th scope="row"><strong>pe-microsim</strong></th><td>Validated against statute</td><td>Exact household arithmetic — not an approximation</td></tr>
+          <tr><th scope="row"><strong>psl-og</strong></th><td class="vc-warn">Calibrated counterfactual — no ground truth</td><td class="vc-warn">Targets met by construction; no published replication exists</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>
+        The distinction that does the work: a match on a quantity that was
+        <em>imposed</em> or <em>targeted</em> is anchoring, not validation. The
+        OBR emulator's 0.18% is a by-construction invariant — the same
+        equations miss by 5.70% free-running, and we publish that number too.
+        The overlapping-generations model has <em>no</em> published ground
+        truth at all; it is a calibrated counterfactual, and we say so rather
+        than dress it as a replication.
+        <a href="/validation/">Every model's numbers beside the official ones →</a>
+      </p>
+    </div>
+  </section>
+
+  <section id="workflow" class="band">
+    <div class="band-head">
+      <span class="kicker mono">04 — the workflow</span>
       <h2>Different questions need different models.</h2>
     </div>
     <div class="prose">
       <p>
-        Start with a question and <strong>choose the lens</strong>: the OBR
-        emulator for near-term UK fiscal scenarios, the structural VAR for
-        forecasts and what's driving the data, FRB/US for US macro dynamics,
-        the overlapping-generations model for long-run structural change, and
-        PolicyEngine for household and distributional effects.
+        Start with a question and <strong>choose the lens</strong>: the
+        <a href="/obr/">OBR emulator</a> for near-term UK fiscal scenarios,
+        the <a href="/svar/">structural VAR</a> for forecasts and what's
+        driving the data, <a href="/frb-us/">FRB/US</a> for US macro dynamics,
+        the <a href="/olg/">overlapping-generations model</a> for long-run
+        structural change, and <a href="/pe/">PolicyEngine</a> for household
+        and distributional effects.
       </p>
       <p>
         Every analysis records its <strong>assumptions, data vintage, model
@@ -221,17 +286,17 @@
 
 <footer class="foot foot-bar">
   <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono">
-    <a href="/validation/">validation</a>
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
     <a href="/docs/">docs</a>
-    <a href="/papers/">papers</a>
+    <a href="/validation/">validation</a>
     <a href="/connect/">use it</a>
     <a href="https://github.com/PolicyEngine/macro">GitHub</a>
     <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
   </nav>
 </footer>
 
-<script src="./field.js" defer></script>
-<script src="./reveal.js" defer></script>
+<script src="/field.js" defer></script>
+<script src="/reveal.js" defer></script>
 </body>
 </html>

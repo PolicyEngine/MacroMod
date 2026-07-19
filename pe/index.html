@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — PolicyEngine tax-benefit microsimulation</title>
 <meta name="description" content="PolicyEngine.py: the micro member of the PolicyEngine Macro suite — a tax-benefit microsimulation package for the UK and US. Compute a household's taxes, benefits, and net income under current law or a reform." />
+<link rel="canonical" href="https://macromod.vercel.app/pe" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/pe" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
+<meta property="og:title" content="PolicyEngine tax-benefit microsimulation — PolicyEngine Macro" />
+<meta property="og:description" content="The UK and US tax-benefit engine behind policyengine.org — household calculations and population scoring, validated against statute itself." />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
@@ -15,8 +24,33 @@
 /* page-specific: hero sizing only — shared component styles live in style.css */
 .model-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 10px; }
 </style>
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
 </head>
 <body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 <canvas id="field" aria-hidden="true"></canvas>
 
@@ -24,11 +58,11 @@
   <a class="brand" href="/">
     <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
   </a>
-  <nav class="nav-links">
+  <nav class="nav-links" aria-label="Primary">
     <a href="/#idea">idea</a>
     <a href="/#models">models</a>
-    <a href="/#pipeline">pipeline</a>
-    <a href="/validation/">validation</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
     <a href="/docs/">docs</a>
     <a href="/connect/">use it</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -38,7 +72,7 @@
 <main id="top">
   <section class="hero model-hero">
     <div class="hero-inner">
-      <p class="eyebrow reveal" style="--d:0">model 04 — tax-benefit microsimulation · pe-microsim · UK · US · hosted</p>
+      <p class="eyebrow reveal" style="--d:0">model 05 — tax-benefit microsimulation · pe-microsim · UK · US · hosted</p>
       <h1 class="reveal page-title" style="--d:1;">
         The economy, one <em>household</em> at a time.
       </h1>
@@ -215,18 +249,19 @@ agg.run()
     </div>
     <div class="prose">
       <div class="table-scroll"><table>
-        <thead><tr><th>question</th><th>how</th></tr></thead>
+        <caption>Common microsimulation questions and how to answer them</caption>
+        <thead><tr><th scope="col">question</th><th scope="col">how</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>What does this reform do to this family?</strong></td>
+            <th scope="row"><strong>What does this reform do to this family?</strong></th>
             <td><code>calculate_household</code> / <code>household_reform_impact</code> — every tax, benefit and income variable at person, benefit-unit/tax-unit and household level. Live on the hosted MCP server and the <code>pe-macro</code> CLI.</td>
           </tr>
           <tr>
-            <td><strong>What does it cost, and who wins?</strong></td>
+            <th scope="row"><strong>What does it cost, and who wins?</strong></th>
             <td><code>population_reform_impact</code> and <code>pe.uk.economic_impact_analysis</code> — budgetary impact, decile changes, winners and losers, poverty, inequality, regional impacts. Hosted, with the enhanced-FRS credential provisioned server-side.</td>
           </tr>
           <tr>
-            <td><strong>What levers exist?</strong></td>
+            <th scope="row"><strong>What levers exist?</strong></th>
             <td><code>list_reform_parameters</code> — the parameter tree you can write reforms against.</td>
           </tr>
         </tbody>
@@ -300,30 +335,31 @@ agg.run()
     </div>
     <div class="prose">
       <div class="table-scroll"><table>
-        <thead><tr><th>limit</th><th>detail</th></tr></thead>
+        <caption>Known limits of the tax-benefit microsimulation</caption>
+        <thead><tr><th scope="col">limit</th><th scope="col">detail</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Static, no general equilibrium</strong></td>
+            <th scope="row"><strong>Static, no general equilibrium</strong></th>
             <td>Reforms are modelled statically with optional post-hoc behavioural responses. Prices, wages and output do not move.</td>
           </tr>
           <tr>
-            <td><strong>UK data vintage</strong></td>
+            <th scope="row"><strong>UK data vintage</strong></th>
             <td>UK population runs use <code>enhanced_frs_2023_24</code>. Upstream now publishes an FRS 2024-25 vintage, which this integration has <strong>not</strong> adopted.</td>
           </tr>
           <tr>
-            <td><strong>Survey-based aggregates</strong></td>
+            <th scope="row"><strong>Survey-based aggregates</strong></th>
             <td>Population estimates inherit sampling, imputation and ageing error. HMRC's own costings use administrative Survey of Personal Incomes data and embed taxable-income elasticities, so differences of a few hundred million on a broad-based rate change are expected.</td>
           </tr>
           <tr>
-            <td><strong>Gated UK microdata</strong></td>
+            <th scope="row"><strong>Gated UK microdata</strong></th>
             <td>A <code>HUGGING_FACE_TOKEN</code> with access is required locally. Household calculations are unaffected.</td>
           </tr>
           <tr>
-            <td><strong>Statute-vintage divergence with OLG</strong></td>
+            <th scope="row"><strong>Statute-vintage divergence with OLG</strong></th>
             <td>This package tracks the latest release; the <a href="/olg/">OLG member</a> is pinned to <code>policyengine-uk==2.88.0</code>, so the two can disagree about baseline statute. A declared inconsistency.</td>
           </tr>
           <tr>
-            <td><strong>Two countries</strong></td>
+            <th scope="row"><strong>Two countries</strong></th>
             <td>UK and US only.</td>
           </tr>
         </tbody>
@@ -350,9 +386,10 @@ agg.run()
 
 <footer class="foot foot-bar">
   <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono">
-    <a href="/validation/">validation</a>
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
     <a href="/docs/">docs</a>
+    <a href="/validation/">validation</a>
     <a href="/connect/">use it</a>
     <a href="https://github.com/PolicyEngine/macro">GitHub</a>
     <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>

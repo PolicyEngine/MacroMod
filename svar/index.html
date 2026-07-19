@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — the UK structural VAR</title>
 <meta name="description" content="A Python replication of the Bank of England's structural VAR for the UK economy — an 8-variable Bayesian SVAR identifying six structural shocks, for reading the current state of the economy, fan-chart forecasts, and forecast-revision narratives." />
+<link rel="canonical" href="https://macromod.vercel.app/svar" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/svar" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
+<meta property="og:title" content="Bank of England structural VAR — PolicyEngine Macro" />
+<meta property="og:description" content="A Python replication of the Bank of England's eight-variable Bayesian structural VAR, with six identified shocks, fan-chart forecasts, and revision narratives." />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
@@ -15,8 +24,33 @@
 /* page-specific: hero sizing only — shared component styles live in style.css */
 .model-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 10px; }
 </style>
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
 </head>
 <body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 <canvas id="field" aria-hidden="true"></canvas>
 
@@ -24,11 +58,11 @@
   <a class="brand" href="/">
     <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
   </a>
-  <nav class="nav-links">
+  <nav class="nav-links" aria-label="Primary">
     <a href="/#idea">idea</a>
     <a href="/#models">models</a>
-    <a href="/#pipeline">pipeline</a>
-    <a href="/validation/">validation</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
     <a href="/docs/">docs</a>
     <a href="/connect/">use it</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -38,7 +72,7 @@
 <main id="top">
   <section class="hero model-hero">
     <div class="hero-inner">
-      <p class="eyebrow reveal" style="--d:0">model 03 — Bank of England structural VAR · boe-svar · UK · hosted</p>
+      <p class="eyebrow reveal" style="--d:0">model 02 — Bank of England structural VAR · boe-svar · UK · hosted</p>
       <h1 class="reveal page-title" style="--d:1;">
         Read the economy in <em>shocks</em>, not headlines.
       </h1>
@@ -108,14 +142,15 @@
         dummies for 2020Q1–2021Q2.
       </p>
       <div class="table-scroll"><table>
-        <thead><tr><th>block</th><th>variables</th></tr></thead>
+        <caption>The eight variables of the SVAR, by block</caption>
+        <thead><tr><th scope="col">block</th><th scope="col">variables</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Global</strong></td>
+            <th scope="row"><strong>Global</strong></th>
             <td>World GDP · World CPI (both UK-trade-weighted) · real oil price in sterling</td>
           </tr>
           <tr>
-            <td><strong>UK</strong></td>
+            <th scope="row"><strong>UK</strong></th>
             <td>Bank Rate · sterling exchange-rate index · CPI · CPI energy · real GDP</td>
           </tr>
         </tbody>
@@ -190,22 +225,23 @@ python scripts/run_forecast_revision.py</code></pre></div>
         Four tools, all posterior distributions rather than point estimates:
       </p>
       <div class="table-scroll"><table>
-        <thead><tr><th>tool</th><th>what it tells you</th></tr></thead>
+        <caption>The SVAR toolkit and what each output tells you</caption>
+        <thead><tr><th scope="col">tool</th><th scope="col">what it tells you</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>IRFs &amp; FEVDs</strong></td>
+            <th scope="row"><strong>IRFs &amp; FEVDs</strong></th>
             <td>How each named shock propagates through the UK economy, and how much of GDP and inflation variance each explains at every horizon.</td>
           </tr>
           <tr>
-            <td><strong>Historical decompositions</strong></td>
+            <th scope="row"><strong>Historical decompositions</strong></th>
             <td>Which shocks drove each episode — how much of the 2022 inflation surge was world energy versus UK demand.</td>
           </tr>
           <tr>
-            <td><strong>Fan-chart forecasts</strong></td>
+            <th scope="row"><strong>Fan-chart forecasts</strong></th>
             <td>Unconditional forecasts with 68% and 90% credible bands, plus the probability that each shock hitting the latest quarter was positive or negative.</td>
           </tr>
           <tr>
-            <td><strong>Forecast-revision decomposition</strong></td>
+            <th scope="row"><strong>Forecast-revision decomposition</strong></th>
             <td>The paper's Section 5 exercise: why did the forecast change since last quarter? Splits the revision into news (new shocks) and reassessment via composite impulse responses.</td>
           </tr>
         </tbody>
@@ -245,35 +281,36 @@ python scripts/run_forecast_revision.py</code></pre></div>
         frozen.
       </p>
       <div class="table-scroll"><table>
-        <thead><tr><th>check</th><th>this replication</th><th>the paper</th></tr></thead>
+        <caption>This replication against Brignone &amp; Piffer (2025), check by check</caption>
+        <thead><tr><th scope="col">check</th><th scope="col">this replication</th><th scope="col">the paper</th></tr></thead>
         <tbody>
           <tr>
-            <td>Global shocks' share of UK GDP variance (1 year)</td>
+            <th scope="row">Global shocks' share of UK GDP variance (1 year)</th>
             <td><strong>40.9%</strong></td>
             <td>~40%</td>
           </tr>
           <tr>
-            <td>Global shocks' share of UK CPI variance (1 year)</td>
+            <th scope="row">Global shocks' share of UK CPI variance (1 year)</th>
             <td><strong>50.1%</strong></td>
             <td>~50%</td>
           </tr>
           <tr>
-            <td>IRFs, FEVDs, shocks, historical decompositions</td>
+            <th scope="row">IRFs, FEVDs, shocks, historical decompositions</th>
             <td>Figures 2–6 replicate</td>
             <td>qualitative match</td>
           </tr>
           <tr>
-            <td>Out-of-sample forecast error, 2024Q3–2026Q1</td>
+            <th scope="row">Out-of-sample forecast error, 2024Q3–2026Q1</th>
             <td><strong>0.32pp RMSE</strong> for both GDP growth and CPI inflation</td>
             <td>no published counterpart</td>
           </tr>
           <tr>
-            <td>68% band coverage over the same seven quarters</td>
+            <th scope="row">68% band coverage over the same seven quarters</th>
             <td><strong>14 of 14 outturns inside</strong></td>
             <td>—</td>
           </tr>
           <tr>
-            <td>Forecast-revision adding-up identity</td>
+            <th scope="row">Forecast-revision adding-up identity</th>
             <td>exact per draw (max abs error 5.3e-12)</td>
             <td>holds by construction</td>
           </tr>
@@ -315,26 +352,27 @@ python scripts/run_forecast_revision.py</code></pre></div>
     </div>
     <div class="prose">
       <div class="table-scroll"><table>
-        <thead><tr><th>limit</th><th>detail</th></tr></thead>
+        <caption>Known limits of the structural VAR replication</caption>
+        <thead><tr><th scope="col">limit</th><th scope="col">detail</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Frozen data edge</strong></td>
+            <th scope="row"><strong>Frozen data edge</strong></th>
             <td>Estimation to 2023Q2, conditioning data to 2024Q2. Operational use requires re-running the data pipeline on current vintages, and results will shift with revisions.</td>
           </tr>
           <tr>
-            <td><strong>Proxied world aggregates</strong></td>
+            <th scope="row"><strong>Proxied world aggregates</strong></th>
             <td>The Bank's internal UK-trade-weighted world GDP and CPI are unpublished, so they are rebuilt as chain-weighted US + euro-area + Japan + China aggregates with time-varying UK trade weights.</td>
           </tr>
           <tr>
-            <td><strong>One ranking does not replicate</strong></td>
+            <th scope="row"><strong>One ranking does not replicate</strong></th>
             <td>The paper ranks UK monetary policy as the largest domestic contributor to CPI variance; here UK supply (15.6%) exceeds monetary policy (7.4%). Attributed to the proxy world aggregates and the smaller accepted sample, and documented rather than tuned away.</td>
           </tr>
           <tr>
-            <td><strong>Assumed lag length and simplified pandemic prior</strong></td>
+            <th scope="row"><strong>Assumed lag length and simplified pandemic prior</strong></th>
             <td>p&nbsp;=&nbsp;4 is assumed, not selected; the pandemic treatment is simplified to exogenous Covid dummies.</td>
           </tr>
           <tr>
-            <td><strong>Sign-restriction critiques apply</strong></td>
+            <th scope="row"><strong>Sign-restriction critiques apply</strong></th>
             <td>Pointwise medians mix structural models (Fry–Pagan); the Haar prior over rotations is informative about impulse responses (Baumeister–Hamilton). These apply to the Bank's own outputs identically.</td>
           </tr>
         </tbody>
@@ -353,30 +391,31 @@ python scripts/run_forecast_revision.py</code></pre></div>
     </div>
     <div class="prose">
       <div class="table-scroll"><table>
-        <thead><tr><th>what</th><th>where</th></tr></thead>
+        <caption>Where the SVAR's inputs and outputs live</caption>
+        <thead><tr><th scope="col">what</th><th scope="col">where</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>The source paper</strong></td>
+            <th scope="row"><strong>The source paper</strong></th>
             <td><a href="https://www.bankofengland.co.uk/macro-technical-paper/2025/a-structural-var-model-for-the-uk-economy">Macro Technical Paper No. 3</a> — Brignone &amp; Piffer, Bank of England, July 2025.</td>
           </tr>
           <tr>
-            <td><strong>Companion paper</strong></td>
+            <th scope="row"><strong>Companion paper</strong></th>
             <td><a href="https://michelepiffer.github.io/pdf_research/BrignonePiffer_StucturalForecastAnalysis.pdf">Brignone &amp; Piffer, structural forecast analysis</a> — the Section 5 forecast-revision method, later BoE Staff Working Paper No. 1,165 (January 2026).</td>
           </tr>
           <tr>
-            <td><strong>Our working paper</strong></td>
+            <th scope="row"><strong>Our working paper</strong></th>
             <td><a href="/papers/boe-svar/">papers/boe-svar</a> — the full replication write-up, quarterly forecast scorecard, and enumerated deviations.</td>
           </tr>
           <tr>
-            <td><strong>This replication</strong></td>
+            <th scope="row"><strong>This replication</strong></th>
             <td><a href="https://github.com/PolicyEngine/boe-var-model">github.com/PolicyEngine/boe-var-model</a> — code, prepared data, figures, and the annotated <code>RESOURCES.md</code>.</td>
           </tr>
           <tr>
-            <td><strong>Method papers</strong></td>
+            <th scope="row"><strong>Method papers</strong></th>
             <td><a href="https://doi.org/10.3982/ECTA14468">Arias, Rubio-Ramírez &amp; Waggoner (2018)</a> — zero/sign identification · <a href="https://arxiv.org/abs/2503.20668">Chan, Matthes &amp; Yu (2025)</a> — permutation-search speedup · <a href="https://doi.org/10.1162/REST_a_00483">Giannone, Lenza &amp; Primiceri (2015)</a> — the prior framework.</td>
           </tr>
           <tr>
-            <td><strong>Reference toolboxes</strong></td>
+            <th scope="row"><strong>Reference toolboxes</strong></th>
             <td><a href="https://github.com/bsvars/bsvarSIGNs">bsvarSIGNs</a> (R, the exact Arias et al. machinery) · <a href="https://github.com/european-central-bank/BEAR-toolbox">ECB BEAR</a> · <a href="https://github.com/ambropo/VAR-Toolbox">Cesa-Bianchi VAR-Toolbox</a> — used in the independent econometrics review, which caught and fixed a genuine bias in the zero-restriction importance weights.</td>
           </tr>
         </tbody>
@@ -397,9 +436,10 @@ python scripts/run_forecast_revision.py</code></pre></div>
 
 <footer class="foot foot-bar">
   <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono">
-    <a href="/validation/">validation</a>
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
     <a href="/docs/">docs</a>
+    <a href="/validation/">validation</a>
     <a href="/connect/">use it</a>
     <a href="https://github.com/PolicyEngine/macro">GitHub</a>
     <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>

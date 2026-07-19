@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — the OBR macroeconometric model</title>
 <meta name="description" content="A Python emulator of the OBR's published macroeconomic model — 372 structural equations solved by Gauss–Seidel iteration for fiscal-multiplier and tax-shock analysis, anchored to the official Economic and Fiscal Outlook, with a live interactive explorer." />
+<link rel="canonical" href="https://macromod.vercel.app/obr" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/obr" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
+<meta property="og:title" content="OBR macroeconometric model — PolicyEngine Macro" />
+<meta property="og:description" content="A Python emulator of the OBR's published 372-equation forecasting model, anchored to the November 2025 Economic and Fiscal Outlook." />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
@@ -15,8 +24,33 @@
 /* page-specific: hero sizing only — shared component styles live in style.css */
 .model-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 10px; }
 </style>
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
 </head>
 <body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 <canvas id="field" aria-hidden="true"></canvas>
 
@@ -24,11 +58,11 @@
   <a class="brand" href="/">
     <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
   </a>
-  <nav class="nav-links">
+  <nav class="nav-links" aria-label="Primary">
     <a href="/#idea">idea</a>
     <a href="/#models">models</a>
-    <a href="/#pipeline">pipeline</a>
-    <a href="/validation/">validation</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
     <a href="/docs/">docs</a>
     <a href="/connect/">use it</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -38,7 +72,7 @@
 <main id="top">
   <section class="hero model-hero">
     <div class="hero-inner">
-      <p class="eyebrow reveal" style="--d:0">model 02 — OBR macroeconometric model · obr-macro · UK · hosted</p>
+      <p class="eyebrow reveal" style="--d:0">model 01 — OBR macroeconometric model · obr-macro · UK · hosted</p>
       <h1 class="reveal page-title" style="--d:1;">
         The OBR's published model, <em>in Python</em>.
       </h1>
@@ -116,30 +150,31 @@
     </div>
     <div class="prose">
       <div class="table-scroll"><table>
-        <thead><tr><th>stage</th><th>what it does</th></tr></thead>
+        <caption>The transpile–solve–shock pipeline, stage by stage</caption>
+        <thead><tr><th scope="col">stage</th><th scope="col">what it does</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Transpile</strong></td>
+            <th scope="row"><strong>Transpile</strong></th>
             <td>Rewrites every EViews line — <code>dlog()</code>, <code>@elem</code>, lags like <code>X(-1)</code>, error-correction terms — into an equivalent Python expression, compiled once per solve.</td>
           </tr>
           <tr>
-            <td><strong>Initialise</strong></td>
+            <th scope="row"><strong>Initialise</strong></th>
             <td>Loads history from the OBR's detailed forecast tables. Of the 261 endogenous variables the listing referenced but the outlook did not print, <strong>199 had ONS series codes</strong>; a vendored 348-series ONS snapshot supplies them, giving the circular fiscal and financial sub-blocks real balancing data.</td>
           </tr>
           <tr>
-            <td><strong>Gauss–Seidel solve</strong></td>
+            <th scope="row"><strong>Gauss–Seidel solve</strong></th>
             <td>The equations depend on each other, so each quarter is solved simultaneously: cycle, update, repeat to convergence. Quarters then solve sequentially forward. A twelve-quarter anchored solve takes roughly <strong>30–40 seconds</strong> single-threaded; a reform run is two such solves.</td>
           </tr>
           <tr>
-            <td><strong>Anchor</strong></td>
+            <th scope="row"><strong>Anchor</strong></th>
             <td>Add-factors — the residuals reconciling each behavioural equation to data — are set so the baseline reproduces the published EFO. This is the OBR's own device, used the OBR's own way.</td>
           </tr>
           <tr>
-            <td><strong>Closure swap</strong></td>
+            <th scope="row"><strong>Closure swap</strong></th>
             <td>The GDP identity is switched off in the OBR file, so for a shock <code>GDPM</code> is swapped in and inventories (<code>DINV</code>) become the residual — output responds to the policy instead of being fixed.</td>
           </tr>
           <tr>
-            <td><strong>Shock &amp; compare</strong></td>
+            <th scope="row"><strong>Shock &amp; compare</strong></th>
             <td>Solves shocked and baseline paths with identical structure and reports the difference, isolating the policy effect from the underlying forecast.</td>
           </tr>
         </tbody>
@@ -192,16 +227,17 @@ results = run_reform(
         its own equation. The most useful levers:
       </p>
       <div class="table-scroll"><table>
-        <thead><tr><th>code</th><th>variable</th><th>role &amp; units</th></tr></thead>
+        <caption>The most useful OBR model levers and readouts, with units</caption>
+        <thead><tr><th scope="col">code</th><th scope="col">variable</th><th scope="col">role &amp; units</th></tr></thead>
         <tbody>
-          <tr><td><code>CGG</code></td><td>Government consumption</td><td>exogenous — spending shocks, £m per quarter</td></tr>
-          <tr><td><code>CGIPS</code></td><td>Central government investment (nominal)</td><td>exogenous — public investment, £m per quarter</td></tr>
-          <tr><td><code>TCPRO</code></td><td>Corporation tax rate</td><td>exogenous — rate, e.g. −0.05 for a 5pp cut</td></tr>
-          <tr><td><code>R</code> / <code>GILT</code> / <code>RX</code></td><td>Bank Rate · gilt yields · exchange rate</td><td>exogenous — monetary &amp; market assumptions</td></tr>
-          <tr><td><code>GDPM</code></td><td>GDP at market prices</td><td>endogenous — headline output</td></tr>
-          <tr><td><code>CONS</code></td><td>Private consumption</td><td>endogenous</td></tr>
-          <tr><td><code>IBUS</code> / <code>IF</code></td><td>Business / total investment</td><td>endogenous</td></tr>
-          <tr><td><code>LFSUR</code></td><td>Unemployment rate</td><td>endogenous — rate, pp</td></tr>
+          <tr><th scope="row"><code>CGG</code></th><td>Government consumption</td><td>exogenous — spending shocks, £m per quarter</td></tr>
+          <tr><th scope="row"><code>CGIPS</code></th><td>Central government investment (nominal)</td><td>exogenous — public investment, £m per quarter</td></tr>
+          <tr><th scope="row"><code>TCPRO</code></th><td>Corporation tax rate</td><td>exogenous — rate, e.g. −0.05 for a 5pp cut</td></tr>
+          <tr><th scope="row"><code>R</code> / <code>GILT</code> / <code>RX</code></th><td>Bank Rate · gilt yields · exchange rate</td><td>exogenous — monetary &amp; market assumptions</td></tr>
+          <tr><th scope="row"><code>GDPM</code></th><td>GDP at market prices</td><td>endogenous — headline output</td></tr>
+          <tr><th scope="row"><code>CONS</code></th><td>Private consumption</td><td>endogenous</td></tr>
+          <tr><th scope="row"><code>IBUS</code> / <code>IF</code></th><td>Business / total investment</td><td>endogenous</td></tr>
+          <tr><th scope="row"><code>LFSUR</code></th><td>Unemployment rate</td><td>endogenous — rate, pp</td></tr>
         </tbody>
       </table></div>
       <p class="opt-note">
@@ -285,20 +321,21 @@ results = run_reform(
     </div>
     <div class="prose">
       <div class="table-scroll"><table>
-        <thead><tr><th>configuration</th><th>what it is</th><th>how it scores</th></tr></thead>
+        <caption>The three emulator configurations and how each one scores</caption>
+        <thead><tr><th scope="col">configuration</th><th scope="col">what it is</th><th scope="col">how it scores</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Anchored</strong></td>
+            <th scope="row"><strong>Anchored</strong></th>
             <td>Add-factors on, matched to the November 2025 EFO. The configuration every reform score uses.</td>
             <td>GDP 0.18% MAPE, consumption 0.29% over 2025Q1–2027Q4. Hard-gated in CI, alongside finiteness and a 0.5%-of-GDP expenditure-identity check. Structural sign invariants gated too.</td>
           </tr>
           <tr>
-            <td><strong>Held add-factors</strong></td>
+            <th scope="row"><strong>Held add-factors</strong></th>
             <td>Add-factors fitted 2024Q1–2025Q4, held flat, projected to 2027Q4 — a genuine forecast.</td>
             <td>GDP 2.2%, consumption 3.6%, unemployment 0.75pp, current account 0.9% of GDP, trade balance 0.11% — in band. Business investment ~18%, household income ~12%, company profits ~47% — over band.</td>
           </tr>
           <tr>
-            <td><strong>Free-running</strong></td>
+            <th scope="row"><strong>Free-running</strong></th>
             <td>De-seeded, add-factors off. The raw structural dynamics with no OBR judgement.</td>
             <td><strong>Weak, and reported as such.</strong> GDP 5.70%, consumption 9.45%, household income 14.76%, business investment 15.48%, company profits 54.57%. The model contracts 1–2%/yr while the EFO grows.</td>
           </tr>
@@ -324,34 +361,35 @@ results = run_reform(
     </div>
     <div class="prose">
       <div class="table-scroll"><table>
-        <thead><tr><th>limit</th><th>detail</th></tr></thead>
+        <caption>Known limits of the OBR emulator</caption>
+        <thead><tr><th scope="col">limit</th><th scope="col">detail</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Two household-income equations never fire</strong></td>
+            <th scope="row"><strong>Two household-income equations never fire</strong></th>
             <td>The listing's only bare <code>log()</code> left-hand sides — <code>log(HHTFA)</code> and <code>log(NDIVHH)</code> — do not execute, because their right-hand-side inputs <code>MAJGDP</code> and <code>CORP</code> are absent from the databank entirely. The profits → dividends → household-income channel therefore does not run: a 5pp corporation-tax rise moves <code>FYCPR</code> by −£1,780m while ΔNDIVHH is exactly zero. A parser fix landed and is numerically inert; reviving the channel needs a <code>CORP</code> series, a calibration decision we have not made. Every published figure is computed with these channels inert.</td>
           </tr>
           <tr>
-            <td><strong>Impact multiplier ~1 by construction</strong></td>
+            <th scope="row"><strong>Impact multiplier ~1 by construction</strong></th>
             <td>Under the demand closure a spending shock lands directly in the GDP identity and the behavioural second round is largely inactive. The OBR's published impact multiplier for current spending is ~0.45.</td>
           </tr>
           <tr>
-            <td><strong>Corporation-tax channel unstable</strong></td>
+            <th scope="row"><strong>Corporation-tax channel unstable</strong></th>
             <td>The investment closure activates the published <code>TCPRO</code> → cost-of-capital → investment chain, but the re-solved path does not converge; corp-tax scenarios are excluded from the dashboard explorer until recalibrated. The business-investment equation is itself reconstructed from the OBR's commented, truncated published line.</td>
           </tr>
           <tr>
-            <td><strong>Passthrough channels</strong></td>
+            <th scope="row"><strong>Passthrough channels</strong></th>
             <td>Exports, imports and CPI are exogenous in this setup, held at the OBR value. They score 0.00% error without being behavioural wins — 10 of 21 scorecard lines are passthroughs and are labelled as such.</td>
           </tr>
           <tr>
-            <td><strong>Approximated add-factors</strong></td>
+            <th scope="row"><strong>Approximated add-factors</strong></th>
             <td>Recent corrections are averaged and held flat. The OBR's judgemental, quarter-by-quarter add-factors are not reproduced.</td>
           </tr>
           <tr>
-            <td><strong>Vintage</strong></td>
+            <th scope="row"><strong>Vintage</strong></th>
             <td>October 2025 equation listing, November 2025 EFO, current-vintage ONS series. Where the ONS has revised history the identities don't close exactly, and that slack lands in the add-factors. The March 2026 EFO has not been adopted.</td>
           </tr>
           <tr>
-            <td><strong>No behavioural micro</strong></td>
+            <th scope="row"><strong>No behavioural micro</strong></th>
             <td>Aggregate equations only. Distributional questions belong to <a href="/pe/">PolicyEngine</a>.</td>
           </tr>
         </tbody>
@@ -372,9 +410,10 @@ results = run_reform(
 
 <footer class="foot foot-bar">
   <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono">
-    <a href="/validation/">validation</a>
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
     <a href="/docs/">docs</a>
+    <a href="/validation/">validation</a>
     <a href="/connect/">use it</a>
     <a href="https://github.com/PolicyEngine/macro">GitHub</a>
     <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>

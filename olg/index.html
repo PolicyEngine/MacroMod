@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — the overlapping-generations model (OG-UK)</title>
 <meta name="description" content="OG-UK: a dynamic overlapping-generations general-equilibrium model of the UK economy. Local-only. Accepts PolicyEngine reforms and direct structural parameter overrides (productivity, corporation tax, demographics, spending), and solves long-run aggregates and transition paths." />
+<link rel="canonical" href="https://macromod.vercel.app/olg" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/olg" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
+<meta property="og:title" content="PSL overlapping generations model — PolicyEngine Macro" />
+<meta property="og:description" content="A dynamic general-equilibrium model of 80 age cohorts built on OG-Core, with tax functions estimated from PolicyEngine microdata. A calibrated counterfactual with no published ground truth." />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
@@ -15,8 +24,33 @@
 /* page-specific: hero sizing only — shared component styles live in style.css */
 .model-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 10px; }
 </style>
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
 </head>
 <body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 <canvas id="field" aria-hidden="true"></canvas>
 
@@ -24,11 +58,11 @@
   <a class="brand" href="/">
     <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
   </a>
-  <nav class="nav-links">
+  <nav class="nav-links" aria-label="Primary">
     <a href="/#idea">idea</a>
     <a href="/#models">models</a>
-    <a href="/#pipeline">pipeline</a>
-    <a href="/validation/">validation</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
     <a href="/docs/">docs</a>
     <a href="/connect/">use it</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -38,7 +72,7 @@
 <main id="top">
   <section class="hero model-hero">
     <div class="hero-inner">
-      <p class="eyebrow reveal" style="--d:0">model 01 — overlapping generations · psl-og · UK · US · local only</p>
+      <p class="eyebrow reveal" style="--d:0">model 04 — overlapping generations · psl-og · UK · US · local only</p>
       <h1 class="reveal page-title" style="--d:1;">
         Eighty cohorts. <em>One</em> economy.
       </h1>
@@ -131,20 +165,21 @@
         shape across the income and age distribution.
       </p>
       <div class="table-scroll"><table>
-        <thead><tr><th>dial</th><th>choices</th><th>trade-off</th></tr></thead>
+        <caption>The main OLG configuration dials and their trade-offs</caption>
+        <thead><tr><th scope="col">dial</th><th scope="col">choices</th><th scope="col">trade-off</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>mode</strong></td>
+            <th scope="row"><strong>mode</strong></th>
             <td><code>solve_steady_state()</code> · <code>run_transition_path()</code></td>
             <td>long-run answer, &gt;17 min per solve · full 60-year path, multiple hours for baseline + reform</td>
           </tr>
           <tr>
-            <td><strong>age_specific</strong></td>
+            <th scope="row"><strong>age_specific</strong></th>
             <td><code>"pooled"</code> · <code>"brackets"</code> · <code>"each"</code></td>
             <td>one tax function for all ages (fastest, most stable) · one per age bracket (4 groups, split at state pension age) · one per single year of age (80 functions, slowest)</td>
           </tr>
           <tr>
-            <td><strong>multi_sector</strong></td>
+            <th scope="row"><strong>multi_sector</strong></th>
             <td><code>False</code> · <code>True</code></td>
             <td>one production sector · eight industries calibrated from ONS Blue Book supply-and-use tables by SIC section; needed for sector-level questions like energy price shocks</td>
           </tr>
@@ -320,18 +355,19 @@ impact = map_transition_to_real_world(base_tp, reform_tp)
         set out in full in the <a href="/papers/psl-og/">working paper</a>:
       </p>
       <div class="table-scroll"><table>
-        <thead><tr><th>check</th><th>what it establishes</th></tr></thead>
+        <caption>What each calibration check establishes</caption>
+        <thead><tr><th scope="col">check</th><th scope="col">what it establishes</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Calibration targets vs official UK aggregates</strong></td>
+            <th scope="row"><strong>Calibration targets vs official UK aggregates</strong></th>
             <td>The imposed and targeted quantities match by construction — that is anchoring, not validation, and the paper's tables label which is which. The over-identifying checks are the <em>emergent</em> quantities, the capital–output ratio and the steady-state interest rate, for which no published reconciliation yet exists.</td>
           </tr>
           <tr>
-            <td><strong>Parameters vs OG-Core / OG-USA defaults</strong></td>
+            <th scope="row"><strong>Parameters vs OG-Core / OG-USA defaults</strong></th>
             <td>Deployed choices are set against framework defaults and the published De Backer–Evans–Phillips tax-function estimates, including their fit statistics.</td>
           </tr>
           <tr>
-            <td><strong>Against the OBR's own UK OLG model</strong></td>
+            <th scope="row"><strong>Against the OBR's own UK OLG model</strong></th>
             <td>OBR Working Paper No. 22 (2025) is the closest available external check, and its headline experiment is the same 1pp basic-rate change used as the running example here. For the rise, WP 22 reports GDP per person −0.1%, hours −0.2%, productivity +0.1% through composition, and just over £8bn in real income tax (~0.3% of GDP) against HMRC's ~£6–8bn static yield. A systematic side-by-side comparison is on the roadmap, not done.</td>
           </tr>
         </tbody>
@@ -355,26 +391,27 @@ impact = map_transition_to_real_world(base_tp, reform_tp)
     </div>
     <div class="prose">
       <div class="table-scroll"><table>
-        <thead><tr><th>limit</th><th>detail</th></tr></thead>
+        <caption>Known limits of the overlapping-generations model</caption>
+        <thead><tr><th scope="col">limit</th><th scope="col">detail</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Version pin</strong></td>
+            <th scope="row"><strong>Version pin</strong></th>
             <td>The integration pins <code>oguk==0.3.0</code>, which pins <code>policyengine-uk==2.88.0</code>. Versions ≥ 2.89 renamed the microdata dataset keys (<code>enhanced_frs_2023_24_&lt;year&gt;</code> → <code>populace_uk_*</code>), so mixing them fails with a <code>KeyError</code> at calibration time. The adapter traps this and raises an actionable error. Upstream has moved on; lifting the pin is roadmap work, and until it lands the OLG member scores against a slightly older statute vintage than <a href="/pe/">the microsimulation member</a>. A declared inconsistency, not a hidden one.</td>
           </tr>
           <tr>
-            <td><strong>Gated data</strong></td>
+            <th scope="row"><strong>Gated data</strong></th>
             <td>Calibration needs the private enhanced-FRS microdata, so a <code>HUGGING_FACE_TOKEN</code> with access is a hard prerequisite.</td>
           </tr>
           <tr>
-            <td><strong>Thin CI</strong></td>
+            <th scope="row"><strong>Thin CI</strong></th>
             <td>CI cannot exercise a seventeen-minute solve on every commit, so regressions in solve behaviour are caught by scheduled runs and by hand, not continuously.</td>
           </tr>
           <tr>
-            <td><strong>Steady-state-only in the CLI</strong></td>
+            <th scope="row"><strong>Steady-state-only in the CLI</strong></th>
             <td>Transition paths exist in the <code>oguk</code> API but are not wired into the scorer, so the model cannot yet speak to fiscal-year profiles through the suite.</td>
           </tr>
           <tr>
-            <td><strong>Ability profiles not UK-estimated</strong></td>
+            <th scope="row"><strong>Ability profiles not UK-estimated</strong></th>
             <td>Lifetime-ability profiles are inherited rather than re-estimated on UK microdata. On the roadmap.</td>
           </tr>
         </tbody>
@@ -402,9 +439,10 @@ impact = map_transition_to_real_world(base_tp, reform_tp)
 
 <footer class="foot foot-bar">
   <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono">
-    <a href="/validation/">validation</a>
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
     <a href="/docs/">docs</a>
+    <a href="/validation/">validation</a>
     <a href="/connect/">use it</a>
     <a href="https://github.com/PolicyEngine/macro">GitHub</a>
     <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>

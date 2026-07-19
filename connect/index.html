@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — connect it or code it</title>
 <meta name="description" content="Connect PolicyEngine Macro to your AI workflow via MCP or CLI, or drive the Python API directly. Score macroeconomic policy reforms from your prompts." />
+<link rel="canonical" href="https://macromod.vercel.app/connect" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/connect" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
+<meta property="og:title" content="PolicyEngine Macro — use it" />
+<meta property="og:description" content="Add the hosted MCP server to Claude or ChatGPT, run the models from a terminal, or drive the Python API directly. Free and open source, no account and no key." />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
@@ -160,15 +169,40 @@
 .charts { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 24px 0; }
 @media (min-width: 860px) { .charts { grid-template-columns: 1fr 1fr; } }
 .chart-card { border: 1px solid var(--line-soft); border-radius: 8px; padding: 18px 20px; }
-.chart-card h4 { font-size: var(--fs-body-sm); margin: 0 0 3px; }
+.chart-card h3 { font-size: var(--fs-body-sm); margin: 0 0 3px; }
 .chart-card .chart-sub { font-family: var(--mono); font-size: var(--fs-label); color: var(--paper-faint); margin: 0 0 14px; }
 .legend { display: flex; gap: 18px; margin-top: 12px; font-family: var(--mono); font-size: var(--fs-label); color: var(--paper-faint); }
 .legend span { display: inline-flex; align-items: center; gap: 7px; }
 .legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
 .chart-note { font-size: var(--fs-small); color: var(--paper-faint); margin: 4px 0 0; }
 </style>
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
 </head>
 <body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 <canvas id="field" aria-hidden="true"></canvas>
 
@@ -176,11 +210,11 @@
   <a class="brand" href="/">
     <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
   </a>
-  <nav class="nav-links">
+  <nav class="nav-links" aria-label="Primary">
     <a href="/#idea">idea</a>
     <a href="/#models">models</a>
-    <a href="/#pipeline">pipeline</a>
-    <a href="/validation/">validation</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
     <a href="/docs/">docs</a>
     <a href="/connect/">use it</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -202,7 +236,8 @@
     </div>
   </section>
 
-  <section class="connect-panel">
+  <section id="connect" class="connect-panel">
+    <h2 class="visually-hidden">Connect a client, or install the CLI</h2>
     <div class="panel-card">
       <div class="panel-bars">
         <div class="seg" role="tablist" aria-label="Integration" id="seg-integration">
@@ -276,7 +311,7 @@
         </div>
 
         <hr class="panel-divider" />
-        <p class="mono foot-head" style="margin-bottom:10px;">the ten tools</p>
+        <h3 class="mono foot-head" style="margin-bottom:10px;">the ten tools</h3>
         <div class="dials">
           <div class="dial">
             <span class="dial-name">scoring</span>
@@ -296,15 +331,15 @@
           </div>
         </div>
         <p class="soon-hint" style="max-width: none;">
-          Four of the five models are reachable here. FRB/US is not on the server at all
-          (US, local only), and OG-UK is excluded from hosting because one solve takes
+          Four of the five models are reachable here. <a href="/frb-us/">FRB/US</a> is not on
+          the server at all (US, local only), and OG-UK is excluded from hosting because one solve takes
           tens of minutes — asking <code class="mono">score_reform</code> for
           <code class="mono">model="og"</code> returns local install instructions rather
           than a result.
         </p>
 
         <hr class="panel-divider" />
-        <p class="mono foot-head" style="margin-bottom:10px;">three things that will trip you up</p>
+        <h3 class="mono foot-head" style="margin-bottom:10px;">three things that will trip you up</h3>
         <div class="dials">
           <div class="dial">
             <span class="dial-name">country is required</span>
@@ -366,9 +401,9 @@
         </div>
 
         <hr class="panel-divider" />
-        <p class="soon-hint" style="max-width: none;">The <code class="mono">[models]</code> extra pulls the OBR emulator, the UK SVAR and the PolicyEngine country packages, each of which ships its own data. FRB/US and OG-UK install separately. The package lives in this repo's <a href="https://github.com/PolicyEngine/macro/tree/main/integration"><code class="mono">integration/</code></a> directory; a shorter <code class="mono">pip install policyengine-macro</code> follows PyPI publication. Reform dicts take the same shapes as the MCP tools — flat or single-effective-date, never a date range.</p>
+        <p class="soon-hint" style="max-width: none;">The <code class="mono">[models]</code> extra pulls the OBR emulator, the UK SVAR and the PolicyEngine country packages, each of which ships its own data. <a href="/frb-us/">FRB/US</a> and OG-UK install separately. The package lives in this repo's <a href="https://github.com/PolicyEngine/macro/tree/main/integration"><code class="mono">integration/</code></a> directory; a shorter <code class="mono">pip install policyengine-macro</code> follows PyPI publication. Reform dicts take the same shapes as the MCP tools — flat or single-effective-date, never a date range.</p>
         <p class="panel-foot mono" style="color: var(--paper-faint);">
-          the CLI runs everything the MCP server does, plus OG-UK, which is too slow to host. FRB/US is a separate package with its own Python API.
+          the CLI runs everything the MCP server does, plus OG-UK, which is too slow to host. <a href="/frb-us/">FRB/US</a> is a separate package with its own Python API.
         </p>
       </div>
 
@@ -480,7 +515,7 @@ Debt:    <span class="out-val">−3.1bn</span></code></pre>
 
       <div class="charts">
         <div class="chart-card">
-          <h4>Reform impact over the transition path</h4>
+          <h3>Reform impact over the transition path</h3>
           <p class="chart-sub">£bn change from baseline · fiscal years 2026–2055</p>
           <svg viewBox="0 0 680 300" role="img" aria-label="Reform impact over the transition path" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
 <line x1="54" y1="266.0" x2="664" y2="266.0" stroke="currentColor" stroke-opacity="0.07" stroke-width="1"/>
@@ -510,7 +545,7 @@ Debt:    <span class="out-val">−3.1bn</span></code></pre>
           </div>
         </div>
         <div class="chart-card">
-          <h4>Sector output, long-run</h4>
+          <h3>Sector output, long-run</h3>
           <p class="chart-sub">% change vs baseline · 8-sector model, 2055</p>
           <svg viewBox="0 0 680 300" role="img" aria-label="Sector output change at long run" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
 <line x1="244.8" y1="14" x2="244.8" y2="274" stroke="currentColor" stroke-opacity="0.18"/>
@@ -823,13 +858,28 @@ us = pe.us.calculate_household(
       </div><!-- /pe pane -->
     </div>
   </section>
+
+  <section class="band band-cta">
+    <h2>Pick a model and score a reform.</h2>
+    <p class="cta-sub">
+      The docs say which model answers which question; the validation page
+      says how far each one can be trusted. Both are worth five minutes before
+      you quote a number.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="/docs/">Documentation</a>
+      <a class="btn btn-ghost" href="/validation/">Validation</a>
+      <a class="btn btn-ghost" href="https://github.com/PolicyEngine/macro">GitHub</a>
+    </div>
+  </section>
 </main>
 
 <footer class="foot foot-bar">
   <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono">
-    <a href="/validation/">validation</a>
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
     <a href="/docs/">docs</a>
+    <a href="/validation/">validation</a>
     <a href="/connect/">use it</a>
     <a href="https://github.com/PolicyEngine/macro">GitHub</a>
     <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>

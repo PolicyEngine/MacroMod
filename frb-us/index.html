@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PolicyEngine Macro — FRB/US</title>
+<meta name="description" content="A from-scratch Python implementation of the Federal Reserve Board's FRB/US model — 284 equations solved under VAR expectations, reproducing the April 2026 LONGBASE database to machine precision and matching the Fed's own pyfrbus to its own version-to-version noise floor." />
+<link rel="canonical" href="https://macromod.vercel.app/frb-us" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/frb-us" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
+<meta property="og:title" content="FRB/US — PolicyEngine Macro" />
+<meta property="og:description" content="A from-scratch Python implementation of the Federal Reserve Board's FRB/US model — 284 equations under VAR expectations, reproducing LONGBASE to machine precision." />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
+<meta name="theme-color" content="#FFFFFF" />
+
+<link rel="stylesheet" href="/vendor/fonts/fonts.css" />
+<link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
+<link rel="stylesheet" href="/style.css" />
+<style>
+/* page-specific: hero sizing only — shared component styles live in style.css */
+.model-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 10px; }
+</style>
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
+</head>
+<body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
+<div class="grain" aria-hidden="true"></div>
+<canvas id="field" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="brand" href="/">
+    <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
+  </a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="/#idea">idea</a>
+    <a href="/#models">models</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
+    <a href="/docs/">docs</a>
+    <a href="/connect/">use it</a>
+    <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero model-hero">
+    <div class="hero-inner">
+      <p class="eyebrow reveal" style="--d:0">model 03 — FRB/US · frb-us · US · local only</p>
+      <h1 class="reveal page-title" style="--d:1;">
+        The Fed's US model, <em>rebuilt in Python</em>.
+      </h1>
+      <p class="lede reveal" style="--d:2">
+        A from-scratch implementation of the Federal Reserve Board's FRB/US
+        macroeconometric model — <strong>284 equations</strong> read from the
+        Board's public <code>model.xml</code> and solved simultaneously under
+        VAR expectations, on the <strong>April 2026 LONGBASE</strong> data
+        vintage. Shock the funds rate or a fiscal instrument and read the
+        response quarter by quarter, against a baseline that reproduces the
+        Fed's own database to machine precision.
+      </p>
+      <div class="hero-cta reveal" style="--d:3">
+        <a class="btn btn-primary" href="https://github.com/PolicyEngine/us-frb-model">Read the code</a>
+        <a class="btn btn-ghost" href="#run">Run it</a>
+        <a class="btn btn-ghost" href="/papers/frb-us/">Working paper</a>
+        <a class="btn btn-ghost" href="/validation/#frbus">Validation</a>
+      </div>
+      <div class="callout reveal" style="--d:4">
+        <strong>Standing.</strong> This is an independent Python
+        re-implementation of the Federal Reserve Board's publicly released
+        FRB/US model definition, data, and reference solver. It is
+        <strong>not produced, maintained, or endorsed by the Federal
+        Reserve</strong>, and its results are not official Board estimates.
+        The model itself is public domain; this package follows
+        <code>pyfrbus</code> semantics and is validated against it. It runs
+        <strong>locally only</strong> — it is not on the hosted MCP server and
+        is not wired into the PolicyEngine Macro CLI. Only the
+        <strong>VAR-expectations</strong> path is implemented:
+        model-consistent expectations, <code>mcontrol</code>, and stochastic
+        simulation are out of scope today.
+      </div>
+    </div>
+  </section>
+
+  <section id="what" class="band">
+    <div class="band-head">
+      <span class="kicker mono">01 — what it is</span>
+      <h2>The US counterpart to the OBR emulator.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        FRB/US is the large-scale macroeconometric model the Federal Reserve
+        Board has used for policy analysis and forecasting since 1996. The
+        Board publishes the whole thing — the equation system as
+        <code>model.xml</code>, the <code>LONGBASE</code> historical and
+        projection database, the model documentation, and a reference Python
+        solver called <code>pyfrbus</code> — in the public domain. What it does
+        not publish is a modern, readable, dependency-light implementation you
+        can drop into a research stack.
+      </p>
+      <p>
+        This is that: a from-scratch build on numpy, scipy and sympy under
+        Python 3.10+, parsing the Board's own model file rather than
+        re-specifying it. It carries <strong>284 endogenous variables and
+        their equations</strong>, classified into behavioural and identity
+        blocks exactly as the Board's file declares them, and solves them as
+        one simultaneous system per quarter.
+      </p>
+      <p>
+        In the suite it plays the role for the United States that the
+        <a href="/obr/">OBR emulator</a> plays for the United Kingdom:
+        reproducing the estimated equation system an official institution
+        actually relies on, rather than deriving behaviour from first
+        principles the way the <a href="/olg/">overlapping-generations
+        model</a> does. Unlike the OBR emulator, it is not hosted, and it does
+        not yet take a PolicyEngine reform object — it takes shocks.
+      </p>
+    </div>
+  </section>
+
+  <section id="how" class="band">
+    <div class="band-head">
+      <span class="kicker mono">02 — how it works</span>
+      <h2>Parse, add-factor, solve by Newton.</h2>
+    </div>
+    <div class="prose">
+      <div class="table-scroll"><table>
+        <caption>The FRB/US solve pipeline, stage by stage</caption>
+        <thead><tr><th scope="col">stage</th><th scope="col">what it does</th></tr></thead>
+        <tbody>
+          <tr>
+            <th scope="row"><strong>Parse</strong></th>
+            <td>Reads the Board's <code>model.xml</code> directly: variables, equations, per-equation coefficients, and the endogenous / exogenous classification for the VAR-expectations ("standard") equation set. Nothing is re-typed or re-specified.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>Load</strong></th>
+            <td>Loads <code>LONGBASE.TXT</code> — the April 2026 vintage — into a pandas frame on a quarterly <code>PeriodIndex</code>.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>Add-factor</strong> (<code>init_trac</code>)</th>
+            <td>Sets each equation's tracking residual so that solving the model reproduces the database exactly. This is the Fed's own device, used the Fed's own way — the direct analogue of the OBR emulator's anchoring.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>Solve</strong></th>
+            <td>A per-period damped Newton iteration on the full simultaneous system, with an <strong>analytic sparse Jacobian</strong> — differentiated symbolically with sympy, factorised with <code>scipy.sparse.linalg.splu</code>. Defaults are <code>xtol=1e-8</code>, <code>rtol=5e-4</code>.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>Shock &amp; compare</strong></th>
+            <td>A shock is an addition to an equation's error term — <code>rffintay_aerr</code> for the policy rule, for instance. Solve shocked and baseline paths over the same window and read the difference.</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <p>
+        The reference implementation decomposes each period into recursive and
+        simultaneous blocks; this one solves the whole period at once. Both
+        approaches solve the same <em>F</em>(<em>x</em>) = 0, which is why the
+        two agree to solver tolerance rather than to some negotiated
+        threshold — see <a href="#trust">how far to trust it</a> below.
+      </p>
+    </div>
+  </section>
+
+  <section id="run" class="band">
+    <div class="band-head">
+      <span class="kicker mono">03 — how to run it</span>
+      <h2>Local install, then a hundred basis points.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        FRB/US runs on your own machine. It is a separate package from the
+        rest of the suite, with its own Python API — it is not reachable
+        through <code>pe-macro</code> or the hosted MCP server. The Board's
+        raw materials are vendored unmodified in the repository, so there is
+        no data-download step, but you do clone rather than pip-install from
+        an index.
+      </p>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>git clone https://github.com/PolicyEngine/us-frb-model
+cd us-frb-model
+uv venv &amp;&amp; uv pip install -e ".[dev]"</code></pre></div>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">from</span> frbus <span class="kw">import</span> Frbus, load_data
+
+data = load_data(<span class="kw">"vendor/data_only_package/LONGBASE.TXT"</span>)
+model = Frbus(<span class="kw">"vendor/pyfrbus_package/models/model.xml"</span>)
+
+start, end = pd.Period(<span class="kw">"2026Q1"</span>), pd.Period(<span class="kw">"2030Q4"</span>)
+
+<span class="cm"># the fiscal-policy configuration the Board's own demos use</span>
+data.loc[start:end, <span class="kw">"dfpdbt"</span>] = 0
+data.loc[start:end, <span class="kw">"dfpsrp"</span>] = 1
+
+<span class="cm"># add-factor the model so the baseline reproduces LONGBASE exactly</span>
+with_adds = model.init_trac(start, end, data)
+
+<span class="cm"># 100bp monetary policy shock in the first quarter</span>
+with_adds.loc[start, <span class="kw">"rffintay_aerr"</span>] += 1
+sim = model.solve(start, end, with_adds)
+
+<span class="kw">print</span>((sim.loc[start:end, <span class="kw">"xgdp"</span>] / with_adds.loc[start:end, <span class="kw">"xgdp"</span>] - 1) * 100)</code></pre></div>
+      <p class="opt-note">
+        a runnable copy of exactly this is
+        <code>examples/monetary_policy_shock.py</code>. The API surface mirrors
+        the essentials of <code>pyfrbus</code>'s <code>Frbus</code> class:
+        <code>Frbus(path)</code>, <code>.init_trac()</code>,
+        <code>.solve()</code>, <code>.exogenize()</code> — so the Board's own
+        demo scripts port across with minimal change.
+      </p>
+      <div class="table-scroll"><table>
+        <caption>Frequently used FRB/US series</caption>
+        <thead><tr><th scope="col">code</th><th scope="col">variable</th><th scope="col">role</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>rffintay_aerr</code></th><td>Taylor-rule policy-rate error term</td><td>shock instrument — +1 for a 100bp tightening</td></tr>
+          <tr><th scope="row"><code>dfpdbt</code> / <code>dfpsrp</code></th><td>Fiscal policy switches</td><td>exogenous — set the debt / surplus closure</td></tr>
+          <tr><th scope="row"><code>xgdp</code></th><td>Real GDP</td><td>endogenous — headline output</td></tr>
+          <tr><th scope="row"><code>lur</code></th><td>Unemployment rate</td><td>endogenous — rate, pp</td></tr>
+          <tr><th scope="row"><code>picxfe</code></th><td>Core PCE inflation</td><td>endogenous — rate, pp</td></tr>
+          <tr><th scope="row"><code>rff</code></th><td>Federal funds rate</td><td>endogenous under the rule, pp</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="answers" class="band">
+    <div class="band-head">
+      <span class="kicker mono">04 — what it can answer</span>
+      <h2>US monetary and fiscal shocks, quarter by quarter.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        The model's designed job is the dynamic response of the US economy to
+        a policy impulse. A <strong>100bp funds-rate tightening</strong> in
+        2026Q1 moves the policy rate <strong>+1.000pp</strong> on impact, pushes
+        real GDP to a trough of <strong>&minus;0.55%</strong> in 2027Q4, raises
+        unemployment by a peak <strong>+0.26pp</strong>, and takes core
+        inflation down <strong>0.034pp</strong> at its trough — signs,
+        magnitudes and timing consistent with the simulation properties in the
+        Board's own FRB/US documentation.
+      </p>
+      <p>
+        Fiscal impulses land in the published cross-model ranges. A
+        government-purchases shock worth 1% of GDP gives a year-one multiplier
+        of <strong>0.72</strong> under the Taylor rule, inside the 0.7–1.0
+        no-accommodation range in Coenen et al. (2012); holding the funds rate
+        fixed, the year-two multiplier is <strong>0.99</strong>. A personal
+        tax cut worth 1% of GDP ex ante gives <strong>0.22 rising to
+        0.32</strong> over years one and two, inside both the 0.2–0.4
+        cross-model range and CBO's central estimate of about 0.3.
+      </p>
+      <div class="callout">
+        <strong>It cannot</strong> score a PolicyEngine reform — there is no
+        static-costing bridge into it yet, unlike the
+        <a href="/obr/">OBR emulator</a>. It cannot do forward guidance or
+        any exercise needing model-consistent expectations. It cannot tell you
+        who wins and loses — that is <a href="/pe/">PolicyEngine</a>. And it
+        says nothing about the UK.
+      </div>
+    </div>
+  </section>
+
+  <section id="trust" class="band band-result">
+    <div class="band-head">
+      <span class="kicker mono">05 — how far to trust it</span>
+      <h2>Machine precision on the baseline; the Fed's own noise floor on shocks.</h2>
+    </div>
+    <div class="prose">
+      <p>
+        This is a <strong>replication with a published anchor</strong>, and it
+        is the sharpest-tested member of the suite — because for once the
+        ground truth is exact rather than statistical. Two invariants carry
+        the weight, and both are enforced in continuous integration.
+      </p>
+    </div>
+    <div class="metrics">
+      <div class="metric">
+        <span class="metric-label mono">tracking invariant</span>
+        <span class="metric-val">5.6e&#8722;17</span>
+        <span class="metric-note">vs LONGBASE, all 284 endos × 20 quarters; CI gate 1e&minus;8</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label mono">shock vs pyfrbus 1.0.0</span>
+        <span class="metric-val">6.0e&#8722;9</span>
+        <span class="metric-note">the committed reference; CI gate 1e&minus;6</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label mono">shock vs pyfrbus 1.1.1</span>
+        <span class="metric-val">1.4e&#8722;8</span>
+        <span class="metric-note">the Board's current release</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label mono">the Fed vs the Fed</span>
+        <span class="metric-val">1.3e&#8722;8</span>
+        <span class="metric-note">pyfrbus 1.1.1 against 1.0.0 — the yardstick</span>
+      </div>
+    </div>
+    <div class="prose">
+      <p>
+        The last figure is the one that frames the other three. The Board's
+        two releases ship a <em>byte-identical</em> <code>model.xml</code> and
+        LONGBASE and differ only in how the Newton routine reuses its LU
+        factorisation — yet they <strong>disagree with each other by
+        1.3&times;10<sup>&minus;8</sup></strong>, as much as this
+        implementation disagrees with either. Agreement here therefore sits at
+        the reference implementation's own numerical noise, not at a tolerance
+        anyone chose. All three residuals concentrate in the same near-zero
+        expectational-gap series (<code>wpsn</code>, <code>zgap05</code>).
+      </p>
+      <div class="table-scroll"><table>
+        <caption>Validation results against the Federal Reserve Board's own artefacts</caption>
+        <thead><tr><th scope="col">test</th><th scope="col">what it checks</th><th scope="col">result</th></tr></thead>
+        <tbody>
+          <tr>
+            <th scope="row"><strong>Tracking invariant</strong></th>
+            <td>After <code>init_trac</code>, solving the baseline must reproduce LONGBASE for all 284 endogenous variables over 2026Q1–2030Q4.</td>
+            <td>Max absolute error <strong>5.6e&minus;17</strong> — machine precision, against a 1e&minus;8 gate. The Board's own pyfrbus 1.1.1 reproduces LONGBASE to 1.1e&minus;8 on the same test.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>Cross-validation</strong></th>
+            <td>An identical 100bp <code>rffintay_aerr</code> shock run in both implementations, compared across all 284 variables and all 20 quarters.</td>
+            <td><strong>6.0e&minus;9</strong> against pyfrbus 1.0.0 and <strong>1.4e&minus;8</strong> against 1.1.1 — where the two Board releases differ from each other by 1.3e&minus;8.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>Simulation properties</strong></th>
+            <td>A 100bp tightening must move the right things in the right direction by the right order of magnitude.</td>
+            <td>rff +1.000pp on impact, GDP trough &minus;0.55%, unemployment peak +0.26pp, core inflation trough &minus;0.034pp — consistent with the Board's documented VAR-expectations properties.</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+    <p class="chart-note" style="max-width: 80ch;">
+      The committed reference stays pinned to pyfrbus 1.0.0 so the gate has a
+      fixed anchor; the 1.1.1 comparison is a recorded cross-check. CI does not
+      merely re-check a committed CSV — a dedicated job re-runs the Board's
+      pyfrbus from source in a throwaway environment and gates against that
+      freshly generated solution, and a weekly scheduled run repeats the whole
+      suite across Python 3.10–3.12 so dependency drift surfaces without a pull
+      request. Full tables in
+      <a href="https://github.com/PolicyEngine/us-frb-model/blob/main/VALIDATION.md">VALIDATION.md</a>,
+      the <a href="/papers/frb-us/">working paper</a>, and
+      <a href="/validation/#frbus">validation</a>.
+    </p>
+  </section>
+
+  <section id="caveats" class="band">
+    <div class="band-head">
+      <span class="kicker mono">06 — limits</span>
+      <h2>What is absent, and what is merely local.</h2>
+    </div>
+    <div class="prose">
+      <div class="table-scroll"><table>
+        <caption>Known limits of the FRB/US implementation</caption>
+        <thead><tr><th scope="col">limit</th><th scope="col">detail</th></tr></thead>
+        <tbody>
+          <tr>
+            <th scope="row"><strong>VAR expectations only</strong></th>
+            <td>The model-consistent-expectations (MCE) equation variants are not implemented — <code>Frbus(path, mce=...)</code> raises <code>NotImplementedError</code>. Anything that turns on agents anticipating announced future policy, forward guidance most obviously, is out of scope.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>No <code>mcontrol</code>, no stochastic simulation</strong></th>
+            <td>The reference implementation's targeting routine and its stochastic-simulation machinery are both out of scope, so confidence bands around a projection are not available here.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>Local only, and not in the suite's tooling</strong></th>
+            <td>Not on the hosted MCP server and not exposed through <code>pe-macro</code>. It installs and runs from its own repository with its own Python API. <a href="/connect/">Connecting a client</a> reaches the other four models, not this one.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>No PolicyEngine reform bridge</strong></th>
+            <td>Reforms enter as shocks to model variables, not as statute. There is no equivalent of the OBR emulator's static-costing bridge from a PolicyEngine reform dict, so US reform scoring stops at <a href="/pe/">pe-microsim</a>'s static answer.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>Approximate published comparisons</strong></th>
+            <td>The 100bp funds-rate responses in the Board's 2014 FEDS Note are read off charts, so those comparisons are approximate by nature: our output-gap trough of &minus;0.50pp against the Note's roughly &minus;0.4pp reflects vintage and shock-design differences, and is not claimed as a match.</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong>Vintage</strong></th>
+            <td>The April 2026 <code>model.xml</code> and LONGBASE as published by the Board. Later Board vintages have not been adopted.</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="band band-cta">
+    <h2>Run the Fed's model on your own machine.</h2>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="https://github.com/PolicyEngine/us-frb-model">Read the code</a>
+      <a class="btn btn-ghost" href="/papers/frb-us/">Working paper</a>
+      <a class="btn btn-ghost" href="/validation/#frbus">Validation</a>
+      <a class="btn btn-ghost" href="/docs/">Documentation</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot foot-bar">
+  <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
+    <a href="/docs/">docs</a>
+    <a href="/validation/">validation</a>
+    <a href="/connect/">use it</a>
+    <a href="https://github.com/PolicyEngine/macro">GitHub</a>
+    <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
+  </nav>
+</footer>
+
+<script src="/field.js" defer></script>
+<script src="/reveal.js" defer></script>
+<script>
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-copy]"); if (!btn) return;
+  var code = btn.parentElement.querySelector("code");
+  navigator.clipboard.writeText(code.textContent).then(function () {
+    btn.textContent = "copied";
+    setTimeout(function () { btn.textContent = "copy"; }, 1400);
+  });
+});
+</script>
+</body>
+</html>

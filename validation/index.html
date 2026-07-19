@@ -5,17 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — validation</title>
 <meta name="description" content="Every PolicyEngine Macro model set beside its official counterpart: the OBR emulator against the November 2025 EFO and HMRC's ready reckoner, the structural VAR against Brignone and Piffer (2025), FRB/US against the Fed's pyfrbus, PolicyEngine against statute, and the OLG model against its calibration targets — with the verification gradient stated, not flattened." />
+<link rel="canonical" href="https://macromod.vercel.app/validation" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/validation" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
 <meta property="og:title" content="PolicyEngine Macro — validation" />
 <meta property="og:description" content="Our numbers next to the official ones, model by model — replications with published anchors, a statute-validated microsimulation, and one calibrated counterfactual with no ground truth." />
-<meta property="og:type" content="website" />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
 <link rel="stylesheet" href="/vendor/fonts/fonts.css" />
 <link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
 <link rel="stylesheet" href="/style.css" />
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
 </head>
 <body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 <canvas id="field" aria-hidden="true"></canvas>
 
@@ -23,10 +54,11 @@
   <a class="brand" href="/">
     <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
   </a>
-  <nav class="nav-links">
+  <nav class="nav-links" aria-label="Primary">
     <a href="/#idea">idea</a>
     <a href="/#models">models</a>
-    <a href="/validation/">validation</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
     <a href="/docs/">docs</a>
     <a href="/connect/">use it</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -66,34 +98,35 @@
       </p>
       <div class="table-scroll">
       <table>
-        <thead><tr><th>Model</th><th>Verification class</th><th>What it is checked against</th><th>Headline result</th></tr></thead>
+        <caption>The verification gradient: what each model is checked against, and its headline result</caption>
+        <thead><tr><th scope="col">Model</th><th scope="col">Verification class</th><th scope="col">What it is checked against</th><th scope="col">Headline result</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>obr-macro</strong></td>
+            <th scope="row"><strong>obr-macro</strong></th>
             <td>Replication with a published anchor</td>
             <td>OBR <em>Economic and Fiscal Outlook</em>, November 2025; HMRC ready reckoner; ONS outturns</td>
             <td>Anchored GDP MAPE 0.18%, consumption 0.29%</td>
           </tr>
           <tr>
-            <td><strong>boe-svar</strong></td>
+            <th scope="row"><strong>boe-svar</strong></th>
             <td>Replication with a published anchor</td>
             <td>Brignone &amp; Piffer (2025), BoE Macro Technical Paper No. 3; ONS outturns</td>
             <td>FEVD shares 40.9% / 50.1% vs the paper's ~40% / ~50%</td>
           </tr>
           <tr>
-            <td><strong>frb-us</strong></td>
+            <th scope="row"><strong>frb-us</strong></th>
             <td>Replication with a published anchor</td>
             <td>The Fed's LONGBASE database and <code>pyfrbus</code> solver; Coenen et al. and CBO multiplier ranges</td>
             <td>Tracking invariant 5.6&times;10<sup>&minus;17</sup> — machine precision</td>
           </tr>
           <tr>
-            <td><strong>pe-microsim</strong></td>
+            <th scope="row"><strong>pe-microsim</strong></th>
             <td>Validated against statute</td>
             <td>UK and US law, rule by rule, for an exact household</td>
             <td>Exact household arithmetic — not an approximation</td>
           </tr>
           <tr>
-            <td><strong>psl-og</strong></td>
+            <th scope="row"><strong>psl-og</strong></th>
             <td class="vc-warn">Calibrated counterfactual — no ground truth</td>
             <td>ONS and OBR aggregates as calibration <em>targets</em>, not as a validation set</td>
             <td>Targets met by construction; no published replication exists</td>
@@ -225,21 +258,22 @@
       </figure>
       <div class="table-scroll">
       <table>
-        <thead><tr><th></th><th>Ours</th><th>Official</th><th>Deviation</th></tr></thead>
+        <caption>obr-macro against the November 2025 EFO and HMRC's ready reckoner</caption>
+        <thead><tr><td></td><th scope="col">Ours</th><th scope="col">Official</th><th scope="col">Deviation</th></tr></thead>
         <tbody>
-          <tr><td colspan="4"><strong>Anchored levels vs EFO Nov 2025, £bn/qtr</strong></td></tr>
-          <tr><td>Real GDP, 2025Q1</td><td>703.8</td><td>703.5</td><td>+0.05%</td></tr>
-          <tr><td>Real GDP, 2027Q4</td><td>733.2</td><td>730.8</td><td>+0.32%</td></tr>
-          <tr><td>Consumption, 2025Q1</td><td>429.6</td><td>429.2</td><td>+0.08%</td></tr>
-          <tr><td>Consumption, 2027Q4</td><td>446.7</td><td>444.4</td><td>+0.53%</td></tr>
-          <tr><td colspan="4"><strong>Basic rate +1pp vs HMRC ready reckoner, £bn/yr</strong></td></tr>
-          <tr><td>2026&ndash;27</td><td>6.46</td><td>6.9</td><td>&minus;6.4%</td></tr>
-          <tr><td>2028&ndash;29 (interpolated)</td><td>6.92</td><td>8.2</td><td>&minus;15.6%</td></tr>
-          <tr><td>2030 (end of window)</td><td>7.38</td><td>≈8.2</td><td>&minus;10.0%</td></tr>
-          <tr><td colspan="4"><strong>Tracking error vs the published EFO path, MAPE 2025Q1&ndash;2027Q4</strong></td></tr>
-          <tr><td>Anchored (GDP / consumption)</td><td>0.18% / 0.29%</td><td colspan="2">CI gate &lt;1% — passes</td></tr>
-          <tr><td>Held add-factors (GDP / consumption)</td><td>2.2% / 3.6%</td><td colspan="2">within band</td></tr>
-          <tr><td class="vc-warn">Free-running, raw (GDP / consumption)</td><td class="vc-warn">5.70% / 9.45%</td><td colspan="2" class="vc-warn">over band — report-only, and weak</td></tr>
+          <tr><th colspan="4" scope="colgroup"><strong>Anchored levels vs EFO Nov 2025, £bn/qtr</strong></th></tr>
+          <tr><th scope="row">Real GDP, 2025Q1</th><td>703.8</td><td>703.5</td><td>+0.05%</td></tr>
+          <tr><th scope="row">Real GDP, 2027Q4</th><td>733.2</td><td>730.8</td><td>+0.32%</td></tr>
+          <tr><th scope="row">Consumption, 2025Q1</th><td>429.6</td><td>429.2</td><td>+0.08%</td></tr>
+          <tr><th scope="row">Consumption, 2027Q4</th><td>446.7</td><td>444.4</td><td>+0.53%</td></tr>
+          <tr><th colspan="4" scope="colgroup"><strong>Basic rate +1pp vs HMRC ready reckoner, £bn/yr</strong></th></tr>
+          <tr><th scope="row">2026&ndash;27</th><td>6.46</td><td>6.9</td><td>&minus;6.4%</td></tr>
+          <tr><th scope="row">2028&ndash;29 (interpolated)</th><td>6.92</td><td>8.2</td><td>&minus;15.6%</td></tr>
+          <tr><th scope="row">2030 (end of window)</th><td>7.38</td><td>≈8.2</td><td>&minus;10.0%</td></tr>
+          <tr><th colspan="4" scope="colgroup"><strong>Tracking error vs the published EFO path, MAPE 2025Q1&ndash;2027Q4</strong></th></tr>
+          <tr><th scope="row">Anchored (GDP / consumption)</th><td>0.18% / 0.29%</td><td colspan="2">CI gate &lt;1% — passes</td></tr>
+          <tr><th scope="row">Held add-factors (GDP / consumption)</th><td>2.2% / 3.6%</td><td colspan="2">within band</td></tr>
+          <tr><th class="vc-warn" scope="row">Free-running, raw (GDP / consumption)</th><td class="vc-warn">5.70% / 9.45%</td><td colspan="2" class="vc-warn">over band — report-only, and weak</td></tr>
         </tbody>
       </table>
       </div>
@@ -296,12 +330,13 @@
       </p>
       <div class="table-scroll">
       <table>
-        <thead><tr><th>Real GDP, % q/q</th><th>Emulator</th><th>EFO Nov 2025</th><th>ONS outturn</th></tr></thead>
+        <caption>Quarterly real GDP growth: emulator, EFO vintage, and ONS outturn</caption>
+        <thead><tr><th scope="col">Real GDP, % q/q</th><th scope="col">Emulator</th><th scope="col">EFO Nov 2025</th><th scope="col">ONS outturn</th></tr></thead>
         <tbody>
-          <tr><td>2025Q2</td><td>0.15</td><td>0.28</td><td>0.1</td></tr>
-          <tr><td>2025Q3</td><td>0.14</td><td>0.20</td><td>0.2</td></tr>
-          <tr><td>2025Q4</td><td>0.25</td><td>0.27</td><td>0.2</td></tr>
-          <tr><td>2026Q1</td><td>0.37</td><td>0.39</td><td>0.6</td></tr>
+          <tr><th scope="row">2025Q2</th><td>0.15</td><td>0.28</td><td>0.1</td></tr>
+          <tr><th scope="row">2025Q3</th><td>0.14</td><td>0.20</td><td>0.2</td></tr>
+          <tr><th scope="row">2025Q4</th><td>0.25</td><td>0.27</td><td>0.2</td></tr>
+          <tr><th scope="row">2026Q1</th><td>0.37</td><td>0.39</td><td>0.6</td></tr>
         </tbody>
       </table>
       </div>
@@ -388,10 +423,11 @@
       </p>
       <div class="table-scroll">
       <table>
-        <thead><tr><th>Global share, 1-yr FEVD</th><th>Paper</th><th>CI config (fast)</th><th>Production (10k draws)</th><th>Deviation, CI / production</th></tr></thead>
+        <caption>boe-svar global-shock FEVD shares against Brignone &amp; Piffer (2025)</caption>
+        <thead><tr><th scope="col">Global share, 1-yr FEVD</th><th scope="col">Paper</th><th scope="col">CI config (fast)</th><th scope="col">Production (10k draws)</th><th scope="col">Deviation, CI / production</th></tr></thead>
         <tbody>
-          <tr><td>UK GDP</td><td>~40%</td><td>47.4%</td><td>40.9%</td><td>+7.4 / +0.9 pp</td></tr>
-          <tr><td>UK CPI</td><td>~50%</td><td>42.4%</td><td>50.1%</td><td>&minus;7.6 / +0.1 pp</td></tr>
+          <tr><th scope="row">UK GDP</th><td>~40%</td><td>47.4%</td><td>40.9%</td><td>+7.4 / +0.9 pp</td></tr>
+          <tr><th scope="row">UK CPI</th><td>~50%</td><td>42.4%</td><td>50.1%</td><td>&minus;7.6 / +0.1 pp</td></tr>
         </tbody>
       </table>
       </div>
@@ -501,14 +537,15 @@
       </p>
       <div class="table-scroll">
       <table>
-        <thead><tr><th>Quantity</th><th>Ours</th><th>Published</th><th>Reading</th></tr></thead>
+        <caption>frb-us against the Fed's pyfrbus and published multiplier ranges</caption>
+        <thead><tr><th scope="col">Quantity</th><th scope="col">Ours</th><th scope="col">Published</th><th scope="col">Reading</th></tr></thead>
         <tbody>
-          <tr><td>Tracking invariant, max abs. error</td><td>5.6&times;10<sup>&minus;17</sup></td><td>CI gate &lt;10<sup>&minus;8</sup>; pyfrbus 1.1.1 gives 1.1&times;10<sup>&minus;8</sup></td><td>machine precision</td></tr>
-          <tr><td>Shock responses vs pyfrbus 1.0.0</td><td>6.0&times;10<sup>&minus;9</sup></td><td>—</td><td>at the reference's noise floor</td></tr>
-          <tr><td>Shock responses vs pyfrbus 1.1.1</td><td>1.4&times;10<sup>&minus;8</sup></td><td>1.1.1 vs 1.0.0: 1.3&times;10<sup>&minus;8</sup></td><td>the Fed's releases differ as much as we do</td></tr>
-          <tr><td>Gov. purchases multiplier, yr 1, Taylor rule</td><td>0.72</td><td>0.7&ndash;1.0 (Coenen et al. 2012)</td><td>inside range</td></tr>
-          <tr><td>Gov. purchases multiplier, yr 2, fixed funds rate</td><td>0.99</td><td>"roughly one" pegged; 1.1&ndash;1.2 with accommodation</td><td>matches the Board's characterisation</td></tr>
-          <tr><td>Personal tax cut multiplier, yrs 1&ndash;2</td><td>0.22 → 0.32</td><td>0.2&ndash;0.4; CBO central ≈0.3</td><td>inside both ranges</td></tr>
+          <tr><th scope="row">Tracking invariant, max abs. error</th><td>5.6&times;10<sup>&minus;17</sup></td><td>CI gate &lt;10<sup>&minus;8</sup>; pyfrbus 1.1.1 gives 1.1&times;10<sup>&minus;8</sup></td><td>machine precision</td></tr>
+          <tr><th scope="row">Shock responses vs pyfrbus 1.0.0</th><td>6.0&times;10<sup>&minus;9</sup></td><td>—</td><td>at the reference's noise floor</td></tr>
+          <tr><th scope="row">Shock responses vs pyfrbus 1.1.1</th><td>1.4&times;10<sup>&minus;8</sup></td><td>1.1.1 vs 1.0.0: 1.3&times;10<sup>&minus;8</sup></td><td>the Fed's releases differ as much as we do</td></tr>
+          <tr><th scope="row">Gov. purchases multiplier, yr 1, Taylor rule</th><td>0.72</td><td>0.7&ndash;1.0 (Coenen et al. 2012)</td><td>inside range</td></tr>
+          <tr><th scope="row">Gov. purchases multiplier, yr 2, fixed funds rate</th><td>0.99</td><td>"roughly one" pegged; 1.1&ndash;1.2 with accommodation</td><td>matches the Board's characterisation</td></tr>
+          <tr><th scope="row">Personal tax cut multiplier, yrs 1&ndash;2</th><td>0.22 → 0.32</td><td>0.2&ndash;0.4; CBO central ≈0.3</td><td>inside both ranges</td></tr>
         </tbody>
       </table>
       </div>
@@ -523,6 +560,7 @@
       </p>
       <p class="vlinks mono">
         <a href="/papers/frb-us/main.pdf">working paper (pdf) →</a>
+        <a href="/frb-us/">frb-us model page →</a>
         <a href="https://github.com/PolicyEngine/us-frb-model">frb-us code →</a>
       </p>
     </div>
@@ -586,14 +624,15 @@
       </div>
       <div class="table-scroll">
       <table>
-        <thead><tr><th>Quantity</th><th>Official UK value</th><th>Source</th><th>Model treatment</th><th>Deviation</th></tr></thead>
+        <caption>psl-og calibration targets against official UK aggregates</caption>
+        <thead><tr><th scope="col">Quantity</th><th scope="col">Official UK value</th><th scope="col">Source</th><th scope="col">Model treatment</th><th scope="col">Deviation</th></tr></thead>
         <tbody>
-          <tr><td>Government debt-to-GDP</td><td>95.1% (May 2026); OBR March 2026 forecast 94.4%</td><td>ONS public sector finances</td><td class="vc-warn">imposed via closure target</td><td>&minus;0.7pp vs latest ONS</td></tr>
-          <tr><td>Household saving ratio</td><td>8.9% (2026Q1, down from 9.6%)</td><td>ONS quarterly sector accounts</td><td class="vc-warn">targeted through β</td><td>0 by construction</td></tr>
-          <tr><td>Potential growth</td><td>≈1.1% / yr</td><td>OBR EFO</td><td class="vc-warn">imposed, g<sub>y</sub> = 0.011</td><td>≈0</td></tr>
-          <tr><td>Depreciation / capital</td><td>≈6&ndash;7% (CFC / net stock)</td><td>ONS capital stocks bulletin</td><td class="vc-warn">imposed, δ = 0.065</td><td>within range</td></tr>
-          <tr><td>Labour share of income</td><td>≈0.59&ndash;0.60, rising in 2024</td><td>ONS labour-share series / Blue Book 2025</td><td>1&minus;γ set from factor shares</td><td>≲1pp</td></tr>
-          <tr><td>Net capital stock</td><td>£5.6tn (2024), ≈2× GDP on the business-capital concept</td><td>ONS capital stocks bulletin</td><td><strong>emergent</strong> — checked, not imposed</td><td>concept-adjusted; no published reconciliation</td></tr>
+          <tr><th scope="row">Government debt-to-GDP</th><td>95.1% (May 2026); OBR March 2026 forecast 94.4%</td><td>ONS public sector finances</td><td class="vc-warn">imposed via closure target</td><td>&minus;0.7pp vs latest ONS</td></tr>
+          <tr><th scope="row">Household saving ratio</th><td>8.9% (2026Q1, down from 9.6%)</td><td>ONS quarterly sector accounts</td><td class="vc-warn">targeted through β</td><td>0 by construction</td></tr>
+          <tr><th scope="row">Potential growth</th><td>≈1.1% / yr</td><td>OBR EFO</td><td class="vc-warn">imposed, g<sub>y</sub> = 0.011</td><td>≈0</td></tr>
+          <tr><th scope="row">Depreciation / capital</th><td>≈6&ndash;7% (CFC / net stock)</td><td>ONS capital stocks bulletin</td><td class="vc-warn">imposed, δ = 0.065</td><td>within range</td></tr>
+          <tr><th scope="row">Labour share of income</th><td>≈0.59&ndash;0.60, rising in 2024</td><td>ONS labour-share series / Blue Book 2025</td><td>1&minus;γ set from factor shares</td><td>≲1pp</td></tr>
+          <tr><th scope="row">Net capital stock</th><td>£5.6tn (2024), ≈2× GDP on the business-capital concept</td><td>ONS capital stocks bulletin</td><td><strong>emergent</strong> — checked, not imposed</td><td>concept-adjusted; no published reconciliation</td></tr>
         </tbody>
       </table>
       </div>
@@ -651,19 +690,30 @@
         <li><strong>FRB/US residuals and multipliers</strong> — <code>papers/frb-us/sections/validation.tex</code> and <code>sections/comparison.tex</code>; model outputs in <code>figures/results.json</code>.</li>
         <li><strong>OLG calibration targets</strong> — <code>papers/psl-og/sections/comparison.tex</code>, against ONS public sector finances, sector accounts, capital stocks, and the OBR EFO.</li>
       </ul>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="/docs/">Read the docs</a>
-        <a class="btn btn-ghost" href="https://github.com/PolicyEngine/macro/tree/main/papers">Browse the papers</a>
-      </div>
+    </div>
+  </section>
+
+  <section class="band band-cta">
+    <h2>Read how the models work, then run one.</h2>
+    <p class="cta-sub">
+      Every figure above is traceable to a committed artefact in a working
+      paper. The docs say what each model is for; the connect page gets one
+      running.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="/docs/">Read the docs</a>
+      <a class="btn btn-ghost" href="/connect/">Use it</a>
+      <a class="btn btn-ghost" href="https://github.com/PolicyEngine/macro/tree/main/papers">Browse the papers</a>
     </div>
   </section>
 </main>
 
 <footer class="foot foot-bar">
   <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono">
-    <a href="/validation/">validation</a>
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
     <a href="/docs/">docs</a>
+    <a href="/validation/">validation</a>
     <a href="/connect/">use it</a>
     <a href="https://github.com/PolicyEngine/macro">GitHub</a>
     <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>

@@ -3,16 +3,54 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PolicyEngine Macro — working papers</title>
-<meta name="description" content="The four PolicyEngine Macro working papers — the OBR macroeconometric emulator, the Bank of England structural VAR, FRB/US, and the PSL overlapping-generations model — readable in the browser." />
+<title>PolicyEngine Macro — working papers (moved into the docs)</title>
+<meta name="description" content="The four PolicyEngine Macro working papers now live inside the documentation, alongside the model they document. The individual paper viewers are unchanged." />
+<meta name="robots" content="noindex, follow" />
+<link rel="canonical" href="https://macromod.vercel.app/docs#papers" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/docs#papers" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
+<meta property="og:title" content="Working papers — PolicyEngine Macro" />
+<meta property="og:description" content="The four PolicyEngine Macro working papers. The papers index now lives inside the documentation." />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
 <link rel="stylesheet" href="/vendor/fonts/fonts.css" />
 <link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
 <link rel="stylesheet" href="/style.css" />
+<style>
+.model-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 10px; }
+</style>
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
 </head>
 <body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 <canvas id="field" aria-hidden="true"></canvas>
 
@@ -20,88 +58,69 @@
   <a class="brand" href="/">
     <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
   </a>
-  <nav class="nav-links">
+  <nav class="nav-links" aria-label="Primary">
     <a href="/#idea">idea</a>
     <a href="/#models">models</a>
-    <a href="/#pipeline">pipeline</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
     <a href="/docs/">docs</a>
-    <a href="/papers/">papers</a>
     <a href="/connect/">use it</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
   </nav>
 </header>
 
 <main id="top">
-  <section class="hero model-hero" style="min-height:auto;padding-top:clamp(120px,18vh,180px);padding-bottom:10px;">
+  <section class="hero model-hero">
     <div class="hero-inner">
       <p class="eyebrow reveal" style="--d:0">working papers</p>
       <h1 class="reveal page-title" style="--d:1;">
-        Four papers. Every number <em>reproducible</em>.
+        The papers moved <em>into the docs</em>.
       </h1>
       <p class="lede reveal" style="--d:2">
-        Each macro model ships with a working paper setting out its equations,
-        its implementation, and — most importantly — how far it can be checked
-        against ground truth. Read them here in the browser, or download the
-        PDF. Sources and figure-reproduction scripts live in the
-        <a href="https://github.com/PolicyEngine/macro/tree/main/papers">papers/</a>
-        directory of the repo.
+        A paper belongs next to the model it documents, so the working-paper
+        index is now a section of the
+        <a href="/docs/#papers">documentation</a> rather than a tab of its
+        own. Nothing was removed: each paper still has its own page, and the
+        PDFs are at the same addresses they always were.
       </p>
+      <div class="hero-cta reveal" style="--d:3">
+        <a class="btn btn-primary" href="/docs/#papers">The papers, in the docs</a>
+        <a class="btn btn-ghost" href="https://github.com/PolicyEngine/macro/tree/main/papers">LaTeX sources</a>
+      </div>
     </div>
   </section>
 
   <section id="papers" class="band">
     <div class="band-head">
-      <span class="kicker mono">01 — the papers</span>
-      <h2>Ours against the official model.</h2>
+      <span class="kicker mono">01 — the four papers</span>
+      <h2>Straight to a paper.</h2>
     </div>
     <div class="prose">
       <p>
-        Three of the four papers are replications with a published anchor, so
-        the headline result is a distance: how far our implementation sits from
-        the institution's own. The fourth has no anchor to sit against, and
-        says so.
+        Three of the four are replications with a published anchor, so the
+        headline result is a distance: how far the implementation sits from the
+        institution's own. The fourth has no anchor to sit against, and says
+        so. The fuller listing, with each paper beside its model, is in the
+        <a href="/docs/#papers">documentation</a>.
       </p>
-      <div class="doc-index">
-        <a href="/papers/obr-macro/">
-          <span class="di-id">obr-macro · UK · hosted</span>
-          <h3>An open emulator of the OBR macroeconometric model</h3>
-          <p>Transpiles the OBR's 372 published EViews equations into Python, solves them by Gauss&ndash;Seidel iteration, and anchors the baseline to the November 2025 Economic and Fiscal Outlook.</p>
-          <span class="paper-result">Anchored to the Nov 2025 EFO: GDP MAPE <strong>0.18%</strong>, consumption <strong>0.29%</strong> over 2025Q1&ndash;2027Q4 &mdash; hard-gated in CI. Free-running fit reported without flattery: only 4 of 11 computed variables in band.</span>
-          <span class="di-go">read in browser · 35 pages →</span>
-        </a>
-        <a href="/papers/boe-svar/">
-          <span class="di-id">boe-svar · UK · hosted</span>
-          <h3>Replicating the Bank of England's structural VAR</h3>
-          <p>An eight-variable Bayesian SVAR with a Minnesota prior and zero plus sign restrictions imposed via Arias et al. (2018), identifying six named structural shocks.</p>
-          <span class="paper-result">Out-of-sample from the 2024Q2 edge: RMSE <strong>0.32pp</strong> for both GDP growth and CPI inflation, with <strong>14/14 outturns inside the 68% bands</strong>. Global shocks explain 40.9% of GDP and 50.1% of CPI FEV at one year, vs ~40% and ~50% in the paper.</span>
-          <span class="di-go">read in browser · 28 pages →</span>
-        </a>
-        <a href="/papers/frb-us/">
-          <span class="di-id">frb-us · US · local</span>
-          <h3>A modern Python implementation of FRB/US</h3>
-          <p>A from-scratch reimplementation of the Fed's 284-equation FRB/US model under VAR expectations, with a sparse analytic Jacobian and a damped Newton solver.</p>
-          <span class="paper-result">Baseline reproduces LONGBASE to <strong>5.6e-17</strong> (machine precision); an identical 100bp funds-rate shock matches the Fed's pyfrbus to <strong>1.4e-8</strong> against current pyfrbus 1.1.1 (6.0e-9 vs 1.0.0) across all 284 variables and 20 quarters.</span>
-          <span class="di-go">read in browser · 36 pages →</span>
-        </a>
-        <a href="/papers/psl-og/">
-          <span class="di-id">psl-og · UK · US · local</span>
-          <h3>The PSL overlapping-generations model in PolicyEngine Macro</h3>
-          <p>OG-Core deployed through its OG-UK calibration, with 80 age cohorts and effective- and marginal-tax-rate functions estimated from PolicyEngine microdata.</p>
-          <span class="paper-result"><strong>No published ground truth</strong> &mdash; unlike the OBR and SVAR members this is a structural counterfactual, calibrated to ONS and OBR national-accounts targets rather than validated against a replication anchor.</span>
-          <span class="di-go">read in browser · 34 pages →</span>
-        </a>
-      </div>
+      <p class="research-link mono">
+        <a href="/papers/obr-macro/">obr-macro paper</a> &nbsp;·&nbsp;
+        <a href="/papers/boe-svar/">boe-svar paper</a> &nbsp;·&nbsp;
+        <a href="/papers/frb-us/">frb-us paper</a> &nbsp;·&nbsp;
+        <a href="/papers/psl-og/">psl-og paper</a>
+      </p>
+      <p>
+        <code>pe-microsim</code> has no working paper: it is documented as
+        statute at <a href="https://policyengine.org">policyengine.org</a>.
+      </p>
     </div>
   </section>
 
   <section class="band band-cta">
-    <h2>Read the code behind the papers.</h2>
-    <p class="cta-sub">
-      Every figure in every paper is regenerated by a script in the repo — the
-      papers and the models are versioned together.
-    </p>
+    <h2>Read the docs the papers now live in.</h2>
     <div class="hero-cta">
-      <a class="btn btn-primary" href="/docs/">Documentation</a>
+      <a class="btn btn-primary" href="/docs/#papers">Documentation</a>
+      <a class="btn btn-ghost" href="/validation/">Validation</a>
       <a class="btn btn-ghost" href="https://github.com/PolicyEngine/macro">GitHub</a>
     </div>
   </section>
@@ -109,9 +128,10 @@
 
 <footer class="foot foot-bar">
   <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono">
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
     <a href="/docs/">docs</a>
-    <a href="/papers/">papers</a>
+    <a href="/validation/">validation</a>
     <a href="/connect/">use it</a>
     <a href="https://github.com/PolicyEngine/macro">GitHub</a>
     <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>

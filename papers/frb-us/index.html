@@ -5,14 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>A modern Python implementation of FRB/US — PolicyEngine Macro</title>
 <meta name="description" content="A from-scratch reimplementation of the Fed's 284-equation FRB/US model under VAR expectations, with a sparse analytic Jacobian and a damped Newton solver." />
+<link rel="canonical" href="https://macromod.vercel.app/papers/frb-us" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://macromod.vercel.app/papers/frb-us" />
+<meta property="og:site_name" content="PolicyEngine Macro" />
+<meta property="og:title" content="An open Python implementation of FRB/US" />
+<meta property="og:description" content="The PAC framework, solver design, machine-precision validation against the Fed's pyfrbus, and monetary and fiscal experiments against published multipliers." />
+<meta property="og:image" content="https://macromod.vercel.app/assets/og-image.png" />
+<meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/assets/policyengine-mark.svg" />
 <meta name="theme-color" content="#FFFFFF" />
 
 <link rel="stylesheet" href="/vendor/fonts/fonts.css" />
 <link rel="stylesheet" href="/vendor/ui-kit-tokens.css" />
 <link rel="stylesheet" href="/style.css" />
+<style>
+/* shared shim — belongs in style.css; inlined here so every page is self-contained.
+   1. skip link, 2. row-header cells keep body-text styling, 3. table captions. */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--background, #fff); color: var(--text, #111);
+  border: 1px solid var(--line-soft); border-radius: 4px;
+  font-family: var(--mono); font-size: var(--fs-small); padding: 10px 16px;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+.prose tbody th {
+  font-family: inherit; font-size: inherit; font-weight: 500;
+  letter-spacing: normal; text-transform: none; color: inherit;
+}
+.prose caption {
+  caption-side: top; text-align: left; font-family: var(--mono);
+  font-size: var(--fs-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--paper-faint); padding-bottom: 12px;
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+</style>
 </head>
 <body class="doc">
+<a class="skip-link" href="#top">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 <canvas id="field" aria-hidden="true"></canvas>
 
@@ -20,12 +54,12 @@
   <a class="brand" href="/">
     <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
   </a>
-  <nav class="nav-links">
+  <nav class="nav-links" aria-label="Primary">
     <a href="/#idea">idea</a>
     <a href="/#models">models</a>
-    <a href="/#pipeline">pipeline</a>
+    <a href="/#validation">validation</a>
+    <a href="/#workflow">workflow</a>
     <a href="/docs/">docs</a>
-    <a href="/papers/">papers</a>
     <a href="/connect/">use it</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
   </nav>
@@ -40,7 +74,7 @@
       </div>
       <div class="paper-viewer-actions">
         <a class="btn btn-primary" href="/papers/frb-us/main.pdf" download>Download PDF</a>
-        <a class="btn btn-ghost" href="/papers/">All papers</a>
+        <a class="btn btn-ghost" href="/docs/#papers">All papers</a>
       </div>
     </div>
 
@@ -78,20 +112,21 @@
     </p>
 
     <p class="research-link mono">
-      <a href="https://github.com/PolicyEngine/us-frb-model">the us-frb-model repository</a> &nbsp;·&nbsp; <a href="/validation/">how this model is validated</a>
+      <a href="/frb-us/">the frb-us model page</a> &nbsp;·&nbsp; <a href="/validation/">how this model is validated</a>
     </p>
 
     <p class="research-link mono" style="margin-top:26px;">
-      <a href="/papers/boe-svar/">← boe-svar</a> &nbsp;·&nbsp; <a href="/papers/">all papers</a> &nbsp;·&nbsp; <a href="/papers/psl-og/">psl-og →</a>
+      <a href="/papers/boe-svar/">← boe-svar</a> &nbsp;·&nbsp; <a href="/docs/#papers">all papers</a> &nbsp;·&nbsp; <a href="/papers/psl-og/">psl-og →</a>
     </p>
   </section>
 </main>
 
 <footer class="foot foot-bar">
   <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono">
+  <nav class="foot-nav mono" aria-label="Footer">
+    <a href="/">home</a>
     <a href="/docs/">docs</a>
-    <a href="/papers/">papers</a>
+    <a href="/validation/">validation</a>
     <a href="/connect/">use it</a>
     <a href="https://github.com/PolicyEngine/macro">GitHub</a>
     <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
