@@ -109,7 +109,7 @@
       </p>
       <ul>
         <li><strong>"How does this tax change affect UK growth and the deficit over the next 3–5 years?"</strong> — the OBR model. Near-term fiscal scoring in the language of the official forecast.</li>
-        <li><strong>"What does a 100bp Fed tightening — or a US fiscal shock — do to GDP, unemployment, and inflation?"</strong> — FRB/US, locally. (VAR expectations only; model-consistent expectations, mcontrol, and stochastic simulations are not yet implemented.)</li>
+        <li><strong>"What does a 100bp Fed tightening — or a US fiscal shock — do to GDP, unemployment, and inflation?"</strong> — FRB/US, via <code>frbus_shock</code> on the hosted server or the CLI. Shocks to model variables, not PolicyEngine reforms. (VAR expectations only; model-consistent expectations, mcontrol, and stochastic simulations are not yet implemented.)</li>
         <li><strong>"What does this reform do to work incentives, saving, and the long-run size of the economy?"</strong> — the OLG model, which captures how households of every age re-optimise over their lifetimes.</li>
         <li><strong>"What's driving UK GDP and inflation — and why did the forecast change?"</strong> — the structural VAR. It decomposes the latest data vintage (currently 2024 Q2) into named structural shocks, forecasts with credible bands, and splits a revision into news and reassessment. It does not score reforms.</li>
         <li><strong>"What does this reform mean for a nurse on £35,000 with two kids?"</strong> — PolicyEngine. It runs the actual UK or US statute for that exact family, before and after.</li>
@@ -151,8 +151,8 @@
           <tr><th scope="row"><strong>Country</strong></th><td>UK</td><td>UK</td><td>US</td><td>UK &amp; US (UK wired today; US newer)</td><td>UK &amp; US</td></tr>
           <tr><th scope="row"><strong>Data vintage</strong></th><td>OBR <em>Economic and Fiscal Outlook</em>, November 2025</td><td>ONS, BoE and FRED series — estimation sample 1992Q1–2023Q2, packaged to a 2024Q2 edge</td><td>The Fed's <code>model.xml</code> and LONGBASE database, April 2026</td><td>ONS, OBR and BoE national accounts as calibration targets; OG-UK 0.3.0</td><td>UK &amp; US statute; enhanced FRS (53k households) / CPS microdata for population runs</td></tr>
           <tr><th scope="row"><strong>Verification class</strong> (<a href="/validation/">numbers →</a>)</th><td>Replication with a published anchor</td><td>Replication with a published anchor</td><td>Replication with a published anchor</td><td class="vc-warn">Calibrated counterfactual — no ground truth</td><td>Validated against statute</td></tr>
-          <tr><th scope="row"><strong>Reform scoring</strong></th><td>Yes — shocks to exogenous model variables; static-costing bridge from PolicyEngine reforms</td><td>No — the baseline/conditioning member: it reads the economy reforms are scored against</td><td>Shock experiments (e.g. funds-rate or fiscal shocks) under VAR expectations; no PolicyEngine reform bridge yet</td><td>Yes — a PolicyEngine policy translated into estimated tax functions</td><td>Yes — a PolicyEngine parameter + a new value, applied directly to households</td></tr>
-          <tr><th scope="row"><strong>Run surface</strong></th><td>Hosted (CLI, MCP, Python API)</td><td>Hosted (CLI, MCP, Python API)</td><td>Local only</td><td>Local only</td><td>Hosted</td></tr>
+          <tr><th scope="row"><strong>Reform scoring</strong></th><td>Yes — shocks to exogenous model variables; static-costing bridge from PolicyEngine reforms</td><td>No — the baseline/conditioning member: it reads the economy reforms are scored against</td><td>No — shock experiments only (funds-rate or fiscal shocks under VAR expectations); <code>score_reform</code> refuses <code>model="frbus"</code>, as no PolicyEngine reform bridge exists</td><td>Yes — a PolicyEngine policy translated into estimated tax functions</td><td>Yes — a PolicyEngine parameter + a new value, applied directly to households</td></tr>
+          <tr><th scope="row"><strong>Run surface</strong></th><td>Hosted (CLI, MCP, Python API)</td><td>Hosted (CLI, MCP, Python API)</td><td>Hosted (CLI, MCP, Python API) — raw shocks only</td><td>Local only</td><td>Hosted</td></tr>
           <tr><th scope="row"><strong>Typical runtime</strong></th><td>Seconds to minutes per scenario</td><td>Minutes per full estimation + identification run</td><td>Seconds to minutes per simulation</td><td>~17+ min per steady-state solve (two per score); hours for transition paths</td><td>Sub-second per household; minutes for population runs</td></tr>
         </tbody>
       </table>
@@ -184,9 +184,9 @@
           <span class="di-go">read the SVAR reference →</span>
         </a>
         <a href="/frb-us/">
-          <span class="di-id">frb-us · US · local only</span>
+          <span class="di-id">frb-us · US · hosted</span>
           <h3>FRB/US</h3>
-          <p>A from-scratch Python implementation of the Fed's FRB/US model, built from the Board's public model definition (284 VAR-expectations equations) and April 2026 LONGBASE data. Not on the hosted server, and not reachable from the CLI.</p>
+          <p>A from-scratch Python implementation of the Fed's FRB/US model, built from the Board's public model definition (284 VAR-expectations equations) and April 2026 LONGBASE data. On the hosted server and the CLI as raw variable shocks under a selectable policy rule — it does not score PolicyEngine reforms.</p>
           <span class="di-go">read the FRB/US reference →</span>
         </a>
         <a href="/olg/">

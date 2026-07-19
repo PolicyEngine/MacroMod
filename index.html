@@ -145,13 +145,14 @@
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
       <a class="strategy-card" href="/frb-us/">
-        <header><span class="card-id mono">frb-us</span><span class="tag-row"><span class="tag tag-country">US</span><span class="tag tag-local">local only</span></span></header>
+        <header><span class="card-id mono">frb-us</span><span class="tag-row"><span class="tag tag-country">US</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>FRB/US</h3>
         <p>
           <strong>What does a 100bp Fed tightening do to US GDP, unemployment
           and inflation?</strong> A from-scratch Python implementation of the
           Fed's large-scale macroeconometric model, from the Board's public
-          model definition and April 2026 LONGBASE data. VAR expectations
+          model definition and April 2026 LONGBASE data. Raw variable shocks
+          only — it does not score PolicyEngine reforms. VAR expectations
           only; model-consistent expectations not yet implemented.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
@@ -237,9 +238,11 @@
         version, and units</strong>, and each result is a deviation from an
         official baseline in real-world units: £ per year for a household,
         £bn and % of GDP for the economy. One CLI, one Python API, and a
-        hosted MCP server with ten tools reach the models — including
+        hosted MCP server with thirteen tools reach the models — including
         <code class="mono">score_reform</code>, which costs a reform through the
-        OBR static bridge. FRB/US and the OLG model run locally only.
+        OBR static bridge, and <code class="mono">frbus_shock</code>, which runs
+        FRB/US impulse responses in about a second. The OLG model is the one
+        member that still runs locally only.
         <a href="/connect/">Connect a client →</a>
       </p>
     </div>

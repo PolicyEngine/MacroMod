@@ -71,7 +71,7 @@
 <main id="top">
   <section class="hero model-hero">
     <div class="hero-inner">
-      <p class="eyebrow reveal" style="--d:0">model 03 — FRB/US · frb-us · US · local only</p>
+      <p class="eyebrow reveal" style="--d:0">model 03 — FRB/US · frb-us · US · hosted</p>
       <h1 class="reveal page-title" style="--d:1;">
         The Fed's US model, <em>rebuilt in Python</em>.
       </h1>
@@ -97,9 +97,11 @@
         <strong>not produced, maintained, or endorsed by the Federal
         Reserve</strong>, and its results are not official Board estimates.
         The model itself is public domain; this package follows
-        <code>pyfrbus</code> semantics and is validated against it. It runs
-        <strong>locally only</strong> — it is not on the hosted MCP server and
-        is not wired into the PolicyEngine Macro CLI. Only the
+        <code>pyfrbus</code> semantics and is validated against it. It is
+        <strong>on the hosted MCP server</strong> and in the PolicyEngine Macro
+        CLI, but only as <strong>raw variable shocks</strong>: it does
+        <strong>not</strong> score PolicyEngine reforms, and there is no bridge
+        from a PolicyEngine US reform object to FRB/US fiscal levers. Only the
         <strong>VAR-expectations</strong> path is implemented:
         model-consistent expectations, <code>mcontrol</code>, and stochastic
         simulation are out of scope today.
@@ -137,8 +139,9 @@
         reproducing the estimated equation system an official institution
         actually relies on, rather than deriving behaviour from first
         principles the way the <a href="/olg/">overlapping-generations
-        model</a> does. Unlike the OBR emulator, it is not hosted, and it does
-        not yet take a PolicyEngine reform object — it takes shocks.
+        model</a> does. It is hosted alongside the OBR emulator, but unlike the
+        OBR emulator it does not take a PolicyEngine reform object — it takes
+        shocks to model variables, and nothing else.
       </p>
     </div>
   </section>
@@ -188,16 +191,54 @@
   <section id="run" class="band">
     <div class="band-head">
       <span class="kicker mono">03 — how to run it</span>
-      <h2>Local install, then a hundred basis points.</h2>
+      <h2>Ask the server, or install it.</h2>
     </div>
     <div class="prose">
       <p>
-        FRB/US runs on your own machine. It is a separate package from the
-        rest of the suite, with its own Python API — it is not reachable
-        through <code>pe-macro</code> or the hosted MCP server. The Board's
-        raw materials are vendored unmodified in the repository, so there is
-        no data-download step, but you do clone rather than pip-install from
-        an index.
+        The quickest route is the <a href="/connect/">hosted MCP server</a>,
+        where three tools reach this model:
+        <code>frbus_list_variables</code> (the shockable levers, with their
+        units), <code>frbus_shock</code> (solve and return impulse responses),
+        and <code>frbus_summary</code> (vintage and validation provenance).
+        A solve takes about <strong>3 seconds cold and well under a second
+        warm</strong> — the fastest member of the suite. The same three are on
+        the CLI:
+      </p>
+      <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>pe-macro frbus-variables
+pe-macro frbus-shock --var rffintay_aerr --shock 1.0
+pe-macro frbus-summary</code></pre></div>
+      <p>
+        <strong>Two traps.</strong> Shock sizes are <em>per-lever</em> and not
+        interchangeable: <code>rffintay_aerr</code> is in percentage points
+        (1.0 = a 100bp tightening), but the spending levers such as
+        <code>egfe_aerr</code> are in <strong>log points of quarterly
+        growth</strong>, not billions of dollars — a dollar-sized number there
+        diverges the solver. And each policy rule reads its <em>own</em>
+        add-error, so <code>rffintay_aerr</code> works only under
+        <code>inertial_taylor</code>; asking for it under
+        <code>taylor</code> is rejected with a pointer to
+        <code>rfftay_aerr</code> rather than silently returning all-zero
+        responses.
+      </p>
+      <p>
+        <code>frbus_shock</code> takes a <code>policy_rule</code>, and the
+        choice is usually the economic point of the exercise:
+        <code>inertial_taylor</code> (the default, the LONGBASE rule and the
+        one the validation numbers use), <code>taylor</code>, or
+        <code>fixed_funds_rate</code>, which holds the funds rate on its
+        baseline path so there is no endogenous monetary offset. A four-quarter
+        federal-purchases shock of 0.01 log points peaks at
+        <strong>+0.106%</strong> on real GDP under the inertial rule against
+        <strong>+0.113%</strong> with the funds rate fixed — and the price-level
+        response is nearly three times larger without the offset.
+      </p>
+      <p>
+        For the full 284-variable model, the Board's own demo scripts, or
+        anything the three tools do not expose, install the package. It is
+        separate from the rest of the suite, with its own Python API. The
+        Board's raw materials are vendored unmodified in the repository, so
+        there is no data-download step, but you do clone rather than
+        pip-install from an index.
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code>git clone https://github.com/PolicyEngine/us-frb-model
 cd us-frb-model
@@ -384,12 +425,12 @@ sim = model.solve(start, end, with_adds)
             <td>The reference implementation's targeting routine and its stochastic-simulation machinery are both out of scope, so confidence bands around a projection are not available here.</td>
           </tr>
           <tr>
-            <th scope="row"><strong>Local only, and not in the suite's tooling</strong></th>
-            <td>Not on the hosted MCP server and not exposed through <code>pe-macro</code>. It installs and runs from its own repository with its own Python API. <a href="/connect/">Connecting a client</a> reaches the other four models, not this one.</td>
+            <th scope="row"><strong>Hosted, but only as raw shocks</strong></th>
+            <td>The hosted tools and their <code>pe-macro</code> mirrors expose one lever, one shock size, a policy rule and a headline set of responses — not the full 284-variable model. Anything beyond that (the Board's demo scripts, <code>exogenize</code>, arbitrary variable sets) still means installing the package and using its Python API.</td>
           </tr>
           <tr>
             <th scope="row"><strong>No PolicyEngine reform bridge</strong></th>
-            <td>Reforms enter as shocks to model variables, not as statute. There is no equivalent of the OBR emulator's static-costing bridge from a PolicyEngine reform dict, so US reform scoring stops at <a href="/pe/">pe-microsim</a>'s static answer.</td>
+            <td>Reforms enter as shocks to model variables, not as statute. There is no equivalent of the OBR emulator's static-costing bridge from a PolicyEngine reform dict — <code>score_reform</code> refuses <code>model="frbus"</code> outright and points at <code>frbus_shock</code> — so US reform scoring stops at <a href="/pe/">pe-microsim</a>'s static answer. Hosting the model did not change this.</td>
           </tr>
           <tr>
             <th scope="row"><strong>Approximate published comparisons</strong></th>

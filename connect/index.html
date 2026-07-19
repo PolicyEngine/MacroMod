@@ -323,7 +323,7 @@
         </div>
 
         <details class="more">
-        <summary>All ten tools on the server, and which models they reach</summary>
+        <summary>All thirteen tools on the server, and which models they reach</summary>
         <div class="dials">
           <div class="dial">
             <span class="dial-name">scoring</span>
@@ -338,13 +338,20 @@
             <p><code>forecast_uk</code> (GDP growth and CPI fan bands), <code>latest_shocks</code> (sign probabilities for the six identified shocks), <code>model_summary</code> (committed replication headlines, instant).</p>
           </div>
           <div class="dial">
+            <span class="dial-name">frb/us</span>
+            <p><code>frbus_shock</code> shocks one FRB/US lever and returns US impulse responses, under <code>policy_rule</code> <code>inertial_taylor</code> (default), <code>taylor</code> or <code>fixed_funds_rate</code> — the rule materially changes the answer. <code>frbus_list_variables</code> returns the levers and their units; <code>frbus_summary</code> gives vintage and validation provenance. Raw variable shocks only: it does not score PolicyEngine reforms.</p>
+          </div>
+          <div class="dial">
             <span class="dial-name">microsimulation</span>
             <p><code>calculate_household</code>, <code>household_reform_impact</code>, <code>population_reform_impact</code>, and <code>list_reform_parameters</code> for verified parameter paths, units and live baseline values.</p>
           </div>
         </div>
         <p class="soon-hint" style="max-width: none;">
-          Four of the five models are reachable here. <a href="/frb-us/">FRB/US</a> is not on
-          the server at all (US, local only), and OG-UK is excluded from hosting because one solve takes
+          Four of the five models are reachable here, and <a href="/frb-us/">FRB/US</a> is
+          reachable only as raw variable shocks — <code class="mono">score_reform</code> refuses
+          <code class="mono">model="frbus"</code> and points at <code class="mono">frbus_shock</code>,
+          because no bridge from a PolicyEngine US reform to FRB/US fiscal levers exists.
+          OG-UK is the one model excluded from hosting, because one solve takes
           tens of minutes — asking <code class="mono">score_reform</code> for
           <code class="mono">model="og"</code> returns local install instructions rather
           than a result.
@@ -364,7 +371,7 @@
           </div>
           <div class="dial">
             <span class="dial-name">it scales to zero</span>
-            <p>The first call after an idle spell spends ~10s waking the container. Then: <code>list_*</code> and <code>model_summary</code> are instant; households a few seconds; <code>forecast_uk</code> and <code>population_reform_impact</code> tens of seconds; <code>score_reform</code> with <code>model="obr"</code> a minute or more. Set a generous client timeout.</p>
+            <p>The first call after an idle spell spends ~10s waking the container. Then: <code>list_*</code>, <code>model_summary</code> and <code>frbus_summary</code> are instant; <code>frbus_shock</code> ~3s cold and well under a second warm; households a few seconds; <code>forecast_uk</code> and <code>population_reform_impact</code> tens of seconds; <code>score_reform</code> with <code>model="obr"</code> a minute or more. Set a generous client timeout.</p>
           </div>
         </div>
       </div>
@@ -379,9 +386,9 @@
     </div>
     <div class="prose">
       <p>
-        One package (Python 3.10+) wraps the OBR emulator, the UK SVAR and
-        PolicyEngine behind a single command, models and data included, no
-        cloning. Claude Code and Codex can drive it from their own terminal,
+        One package (Python 3.10+) wraps the OBR emulator, the UK SVAR, FRB/US
+        and PolicyEngine behind a single command, models and data included —
+        no cloning, except for FRB/US (see below). Claude Code and Codex can drive it from their own terminal,
         or you can run it yourself.
       </p>
       <div class="copyblock" style="margin-bottom:14px;"><code>pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"</code><button data-copy>copy</button></div>
@@ -406,15 +413,24 @@
           <code class="mono">summary</code>; <code class="mono">household</code>,
           <code class="mono">household-impact</code>,
           <code class="mono">population-impact</code>,
-          <code class="mono">parameters</code>; and
+          <code class="mono">parameters</code>;
+          <code class="mono">frbus-shock</code>,
+          <code class="mono">frbus-variables</code> and
+          <code class="mono">frbus-summary</code>; and
           <code class="mono">og-score</code> / <code class="mono">og-baseline</code>,
           which need OG-UK installed and take tens of minutes.
         </p>
         <p>
           The <code class="mono">[models]</code> extra pulls the OBR emulator,
           the UK SVAR and the PolicyEngine country packages, each of which
-          ships its own data. <a href="/frb-us/">FRB/US</a> and OG-UK install
-          separately; FRB/US is a separate package with its own Python API.
+          ships its own data. OG-UK installs separately. The extra also pulls
+          <a href="/frb-us/">FRB/US</a>, but that one must be installed
+          <strong>editably</strong> from a checkout: its
+          <code class="mono">model.xml</code> and
+          <code class="mono">LONGBASE.TXT</code> live in the repository's
+          <code class="mono">vendor/</code> directory rather than inside the
+          wheel, so a plain install imports but has no model to run. The hosted
+          server has no such caveat.
           The package lives in this repo's
           <a href="https://github.com/PolicyEngine/macro/tree/main/integration"><code class="mono">integration/</code></a>
           directory; a shorter <code class="mono">pip install policyengine-macro</code>
