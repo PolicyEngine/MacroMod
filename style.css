@@ -147,8 +147,85 @@ body {
    These are reference pages of continuous prose; ambient motion and
    texture directly behind that much body copy is what "the background is confusing" means.
    One flat surface, so the only thing moving on the page is the text.
-   .grain is a <div> on all 14 pages (markup owned elsewhere) — retired here. */
-.grain { display: none; }
+   .grain is a <div> on all 14 pages (markup owned elsewhere) — retired here.
+
+   What replaces it is not ambient: a static plot grid. The subject of this site
+   is models that produce charts, so the page's own surface is ruled like the
+   paper those charts are drawn on — a 64px lattice at 3% of the accent, fixed,
+   never animated, no second layer. It is a texture you notice once and then
+   stop seeing, which is the whole difference from the dot field. The character
+   is spent in the hero fan chart below; everything else stays quiet. */
+.grain {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(to right,
+      color-mix(in srgb, var(--brand) 3%, transparent) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(to bottom,
+      color-mix(in srgb, var(--brand) 3%, transparent) 0 1px, transparent 1px 64px);
+  /* fade the lattice out down the page so long reference pages end on plain
+     paper rather than carrying texture under 4,900 words of prose */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 22vh, transparent 78vh);
+  mask-image: linear-gradient(to bottom, #000 0, #000 22vh, transparent 78vh);
+}
+
+/* ---------- hero fan chart: the signature element ----------
+   The old background depicted a field of synthetic households — a
+   microsimulation metaphor on a site about macro models. The artifact this
+   subject actually produces is a forecast fan, so the hero *is* one, drawn from
+   papers/boe-svar/figures/figure_numbers.json by assets/make_hero.py. The
+   ornament is the output. Static: no entrance animation, nothing loops. */
+.hero-fig {
+  margin: 0;
+  min-width: 0;          /* lets the grid track shrink; no horizontal overflow */
+}
+.hero-fan {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.hero-fan text { font-family: var(--mono); fill: var(--paper-faint); }
+.hero-fan .hf-tick { font-size: 11px; }
+/* the viewBox scales to about half below the two-column breakpoint, which would
+   render these at ~6px. Hide them there; the figcaption carries the detail. */
+@media (max-width: 999px) {
+  .hero-fan .hf-tick { display: none; }
+}
+.hero-fan .hf-grid { stroke: var(--line-soft); stroke-width: 1; }
+.hero-fan .hf-zero { stroke: var(--line); stroke-width: 1.5; }
+.hero-fan .hf-b90 { fill: color-mix(in srgb, var(--brand) 13%, transparent); }
+.hero-fan .hf-b68 { fill: color-mix(in srgb, var(--brand) 26%, transparent); }
+.hero-fan .hf-med {
+  fill: none; stroke: var(--brand-strong); stroke-width: 2.5;
+  stroke-linejoin: round; stroke-linecap: round;
+}
+.hero-fan .hf-dot { fill: var(--brand-strong); }
+
+.hero-fig figcaption {
+  margin-top: var(--s-3);
+  font-size: var(--fs-body-sm);
+  line-height: 1.55;
+  color: var(--paper-faint);
+  max-width: 46ch;
+}
+.hero-fig figcaption a { color: var(--brand-strong); }
+
+/* single column at phone/tablet: the figure sits under the CTAs, never behind
+   a word of text at any width */
+.hero-inner { display: grid; grid-template-columns: 1fr; gap: var(--s-7); }
+.hero-copy { min-width: 0; }
+
+@media (min-width: 1000px) {
+  .hero-inner {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+    gap: var(--s-5);
+    align-items: center;
+  }
+}
 
 /* ---------- nav ---------- */
 .nav {
