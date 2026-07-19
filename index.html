@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — open models for the economy</title>
-<meta name="description" content="PolicyEngine Macro is PolicyEngine's suite of five open economic models: an OBR macroeconometric emulator and a Bank of England structural VAR for the UK, a Python implementation of the Fed's FRB/US model for the US, and the PSL overlapping-generations model and PolicyEngine tax-benefit microsimulation for both. Score reforms, simulate shocks, forecast GDP and inflation, and study long-run structural change." />
+<meta name="description" content="PolicyEngine Macro is PolicyEngine's suite of five open economic models: an OBR macroeconometric emulator and a Bank of England structural VAR for the UK, a Python implementation of the Fed's FRB/US model for the US, and the PSL overlapping-generations model and PolicyEngine tax-benefit microsimulation for both. Score reforms, simulate shocks, forecast GDP and inflation, and study long-run structural change — with each model's validation stated as a gradient, not a badge." />
 <meta property="og:title" content="PolicyEngine Macro" />
 <meta property="og:description" content="Open macroeconomic models — reforms, shocks, forecasts, and long-run structural analysis. UK and US models, hosted and local; microsimulation for both countries." />
 <meta property="og:type" content="website" />
@@ -43,17 +43,19 @@
         <br />the economy.
       </h1>
       <p class="lede reveal" style="--d:2">
-        <strong>PolicyEngine Macro</strong> is a suite of five open,
-        reproducible economic models: an OBR emulator and a Bank of England
-        structural VAR for the UK, the Fed's FRB/US model in Python for the
-        US, and the PSL overlapping-generations model and PolicyEngine
-        microsimulation for both countries. Score reforms, simulate shocks,
-        forecast GDP and inflation, and study long-run structural change —
-        each model answers a different class of question, not one number
-        scored five ways.
+        <strong>PolicyEngine Macro</strong> is a suite of five open economic
+        models: an OBR emulator and a Bank of England structural VAR for the
+        UK, the Fed's FRB/US model in Python for the US, and the PSL
+        overlapping-generations model and PolicyEngine microsimulation for
+        both countries. Each answers a different class of question — near-term
+        fiscal scenarios, shock decomposition, long-run structural change,
+        household tax and benefit effects — and each is checked against a
+        published counterpart, against statute, or against calibration
+        targets, with the difference stated rather than blurred.
       </p>
       <div class="hero-cta reveal" style="--d:3">
         <a class="btn btn-primary" href="#models">Explore the models</a>
+        <a class="btn btn-ghost" href="/validation/">See how they check out</a>
         <a class="btn btn-ghost" href="https://github.com/PolicyEngine/macro">Read the code</a>
       </div>
     </div>
@@ -73,12 +75,24 @@
         preserve of institutions with in-house model teams.
       </p>
       <p>
-        PolicyEngine Macro opens it up — <strong>the full economy's answer, a
-        model away</strong>: an overlapping-generations engine for the long
-        run, Python implementations of the OBR's and the Fed's official
-        equation systems for the near term, and a Bayesian structural VAR
-        that reads the economy in shock terms. Every engine open source,
-        every result reproducible.
+        PolicyEngine Macro opens those engines up: Python implementations of
+        the OBR's and the Fed's official equation systems for the near term,
+        a Bayesian structural VAR that reads the economy in shock terms, an
+        overlapping-generations model for the long run, and a tax-benefit
+        microsimulation for the household detail underneath.
+      </p>
+      <p>
+        We publish what each one is worth. <strong>Validation is a gradient,
+        not a badge.</strong> Three models are replications with published
+        anchors, and we report the gap: the OBR emulator tracks the November
+        2025 EFO with a GDP MAPE of 0.18%, the structural VAR posts an
+        out-of-sample RMSE of 0.32pp with 14 of 14 outturns inside its 68%
+        bands, and FRB/US matches the Fed's own pyfrbus 1.0.0 to 6.0&times;10⁻⁹
+        on shock responses. The microsimulation is validated against statute.
+        The overlapping-generations model has <em>no</em> published ground
+        truth — it is a calibrated counterfactual, and we say so rather than
+        dress it as a replication. <a href="/validation/">See the
+        numbers beside the official ones →</a>
       </p>
     </div>
   </section>
@@ -90,11 +104,11 @@
     </div>
     <div class="prose" style="margin-bottom: 36px;">
       <p>
-        Each model answers a different class of question — near-term fiscal
-        scenarios, forecasts and shock identification, long-run structural
-        change, or household-level tax and benefit effects. PolicyEngine
-        Macro gives them a common way to be discovered, run, and interpreted,
-        while preserving each model's own assumptions and outputs.
+        Three are hosted; FRB/US and the overlapping-generations model run
+        locally, the latter taking upward of 17 minutes per solve. Each keeps its own assumptions, inputs, and
+        outputs — no single reform object flows through all five. The four
+        macro models each have a working paper, 28 to 36 pages, linked from
+        the model's own page.
       </p>
     </div>
     <div class="strategy-grid">
@@ -106,7 +120,8 @@
           saving, and retiring — built on OG-Core, with tax functions
           estimated from PolicyEngine microdata. Solves the long-run steady
           state and the year-by-year transition path for GDP, investment,
-          consumption, revenue, and debt.
+          consumption, revenue, and debt. Calibrated to targets rather than
+          replicated against a published model — there is none to replicate.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -117,7 +132,9 @@
           A Python emulator of the OBR's own published forecasting model — 372
           structural equations solved simultaneously by Gauss–Seidel iteration.
           Runs fiscal-multiplier and tax-shock experiments quarter by quarter,
-          anchored to the official Economic and Fiscal Outlook.
+          anchored to the November 2025 Economic and Fiscal Outlook. (A March
+          2026 EFO has since been published; we have not re-anchored to it
+          yet.)
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -136,11 +153,10 @@
         <header><span class="card-id mono">pe-microsim</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-country">US</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>PolicyEngine tax-benefit microsimulation</h3>
         <p>
-          The micro member: PolicyEngine's UK and US tax-benefit
-          microsimulation — the same engine behind policyengine.org. Computes
-          a specific family's taxes, benefits, and net income under current
-          law or a reform; population-level reform scoring runs hosted and
-          locally.
+          PolicyEngine's UK and US tax-benefit microsimulation — the same
+          engine behind policyengine.org. Computes a household's taxes,
+          benefits, and net income under current law or a reform, and scores
+          reforms across the population. Its ground truth is statute itself.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -150,9 +166,9 @@
         <p>
           A from-scratch Python implementation of the Fed's large-scale US
           macroeconometric model, built from the public model definition and
-          April 2026 LONGBASE data. VAR-expectations solver validated against
-          the Fed's pyfrbus to ~1e-9; model-consistent expectations not yet
-          implemented.
+          April 2026 LONGBASE data. Reproduces LONGBASE to 5.6&times;10⁻¹⁷ and
+          matches pyfrbus 1.0.0 shock responses to 6.0&times;10⁻⁹;
+          model-consistent expectations not yet implemented.
         </p>
         <span class="strategy-paper-link mono">read the code →</span>
       </a>
@@ -174,16 +190,16 @@
         emulator for near-term UK fiscal scenarios, the structural VAR for
         forecasts and what's driving the data, FRB/US for US macro dynamics,
         the overlapping-generations model for long-run structural change, and
-        PolicyEngine for household and distributional effects. Each runs at
-        its own resolution, on its own inputs — no single reform object flows
-        through all five.
+        PolicyEngine for household and distributional effects.
       </p>
       <p>
         Every analysis records its <strong>assumptions, data vintage, model
         version, and units</strong>, and each result is a deviation from an
         official baseline in real-world units: £ per year for a household,
-        £bn and % of GDP for the economy. One CLI, one MCP server, and one
-        Python API reach every model.
+        £bn and % of GDP for the economy. One CLI, one Python API, and a
+        hosted MCP server with ten tools reach the models — including
+        <code class="mono">score_reform</code>, which costs a reform through the
+        OBR static bridge. <a href="/connect/">Connect a client →</a>
       </p>
     </div>
   </section>
@@ -192,8 +208,9 @@
     <h2>Built in the open. Read it, run it, contribute.</h2>
     <p class="cta-sub">
       Every model, dataset decision, and validation report lives in a public
-      repository — nothing you can't rerun. File an issue, suggest the next
-      model, or open a pull request.
+      repository, and the validation page states the anchor and vintage behind
+      every figure. File an issue, suggest the next model, or open a pull
+      request.
     </p>
     <div class="hero-cta">
       <a class="btn btn-primary" href="https://github.com/PolicyEngine/macro">GitHub</a>
