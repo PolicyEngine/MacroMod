@@ -6,7 +6,7 @@ import (seconds to many minutes). They are skipped by default so a plain
 Mirrors the OBR emulator repo's tests/conftest.py.
 
 The live-deployment tests in test_remote_mcp.py are gated separately by the
-MACROMOD_REMOTE_TESTS environment variable.
+POLICYENGINE_MACRO_REMOTE_TESTS environment variable.
 """
 
 import pytest

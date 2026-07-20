@@ -11,9 +11,9 @@ ASGI app at  https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp
 
 All three model repos resolve their data files relative to their own repo root
 (`Path(__file__)`-relative); `policyengine_macro.core`'s svar_summary falls back to a
-checkout via MACROMOD_BOE_VAR_REPO only when boe_var is absent (it is
+checkout via POLICYENGINE_MACRO_BOE_VAR_REPO only when boe_var is absent (it is
 installed here, so the fallback never fires), and _frbus_repo() falls back to
-MACROMOD_FRB_REPO likewise. We bake the repos into the
+POLICYENGINE_MACRO_FRB_REPO likewise. We bake the repos into the
 image at the SAME absolute paths and `pip install -e` them, so every path
 resolves in the container with zero patching:
   - obr_macro:  /Users/janansadeqian/obr-macroeconomic-model  (+ data/)
@@ -76,14 +76,12 @@ unbounded nested fixed-point search; only the first fits a 600s request.
 
 POPULATION DATA (population_reform_impact)
 ------------------------------------------
-- Secret "macromod-hf" (legacy name kept deliberately; renaming the Modal
-  Secret needs maintainer action) provides HUGGING_FACE_TOKEN for the private UK
+- Secret "policyengine-macro-hf" provides HUGGING_FACE_TOKEN for the private UK
   enhanced-FRS microdata on HuggingFace.
-- A modal.Volume ("macromod-pe-data" — legacy name kept deliberately, see
-  above) is mounted at /root/.cache/macromod (legacy path, matches the data
-  already on the volume);
+- A modal.Volume ("policyengine-macro-pe-data") is mounted at
+  /root/.cache/policyengine-macro;
   HF_HOME points the HuggingFace download cache inside it and
-  MACROMOD_PE_DATA_DIR puts the derived per-year .h5 files (~92MB/year)
+  POLICYENGINE_MACRO_PE_DATA_DIR puts the derived per-year .h5 files (~92MB/year)
   there too, so the ~125MB download + dataset build happens once and
   persists across containers.
 
@@ -114,10 +112,10 @@ BOE_REPO = f"{HOME}/boe-var-model"
 FRB_REPO = f"{HOME}/us-frb-model"
 INTEGRATION = str(Path(__file__).parent)
 
-# MACROMOD_IMAGE_SOURCE=github (used by CI) clones the model repos from
+# POLICYENGINE_MACRO_IMAGE_SOURCE=github (used by CI) clones the model repos from
 # GitHub main at image-build time instead of copying the local checkouts —
 # same absolute paths, so all data-file resolution is unchanged.
-GITHUB_SOURCE = os.environ.get("MACROMOD_IMAGE_SOURCE") == "github"
+GITHUB_SOURCE = os.environ.get("POLICYENGINE_MACRO_IMAGE_SOURCE") == "github"
 OBR_URL = "https://github.com/PolicyEngine/obr-macroeconomic-model"
 BOE_URL = "https://github.com/PolicyEngine/boe-var-model"
 FRB_URL = "https://github.com/PolicyEngine/us-frb-model"
@@ -247,15 +245,15 @@ app = modal.App("policyengine-macro-mcp")
 # on this volume, so the first population_reform_impact call pays the
 # download/build once and every later container reuses it.
 # Legacy path kept deliberately: it matches the data already on the volume.
-CACHE_DIR = "/root/.cache/macromod"
+CACHE_DIR = "/root/.cache/policyengine-macro"
 # Volume keeps its legacy name deliberately; renaming needs maintainer action.
-pe_data_volume = modal.Volume.from_name("macromod-pe-data", create_if_missing=True)
+pe_data_volume = modal.Volume.from_name("policyengine-macro-pe-data", create_if_missing=True)
 
 
 @app.function(
     image=image.env({
         "HF_HOME": f"{CACHE_DIR}/huggingface",
-        "MACROMOD_PE_DATA_DIR": f"{CACHE_DIR}/policyengine-data",
+        "POLICYENGINE_MACRO_PE_DATA_DIR": f"{CACHE_DIR}/policyengine-data",
     }),
     cpu=4,
     memory=8192,            # UK population run peaks ~1.8GB; headroom for 2+
@@ -263,7 +261,7 @@ pe_data_volume = modal.Volume.from_name("macromod-pe-data", create_if_missing=Tr
     min_containers=0,       # scale to zero: no idle cost
     scaledown_window=300,   # stay warm 5 min between calls, then sleep
     max_containers=3,       # spend cap
-    secrets=[modal.Secret.from_name("macromod-hf")],  # legacy name kept deliberately
+    secrets=[modal.Secret.from_name("policyengine-macro-hf")],
     volumes={CACHE_DIR: pe_data_volume},
 )
 @modal.concurrent(max_inputs=20)

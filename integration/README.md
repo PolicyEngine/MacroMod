@@ -77,7 +77,7 @@ uv venv .venv-og && uv pip install -p .venv-og/bin/python -e ./integration \
     "oguk @ git+https://github.com/PSLmodels/OG-UK"
 ```
 
-(`-e ./integration` gives that env the `pe-macro` executable (and its legacy `macromod` alias); the base
+(`-e ./integration` gives that env the `pe-macro` executable (and its legacy `policyengine-macro` alias); the base
 package pins no policyengine version, so OG-UK's own pins win there.)
 
 ## CLI
@@ -149,7 +149,7 @@ units) is the supported FRB/US entry point.
 The `frbus` package must be installed EDITABLY (`pip install -e <checkout>`):
 `model.xml` and `LONGBASE.TXT` live in the model repo's `vendor/` directory and
 are not shipped inside the wheel, so the adapters resolve them from
-`frbus.__file__` (override with `MACROMOD_FRB_REPO`).
+`frbus.__file__` (override with `POLICYENGINE_MACRO_FRB_REPO`).
 
 Test locally with Claude Code:
 
@@ -174,7 +174,7 @@ Defined in `modal_app.py`. `policyengine[models]` is installed in the image;
 because it is imported lazily inside the adapters, cold starts stay fast and
 only the first PolicyEngine tool call in a fresh container pays the ~20 s
 model load. The private UK microdata credential comes from the Modal secret
-`macromod-hf`, with derived datasets cached on the `macromod-pe-data` volume.
+`policyengine-macro-hf`, with derived datasets cached on the `policyengine-macro-pe-data` volume.
 
 **Add it as a connector**
 
@@ -204,7 +204,7 @@ modal deploy integration/modal_app.py
 **Remote smoke test** (hits the live deployment; skipped without the env var):
 
 ```bash
-MACROMOD_REMOTE_TESTS=1 python -m pytest tests/test_remote_mcp.py -v
+POLICYENGINE_MACRO_REMOTE_TESTS=1 python -m pytest tests/test_remote_mcp.py -v
 ```
 
 ## Tests

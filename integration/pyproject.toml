@@ -25,7 +25,7 @@ models = [
     # frbus is the ONE model package that must be installed EDITABLY to be
     # usable: model.xml and LONGBASE.TXT live in the repo's vendor/ directory
     # and are not package data, so core._frbus_repo() resolves them from
-    # frbus.__file__ (or MACROMOD_FRB_REPO). A plain wheel install imports
+    # frbus.__file__ (or POLICYENGINE_MACRO_FRB_REPO). A plain wheel install imports
     # fine but has no model to run — see integration/README.md.
     "frbus @ git+https://github.com/PolicyEngine/us-frb-model",
     # [models] pulls the pinned policyengine-uk / policyengine-us country
@@ -36,7 +36,7 @@ models = [
 [project.scripts]
 pe-macro = "policyengine_macro.cli:main"
 # Legacy alias kept for existing docs/users.
-macromod = "policyengine_macro.cli:main"
+policyengine-macro = "policyengine_macro.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

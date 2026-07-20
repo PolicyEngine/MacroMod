@@ -22,9 +22,9 @@ from policyengine_macro import core
 
 def _import_or_require(modname: str):
     """Import an upstream module; in the dedicated contract job
-    (MACROMOD_REQUIRE_PE=1) a missing/broken install FAILS instead of
+    (POLICYENGINE_MACRO_REQUIRE_PE=1) a missing/broken install FAILS instead of
     skipping — a contract run that silently skips is vacuous."""
-    require = os.environ.get("MACROMOD_REQUIRE_PE") == "1"
+    require = os.environ.get("POLICYENGINE_MACRO_REQUIRE_PE") == "1"
     try:
         return importlib.import_module(modname)
     except Exception as e:
@@ -98,9 +98,9 @@ def _pe_model(country):
     # importorskip only catches ImportError; a broken policyengine install
     # (e.g. a pydantic version mismatch) raises other exceptions at import
     # time and should also skip, not error. In the dedicated contract job
-    # (MACROMOD_REQUIRE_PE=1) a missing/broken install FAILS instead: a
+    # (POLICYENGINE_MACRO_REQUIRE_PE=1) a missing/broken install FAILS instead: a
     # contract run that silently skips every contract is vacuous.
-    require = os.environ.get("MACROMOD_REQUIRE_PE") == "1"
+    require = os.environ.get("POLICYENGINE_MACRO_REQUIRE_PE") == "1"
     try:
         import policyengine as pe
     except Exception as e:

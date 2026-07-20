@@ -58,6 +58,6 @@ jobs:
 
       - name: Run fast integration suite
         # No --runslow: slow model solves/imports are skipped. The remote
-        # (live-deployment) tests are skipped because MACROMOD_REMOTE_TESTS is
+        # (live-deployment) tests are skipped because POLICYENGINE_MACRO_REMOTE_TESTS is
         # unset. Keeps the check fast and green without Modal auth.
         run: pytest tests -q

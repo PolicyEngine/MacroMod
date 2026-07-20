@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict
 
 # Fallback checkout of boe-var-model for svar_summary when the boe_var
 # package is not installed; unset means no fallback.
-BOE_VAR_REPO_ENV = "MACROMOD_BOE_VAR_REPO"
+BOE_VAR_REPO_ENV = "POLICYENGINE_MACRO_BOE_VAR_REPO"
 
 # boe_var column names for the two headline series. Resolved to indices by
 # name against the loaded dataset's own columns, so an upstream reorder can
@@ -159,7 +159,7 @@ def obr_shock(
 # installed non-editably (a wheel does not ship vendor/). The hosted image and
 # the documented local setup both `pip install -e`, so __file__-relative
 # resolution normally wins and this never fires.
-FRB_REPO_ENV = "MACROMOD_FRB_REPO"
+FRB_REPO_ENV = "POLICYENGINE_MACRO_FRB_REPO"
 
 # The model is only defined out to the LONGBASE horizon and the demo/validation
 # window is 2026Q1-2030Q4; these are the defaults every published number uses.
@@ -314,7 +314,7 @@ def _frbus_repo() -> Path:
     both take explicit paths, and vendor/ is not shipped inside the wheel. With
     the editable install used by the Modal image and by local dev,
     ``frbus.__file__`` is ``<repo>/src/frbus/__init__.py``, so the repo root is
-    two levels up. MACROMOD_FRB_REPO overrides for non-editable installs.
+    two levels up. POLICYENGINE_MACRO_FRB_REPO overrides for non-editable installs.
     """
     env = os.environ.get(FRB_REPO_ENV)
     candidates = []
@@ -1319,11 +1319,10 @@ _PE_POP_BASELINE_CACHE: dict[tuple[str, int, str | None], tuple] = {}
 def _pe_pop_data_folder() -> str:
     import os
 
-    # MACROMOD_PE_DATA_DIR env var and ~/.cache/macromod path keep their
-    # legacy names deliberately (the hosted Modal volume is mounted there).
+    # Mirrors where the hosted Modal volume is mounted.
     return os.environ.get(
-        "MACROMOD_PE_DATA_DIR",
-        os.path.expanduser("~/.cache/macromod/policyengine-data"),
+        "POLICYENGINE_MACRO_PE_DATA_DIR",
+        os.path.expanduser("~/.cache/policyengine-macro/policyengine-data"),
     )
 
 
@@ -2128,10 +2127,10 @@ def svar_summary() -> dict:
         if not env:
             return {
                 "error": (
-                    "boe_var is not installed and MACROMOD_BOE_VAR_REPO is "
+                    "boe_var is not installed and POLICYENGINE_MACRO_BOE_VAR_REPO is "
                     "not set; install the SVAR package (pip install git+"
                     "https://github.com/PolicyEngine/boe-var-model) or point "
-                    "MACROMOD_BOE_VAR_REPO at a boe-var-model checkout"
+                    "POLICYENGINE_MACRO_BOE_VAR_REPO at a boe-var-model checkout"
                 )
             }
         rdir = Path(env) / "results"
