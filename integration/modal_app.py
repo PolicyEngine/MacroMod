@@ -301,3 +301,50 @@ def serve():
         allowed_origins=["*"],
     )
     return mcp.streamable_http_app()
+
+
+@app.function(
+    image=image.env({
+        "HF_HOME": f"{CACHE_DIR}/huggingface",
+        "POLICYENGINE_MACRO_PE_DATA_DIR": f"{CACHE_DIR}/policyengine-data",
+    }),
+    timeout=600,
+    memory=8192,
+    cpu=4,
+    volumes={CACHE_DIR: pe_data_volume},
+    secrets=[modal.Secret.from_name("macromod-hf")],
+)
+def check_overlay_gate() -> dict:
+    """Empirical gate for the issue-#11 input-scaling overlay (maintenance
+    entrypoint, not part of the served app): a 0.99 earnings scaling applied
+    via Dynamic(simulation_modifier=...) must move the population aggregates.
+    Run with:  modal run modal_app.py::check_overlay_gate
+    """
+    from policyengine_macro import core
+    from policyengine_macro.assumptions import EconomicAssumptions
+
+    ea = EconomicAssumptions(
+        source="empirical-gate",
+        start_year=2026,
+        earnings_factor=0.99,
+        labour_supply_factor=1.0,
+        interest_rate_baseline=0.0,
+        interest_rate_reform=0.0,
+    )
+    modifier = ea.input_scaling_modifier()
+    assert modifier is not None, "factor 0.99 must produce a modifier"
+    # No-op statutory reform (basic rate at its current 20%) so the only
+    # active ingredient is the modifier; the tool rejects an empty reform.
+    noop = {"gov.hmrc.income_tax.rates.uk[0].rate": 0.20}
+    scaled = core.pe_population_impact(
+        country="uk", reform=noop, year=2026, reform_modifier=modifier
+    )
+    out = {
+        "net_income_change_bn": scaled["household_net_income_change_bn"],
+        "budgetary_impact_bn": scaled["budgetary_impact_bn"],
+        "losers": scaled["losers"],
+        "winners": scaled["winners"],
+        "bites": abs(scaled["household_net_income_change_bn"]) > 1.0,
+    }
+    print("GATE RESULT:", out)
+    return out
