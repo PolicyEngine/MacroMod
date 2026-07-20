@@ -172,10 +172,10 @@ def _block_boe_var(monkeypatch):
 
 def test_summary_without_boe_var_and_env_is_actionable(monkeypatch):
     _block_boe_var(monkeypatch)
-    monkeypatch.delenv("MACROMOD_BOE_VAR_REPO", raising=False)
+    monkeypatch.delenv("POLICYENGINE_MACRO_BOE_VAR_REPO", raising=False)
     out = core.svar_summary()
     assert set(out) == {"error"}
-    assert "MACROMOD_BOE_VAR_REPO" in out["error"]
+    assert "POLICYENGINE_MACRO_BOE_VAR_REPO" in out["error"]
     json.dumps(out)
 
 
@@ -192,7 +192,7 @@ def test_summary_without_boe_var_uses_env_checkout(monkeypatch, tmp_path):
         "| Shock | P |\n|---|---|\n| UK demand | 0.8 |\n"
         "Composite impulse response\n- flat\n"
     )
-    monkeypatch.setenv("MACROMOD_BOE_VAR_REPO", str(tmp_path))
+    monkeypatch.setenv("POLICYENGINE_MACRO_BOE_VAR_REPO", str(tmp_path))
     out = core.svar_summary()
     assert out["source"] == str(results)
     fevd = out["replication"]["fevd_1yr_headline"]
@@ -207,10 +207,10 @@ def test_cli_summary_without_boe_var_errors_actionably(monkeypatch):
     from policyengine_macro.cli import main
 
     _block_boe_var(monkeypatch)
-    monkeypatch.delenv("MACROMOD_BOE_VAR_REPO", raising=False)
+    monkeypatch.delenv("POLICYENGINE_MACRO_BOE_VAR_REPO", raising=False)
     res = CliRunner().invoke(main, ["summary"])
     assert res.exit_code != 0
-    assert "MACROMOD_BOE_VAR_REPO" in res.output
+    assert "POLICYENGINE_MACRO_BOE_VAR_REPO" in res.output
 
 
 def test_cli_summary_env_checkout_missing_files_errors(monkeypatch, tmp_path):
@@ -221,7 +221,7 @@ def test_cli_summary_env_checkout_missing_files_errors(monkeypatch, tmp_path):
     from policyengine_macro.cli import main
 
     _block_boe_var(monkeypatch)
-    monkeypatch.setenv("MACROMOD_BOE_VAR_REPO", str(tmp_path))
+    monkeypatch.setenv("POLICYENGINE_MACRO_BOE_VAR_REPO", str(tmp_path))
     res = CliRunner().invoke(main, ["summary"])
     assert res.exit_code != 0
     assert "no parseable SVAR results" in res.output

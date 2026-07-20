@@ -7,7 +7,7 @@ work, save, and invest differently, how firms adjust capital, and how wages,
 interest rates, and the revenue estimate move with them — in a structural,
 general-equilibrium engine.
 
-🌐 **[macromod.vercel.app](https://macromod.vercel.app)** · a PolicyEngine project
+🌐 **[policyengine-macro.vercel.app](https://policyengine-macro.vercel.app)** · a PolicyEngine project
 
 ---
 
@@ -76,16 +76,16 @@ impact = map_to_real_world(baseline, reform_ss)
 print(f"GDP change: {impact.gdp_change:+.1f}bn ({impact.gdp_pct:+.3f}%)")
 ```
 
-See the [OG-UK model page](https://macromod.vercel.app/olg/) for the full guide —
+See the [OG-UK model page](https://policyengine-macro.vercel.app/olg/) for the full guide —
 parameter paths, solver options, structural shocks, and the transition path —
-the [OBR model page](https://macromod.vercel.app/obr/) for the macroeconometric
-emulator, the [SVAR model page](https://macromod.vercel.app/svar/) for the
-structural VAR, and the [documentation](https://macromod.vercel.app/docs/) for
+the [OBR model page](https://policyengine-macro.vercel.app/obr/) for the macroeconometric
+emulator, the [SVAR model page](https://policyengine-macro.vercel.app/svar/) for the
+structural VAR, and the [documentation](https://policyengine-macro.vercel.app/docs/) for
 how the model classes differ and when to use which.
 
 ## Connecting to an AI
 
-The [connect page](https://macromod.vercel.app/connect/) covers three ways to use the
+The [connect page](https://policyengine-macro.vercel.app/connect/) covers three ways to use the
 models:
 
 - **MCP** — the hosted Model Context Protocol server is **live** at

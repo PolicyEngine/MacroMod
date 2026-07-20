@@ -31,10 +31,10 @@ jobs:
         env:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
-          MACROMOD_IMAGE_SOURCE: github
+          POLICYENGINE_MACRO_IMAGE_SOURCE: github
       - name: Smoke-test the deployed server
         run: |
           pip install "mcp[cli]" pytest
           pytest integration/tests/test_remote_mcp.py -q
         env:
-          MACROMOD_REMOTE_TESTS: "1"
+          POLICYENGINE_MACRO_REMOTE_TESTS: "1"

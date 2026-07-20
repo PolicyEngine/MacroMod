@@ -89,7 +89,7 @@ The \texttt{oguk} dependency resolution pulls a compatible \texttt{ogcore} autom
 \begin{quote}
 \ttfamily export HUGGING\_FACE\_TOKEN=hf\_...
 \end{quote}
-On first run the calibration downloads one \texttt{.h5} file per budget-window year into the suite cache directory (\texttt{\textasciitilde/.cache/macromod/policyengine-data/}); subsequent runs are offline.
+On first run the calibration downloads one \texttt{.h5} file per budget-window year into the suite cache directory (\texttt{\textasciitilde/.cache/policyengine-macro/policyengine-data/}); subsequent runs are offline.
 \item \textbf{Baseline.} \texttt{pe-macro og-baseline} solves and reports the baseline steady state (model-unit aggregates, the interest rate, and the \pounds bn anchoring). Expect $\approx$17+ minutes on a laptop: several minutes of microsimulation and tax-function estimation, the remainder in the general-equilibrium fixed point.
 \item \textbf{A reform score.}
 \begin{quote}

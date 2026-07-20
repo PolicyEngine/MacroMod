@@ -65,7 +65,7 @@ jobs:
       - name: Validate the live deployment
         working-directory: integration
         env:
-          MACROMOD_REMOTE_TESTS: "1"
+          POLICYENGINE_MACRO_REMOTE_TESTS: "1"
         # Default: fast correctness only. `deep=true` (manual) adds --runslow to
         # also exercise the slow investment-closure solve on the live server.
         run: |

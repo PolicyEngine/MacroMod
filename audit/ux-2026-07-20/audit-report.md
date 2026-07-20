@@ -1,4 +1,4 @@
-# MacroMod PR #63 — navigation and information architecture audit
+# PolicyEngine Macro PR #63 — navigation and information architecture audit
 
 ## Audit scope
 

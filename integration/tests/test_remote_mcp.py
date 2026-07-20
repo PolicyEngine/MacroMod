@@ -1,10 +1,10 @@
 """End-to-end test of the deployed PolicyEngine Macro MCP server on Modal.
 
 Talks to the live deployment over streamable HTTP, so it needs network and a
-deployed app. Skipped unless MACROMOD_REMOTE_TESTS=1 (CI without Modal auth
+deployed app. Skipped unless POLICYENGINE_MACRO_REMOTE_TESTS=1 (CI without Modal auth
 stays green). Run:
 
-    MACROMOD_REMOTE_TESTS=1 python -m pytest tests/test_remote_mcp.py -v
+    POLICYENGINE_MACRO_REMOTE_TESTS=1 python -m pytest tests/test_remote_mcp.py -v
 """
 
 from __future__ import annotations
@@ -15,12 +15,12 @@ import os
 import pytest
 
 pytestmark = pytest.mark.skipif(
-    os.environ.get("MACROMOD_REMOTE_TESTS") != "1",
-    reason="set MACROMOD_REMOTE_TESTS=1 to hit the live Modal deployment",
+    os.environ.get("POLICYENGINE_MACRO_REMOTE_TESTS") != "1",
+    reason="set POLICYENGINE_MACRO_REMOTE_TESTS=1 to hit the live Modal deployment",
 )
 
 URL = os.environ.get(
-    "MACROMOD_REMOTE_URL",
+    "POLICYENGINE_MACRO_REMOTE_URL",
     "https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp",
 )
 
