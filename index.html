@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — open models for the economy</title>
-<meta name="description" content="PolicyEngine Macro is PolicyEngine's suite of five open economic models: an OBR macroeconometric emulator and a Bank of England structural VAR for the UK, a Python implementation of the Fed's FRB/US model for the US, and the PSL overlapping-generations model and PolicyEngine tax-benefit microsimulation for both. Score reforms, simulate shocks, forecast GDP and inflation, and study long-run structural change — with each model's validation stated as a gradient, not a badge." />
+<meta name="description" content="PolicyEngine Macro is PolicyEngine's suite of five open economic models: an OBR macroeconometric emulator and a Bank of England structural VAR for the UK, a Python implementation of the Fed's frb-us model for the US, and the PSL overlapping-generations model and PolicyEngine tax-benefit microsimulation for both. Score reforms, simulate shocks, forecast GDP and inflation, and study long-run structural change — with each model's validation stated as a gradient, not a badge." />
 <link rel="canonical" href="https://macromod.vercel.app/" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://macromod.vercel.app/" />
@@ -28,13 +28,13 @@
 
 <header class="nav">
   <a class="brand" href="/">
-    <span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro
+    <img class="brand-logo" src="/assets/policyengine-mark.svg" alt="" />PolicyEngine Macro
   </a>
   <nav class="nav-links" aria-label="Primary">
-    <a class="nav-mobile" href="/#models">Models</a>
-    <a href="/docs/">Compare</a>
-    <a href="/validation/">Validation</a>
-    <a class="nav-mobile nav-start" href="/connect/">Get started</a>
+    <a class="nav-mobile" href="/" aria-current="page">Home</a>
+    <a class="nav-mobile" href="/models/">Explore</a>
+    <a class="nav-mobile nav-start" href="/connect/">Start</a>
+    <a class="nav-mobile" href="/contact/">Contact</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
   </nav>
 </header>
@@ -43,17 +43,17 @@
   <section class="hero">
     <div class="hero-inner">
       <div class="hero-copy">
-      <p class="eyebrow reveal" style="--d:0">UK + US · micro + macro</p>
+      <p class="eyebrow reveal" style="--d:0">Open models · easy access</p>
       <h1 class="reveal" style="--d:1">
         Open economic models
-        <br />for policy.
+        <br />for policy analysis.
       </h1>
       <p class="lede reveal" style="--d:2">
         <strong>Five open UK and US models</strong> for reforms, forecasts, and
         economic shocks, with clear assumptions and validation.
       </p>
       <div class="hero-cta reveal" style="--d:3">
-        <a class="btn btn-primary" href="#choose">Choose a model</a>
+        <a class="btn btn-primary" href="/models/">Choose a model</a>
         <a class="btn btn-ghost" href="/connect/">Get started</a>
       </div>
       </div>
@@ -81,51 +81,38 @@
 </svg>
 <!-- hero-fan:end -->
         <figcaption>
-          One model in the suite: a UK GDP growth forecast from boe-svar, with
-          68% and 90% credible bands. <a href="/svar/">Explore boe-svar</a>.
+          A UK GDP growth forecast from the Bank of England structural VAR,
+          with uncertainty ranges. <a href="/svar/">Explore the model</a>.
         </figcaption>
       </figure>
     </div>
   </section>
 
-  <section id="idea" class="band">
+  <section id="choose" class="band band-stack">
     <div class="band-head">
-      <span class="kicker mono">01 — why macro</span>
-      <h2>A policy score is only the first step.</h2>
+      <span class="kicker mono">01 — choose by question</span>
+      <h2>Different questions need different models.</h2>
     </div>
     <div class="prose">
       <p>
-        Microsimulation shows who pays and who benefits immediately. Macro
-        models trace what happens next as work, saving, investment, wages,
-        prices, and interest rates respond. PolicyEngine Macro makes both
-        layers available through open models and a shared interface.
+        Policy decisions affect households and the wider economy over
+        different time horizons. Choose the open-source model that matches
+        your question, then review its evidence and limitations.
       </p>
-      <p>
-        These models are not interchangeable. Start with the decision you need
-        to make, then inspect the model's evidence and limitations before using
-        its result.
-      </p>
-    </div>
-  </section>
-
-  <section id="choose" class="band band-stack">
-    <div class="band-head">
-      <span class="kicker mono">02 — choose by question</span>
-      <h2>What do you need to understand?</h2>
     </div>
     <div class="question-list">
       <a href="/pe/"><span>Taxes and benefits for a household or population</span><strong>UK + US · PolicyEngine</strong></a>
-      <a href="/frb-us/"><span>A monetary or fiscal shock in the US over coming quarters</span><strong>US · FRB/US</strong></a>
-      <a href="/obr/"><span>A reform's effect on UK growth and borrowing over 3–5 years</span><strong>UK · OBR macro</strong></a>
-      <a href="/olg/"><span>Work, saving, and capital effects over decades</span><strong>UK + US · PSL OLG</strong></a>
-      <a href="/svar/"><span>What is driving UK GDP and inflation now</span><strong>UK · BoE SVAR</strong></a>
+      <a href="/frb-us/"><span>A monetary or fiscal shock in the US over coming quarters</span><strong>US · frb-us</strong></a>
+      <a href="/obr/"><span>A reform's effect on UK growth and borrowing over 3–5 years</span><strong>UK · obr-macro</strong></a>
+      <a href="/olg/"><span>Work, saving, and capital effects over decades</span><strong>UK + US · psl-og</strong></a>
+      <a href="/svar/"><span>What is driving UK GDP and inflation now</span><strong>UK · boe-svar</strong></a>
     </div>
     <p class="chooser-note">Need assumptions and tradeoffs side by side? <a href="/docs/">Compare all five models</a>.</p>
   </section>
 
   <section id="models" class="band band-stack">
     <div class="band-head">
-      <span class="kicker mono">03 — model catalog</span>
+      <span class="kicker mono">02 — model catalog</span>
       <h2>Inspect the model before you use it.</h2>
     </div>
     <div class="prose" style="margin-bottom: 36px;">
@@ -139,11 +126,8 @@
         <header><span class="card-id mono">obr-macro</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>OBR macroeconometric model</h3>
         <p>
-          <strong>How does a UK tax change move growth and the deficit over
-          3–5 years?</strong> A Python emulator of the OBR's own 372-equation
-          forecasting model, anchored to the November 2025 Economic and Fiscal
-          Outlook. (A March 2026 EFO has since been published; we have not
-          re-anchored to it yet.)
+          Estimate how UK reforms affect growth and borrowing over 3–5 years.
+          Anchored to the November 2025 EFO; March 2026 is not yet adopted.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -151,23 +135,17 @@
         <header><span class="card-id mono">boe-svar</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>Bank of England structural VAR model</h3>
         <p>
-          <strong>What is driving UK GDP and inflation right now?</strong> A
-          Python replication of the Bank of England's structural VAR — eight
-          quarterly variables, six identified shocks. Forecasts with credible
-          bands and explains forecast revisions. Does not score reforms.
+          Identify what drives UK GDP and inflation, then forecast both with
+          uncertainty ranges. Does not score reforms.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
       <a class="strategy-card" href="/frb-us/">
         <header><span class="card-id mono">frb-us</span><span class="tag-row"><span class="tag tag-country">US</span><span class="tag tag-hosted">hosted</span></span></header>
-        <h3>FRB/US</h3>
+        <h3>Federal Reserve macroeconomic model</h3>
         <p>
-          <strong>What does a 100bp Fed tightening do to US GDP, unemployment
-          and inflation?</strong> A from-scratch Python implementation of the
-          Fed's large-scale macroeconometric model, from the Board's public
-          model definition and April 2026 LONGBASE data. Raw variable shocks
-          only — it does not score PolicyEngine reforms. VAR expectations
-          only; model-consistent expectations not yet implemented.
+          Simulate how monetary and fiscal shocks affect US output, inflation,
+          and unemployment. Raw shocks only; no reform scoring.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -175,11 +153,8 @@
         <header><span class="card-id mono">psl-og</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-country">US</span><span class="tag tag-local">local</span></span></header>
         <h3>PSL overlapping generations model</h3>
         <p>
-          <strong>What does a reform do to work, saving and the capital stock
-          over decades?</strong> A dynamic general-equilibrium model of 80 age
-          cohorts on OG-Core, with tax functions estimated from PolicyEngine
-          microdata. Solves the long-run steady state and the transition path.
-          Slow: 17+ minutes per solve.
+          Estimate how reforms affect work, saving, and capital over decades.
+          Runs locally and takes at least 17 minutes per solve.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -187,11 +162,8 @@
         <header><span class="card-id mono">pe-microsim</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-country">US</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>PolicyEngine tax-benefit microsimulation</h3>
         <p>
-          <strong>What does this reform mean for one specific family?</strong>
-          PolicyEngine's UK and US tax-benefit microsimulation — the same
-          engine behind policyengine.org. Computes taxes, benefits and net
-          income under current law or a reform, and scores reforms across the
-          population. Its ground truth is statute itself.
+          Calculate how UK and US reforms affect household taxes, benefits,
+          and net income. Checked directly against statute.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -204,7 +176,7 @@
 
   <section id="validation" class="band">
     <div class="band-head">
-      <span class="kicker mono">04 — validation</span>
+      <span class="kicker mono">03 — validation</span>
       <h2>Validation is a gradient, not a badge.</h2>
     </div>
     <div class="prose">
@@ -215,44 +187,33 @@
         models fall into <strong>three classes</strong>, and the class matters
         more than any single percentage.
       </p>
-      <div class="table-scroll">
-      <table>
-        <caption>The verification gradient, model by model</caption>
-        <thead><tr><th scope="col">Model</th><th scope="col">Verification class</th><th scope="col">Headline result</th></tr></thead>
-        <tbody>
-          <tr><th scope="row"><strong>obr-macro</strong></th><td>Replication with a published anchor</td><td>Tracks the November 2025 EFO to a GDP MAPE of 0.18%</td></tr>
-          <tr><th scope="row"><strong>boe-svar</strong></th><td>Replication with a published anchor</td><td>Out-of-sample RMSE 0.32pp, 14 of 14 outturns inside the 68% bands</td></tr>
-          <tr><th scope="row"><strong>frb-us</strong></th><td>Replication with a published anchor</td><td>Matches the Fed's own pyfrbus 1.0.0 to 6.0&times;10⁻⁹ on shock responses</td></tr>
-          <tr><th scope="row"><strong>pe-microsim</strong></th><td>Validated against statute</td><td>Exact household arithmetic — not an approximation</td></tr>
-          <tr><th scope="row"><strong>psl-og</strong></th><td>Calibrated counterfactual — no ground truth</td><td>Targets met by construction; no published replication exists</td></tr>
-        </tbody>
-      </table>
+      <div class="verification-grid" aria-label="The verification gradient, model by model">
+        <article class="verification-card"><div><strong class="mono">obr-macro</strong><span class="verification-tag">Published anchor</span></div><p>Tracks the November 2025 EFO to <strong>0.18% GDP MAPE</strong>.</p></article>
+        <article class="verification-card"><div><strong class="mono">boe-svar</strong><span class="verification-tag">Published anchor</span></div><p><strong>0.32pp RMSE</strong>; 14 of 14 outturns inside the 68% ranges.</p></article>
+        <article class="verification-card"><div><strong class="mono">frb-us</strong><span class="verification-tag">Published anchor</span></div><p>Matches pyfrbus 1.0.0 to <strong>6.0&times;10⁻⁹</strong> on shock responses.</p></article>
+        <article class="verification-card"><div><strong class="mono">pe-microsim</strong><span class="verification-tag verification-tag-statute">Statute</span></div><p><strong>Exact household arithmetic</strong>, not an approximation.</p></article>
+        <article class="verification-card"><div><strong class="mono">psl-og</strong><span class="verification-tag verification-tag-calibrated">Calibrated</span></div><p>Targets met by construction; <strong>no replication ground truth</strong>.</p></article>
       </div>
       <p>
-        The distinction that does the work: a match on a quantity that was
-        <em>imposed</em> or <em>targeted</em> is anchoring, not validation. The
-        OBR emulator's 0.18% is a by-construction invariant — the same
-        equations miss by 5.70% free-running, and we publish that number too.
-        Two of its equations are also known to be numerically inert for want
-        of a source series, and every published OBR figure is computed that
-        way.
-        <a href="/validation/">Every model's numbers beside the official ones →</a>
+        A targeted match is anchoring, not validation. The OBR emulator misses
+        by 0.18% when anchored and 5.70% free-running. Two equations remain
+        inactive because source data is missing; all published results reflect
+        this. <a href="/validation/">Compare models with official benchmarks →</a>
       </p>
     </div>
   </section>
 
   <section id="workflow" class="band">
     <div class="band-head">
-      <span class="kicker mono">05 — get a result</span>
-      <h2>Use a hosted tool, the CLI, or Python.</h2>
+      <span class="kicker mono">04 — start using it</span>
+      <h2>Add the models to Claude or ChatGPT.</h2>
     </div>
     <div class="prose">
       <p>
-        Use the hosted tools from an AI client, run the shared CLI, or call a
-        model's Python API directly. Results retain the assumptions, data
-        vintage, model version, baseline, and units needed to interpret them.
-        The OLG model runs locally because a solve takes 17 minutes or more.
-        <a href="/connect/">Choose a setup and run your first analysis →</a>
+        Connect through MCP, then ask Claude or ChatGPT to run a model. Hosted
+        models need no installation or API key. Prefer code? Use the CLI or
+        Python.
+        <a href="/connect/">Connect and try a model →</a>
       </p>
     </div>
   </section>
@@ -260,14 +221,13 @@
 </main>
 
 <footer class="foot foot-bar">
-  <span class="brand"><span class="brand-dot" aria-hidden="true"></span>PolicyEngine Macro</span>
-  <nav class="foot-nav mono" aria-label="Footer">
-    <a href="/">home</a>
-    <a href="/docs/">docs</a>
-    <a href="/validation/">validation</a>
-    <a href="/connect/">get started</a>
-    <a href="https://github.com/PolicyEngine/macro">GitHub</a>
-    <a class="foot-pe" href="https://policyengine.org" aria-label="PolicyEngine"><img src="/assets/policyengine.svg" alt="PolicyEngine" /></a>
+  <p class="footer-legal">© 2026 PolicyEngine. All rights reserved.</p>
+  <nav class="footer-links" aria-label="PolicyEngine links">
+    <a href="https://policyengine.org" aria-label="PolicyEngine website" title="PolicyEngine website"><img src="/assets/policyengine-mark.svg" alt="" /></a>
+    <a href="https://github.com/PolicyEngine" aria-label="PolicyEngine on GitHub" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a>
+    <a href="mailto:vahid@policyengine.org" aria-label="Email Vahid" title="Email"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></a>
+    <a href="https://www.linkedin.com/company/thepolicyengine" aria-label="PolicyEngine on LinkedIn" title="LinkedIn"><svg class="footer-icon-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z"/></svg></a>
+    <a href="https://x.com/PolicyEngineUS" aria-label="PolicyEngine on X" title="X"><svg class="footer-icon-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.67l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.12l11.96 15.64Z"/></svg></a>
   </nav>
 </footer>
 

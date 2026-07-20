@@ -135,11 +135,13 @@ python3 -m http.server 8000   # then open http://localhost:8000/
 | path | page |
 |------|------|
 | `index.html` | the suite — idea, models, pipeline, outputs |
+| `models/` | model discovery — choose by question and browse all five models |
 | `olg/` | the OG-UK model page — install, quickstart, options, shocks, outputs |
 | `obr/` | the OBR macroeconometric model — quickstart, solver, levers, forecasting |
 | `svar/` | the UK structural VAR — the model, quickstart, outputs, validation |
 | `pe/` | PolicyEngine tax-benefit microsimulation — household calculator, reforms, population analysis |
-| `docs/` | documentation — the model classes compared and when to use which |
+| `docs/` | comparison — the model classes side by side and when to use which |
+| `papers/` | working-paper library linked to models and validation evidence |
 | `connect/` | connect it or code it — MCP / CLI setup and the Python API |
 
 Deployed on Vercel (PolicyEngine team). `vercel.json` enables clean URLs.

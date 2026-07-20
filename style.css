@@ -159,6 +159,9 @@
 :target,
 section[id],
 [id]:not(body) { scroll-margin-top: clamp(88px, 12vh, 112px); }
+.has-section-tabs :target,
+.has-section-tabs section[id],
+.has-section-tabs [id]:not(body) { scroll-margin-top: 160px; }
 
 body {
   background: var(--ink);
@@ -287,6 +290,12 @@ body {
   border-radius: 50%;
   background: var(--brand);
 }
+.brand-logo {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
 
 .nav-links {
   display: flex;
@@ -302,6 +311,7 @@ body {
   transition: color 0.25s;
 }
 .nav-links a:hover { color: var(--brand-strong); }
+.nav-links a[aria-current="page"] { color: var(--brand-strong); }
 .nav-gh { color: var(--paper) !important; display: inline-flex; align-items: center; }
 .nav-gh svg { width: 18px; height: 18px; display: block; }
 .nav-links a:not(.nav-gh) { display: none; }
@@ -323,6 +333,104 @@ body {
   .nav-links .nav-start { min-height: auto; padding: 0; border: 0; }
   .nav-links .nav-start:hover { background: transparent; }
   .nav-links a:not(.nav-gh) { display: inline; }
+}
+
+/* Research library navigation. The global header answers "where am I in the
+   product?" while this row keeps the four evidence surfaces visibly related. */
+.section-tabs {
+  position: fixed;
+  z-index: 9;
+  top: 59px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px var(--gutter);
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: color-mix(in srgb, var(--ink) 94%, transparent);
+  border-bottom: 1px solid var(--line-soft);
+}
+.section-tabs::-webkit-scrollbar { display: none; }
+.section-tabs a {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--paper-dim);
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.section-tabs a:hover { color: var(--brand-strong); background: var(--ink-2); border-color: var(--line-soft); }
+.section-tabs a[aria-current="page"] {
+  color: var(--brand-strong);
+  background: var(--brand-wash);
+  border-color: color-mix(in srgb, var(--brand) 32%, var(--line-soft));
+  box-shadow: none;
+}
+.has-section-tabs .hero { padding-top: clamp(162px, 20vh, 210px); }
+
+.model-local-nav,
+.validation-model-nav {
+  display: flex;
+  gap: 8px;
+  padding: 0 var(--gutter) var(--s-5);
+  max-width: calc(980px + (2 * var(--gutter)));
+  margin: 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.validation-model-nav {
+  position: sticky;
+  top: 116px;
+  z-index: 5;
+  width: max-content;
+  max-width: calc(100% - (2 * var(--gutter)));
+  margin-top: 12px;
+  padding: 5px;
+  gap: 3px;
+  background: color-mix(in srgb, var(--ink) 96%, transparent);
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(20, 45, 52, .06);
+}
+.model-local-nav::-webkit-scrollbar,
+.validation-model-nav::-webkit-scrollbar { display: none; }
+.model-local-nav a,
+.validation-model-nav a {
+  flex: 0 0 auto;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--paper-dim);
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  text-decoration: none;
+}
+.model-local-nav a:hover,
+.validation-model-nav a:hover,
+.validation-model-nav a[aria-current="location"] {
+  color: var(--brand-strong);
+  border-color: color-mix(in srgb, var(--brand) 34%, var(--line-soft));
+  background: var(--brand-wash);
+}
+.validation-model-nav a[aria-current="location"] { font-weight: 600; }
+.model-breadcrumb {
+  display: block;
+  margin-bottom: var(--s-4);
+  color: var(--paper-faint);
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+}
+.model-breadcrumb a { color: var(--brand-strong); }
+
+@media (max-width: 620px) {
+  .section-tabs { justify-content: flex-start; top: 76px; padding-inline: 8px; }
+  .section-tabs a { padding-inline: 11px; }
+  .has-section-tabs .hero { padding-top: 174px; }
 }
 
 /* ---------- hero ---------- */
@@ -509,9 +617,10 @@ h2 {
 
 /* ---------- footer ---------- */
 .foot {
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 48px clamp(20px, 5vw, 56px) 64px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 48px var(--gutter) 64px;
   border-top: 1px solid var(--line-soft);
 }
 .foot-pe { display: inline-flex; align-items: center; }
@@ -615,6 +724,11 @@ h2 {
    started 26px to the right of every heading under it — a visible kink down
    the left edge. One column edge for the whole page. */
 .doc .hero-inner { max-width: var(--max); }
+/* Content-page titles share one left edge with the sections below. The
+   homepage keeps its split text/chart composition; only model-style heroes
+   collapse to a single, left-aligned reading column. */
+.doc .model-hero .hero-inner { display: block; }
+.doc .model-hero .lede { margin-left: 0; margin-right: 0; }
 
 /* text fills the line; rich blocks go edge-to-edge inside the band */
 .doc .prose { max-width: none; }
@@ -751,6 +865,42 @@ h2 {
 .foot-nav a { font-family: var(--mono); font-size: var(--fs-small); color: var(--paper-dim); text-decoration: none; }
 .foot-nav a:hover { color: var(--brand-strong); }
 .foot-nav .foot-pe img { height: 18px; }
+.footer-brand,
+.footer-links,
+.footer-links a { display: inline-flex; align-items: center; }
+.footer-brand {
+  gap: 10px;
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: var(--fs-body-sm);
+  text-decoration: none;
+}
+.footer-brand img { width: 20px; height: 20px; }
+.footer-legal {
+  margin: 0;
+  color: var(--paper-faint);
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+}
+.footer-links { flex-wrap: wrap; gap: 10px; }
+.footer-links a {
+  justify-content: center;
+  width: 30px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--paper-dim);
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  text-decoration: none;
+}
+.footer-links a:hover { color: var(--brand-strong); background: transparent; transform: translateY(-1px); }
+.footer-links img,
+.footer-links svg { width: 17px; height: 17px; flex: 0 0 auto; }
+.footer-links svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.footer-links .footer-icon-fill { fill: currentColor; stroke: none; }
 
 /* ==========================================================================
    Validation page — comparison charts and provenance styling
@@ -759,6 +909,54 @@ h2 {
    ========================================================================== */
 
 .model-hero { min-height: auto; padding-top: clamp(120px, 18vh, 180px); padding-bottom: 10px; }
+.papers-index-hero { padding-bottom: clamp(64px, 8vw, 100px); }
+.papers-index-hero .paper-library { margin-top: clamp(38px, 5vw, 60px); }
+.contact-hero { padding-bottom: clamp(64px, 8vw, 100px); }
+.contact-options { margin-top: clamp(42px, 6vw, 72px); }
+.contact-action { display: flex; align-items: center; gap: 14px; margin-top: var(--s-5); flex-wrap: wrap; }
+.contact-email-label { color: var(--paper-faint); font-family: var(--mono); font-size: var(--fs-small); }
+.contact-email {
+  display: inline-flex;
+  padding: 11px 16px;
+  border: 1px solid var(--brand);
+  border-radius: var(--radius-sm);
+  background: var(--brand-wash);
+  color: var(--brand-strong);
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  transition: border-color .2s, background .2s, transform .2s;
+}
+.contact-email:hover { border-color: var(--brand-strong); background: var(--surface); transform: translateY(-1px); }
+.models-page .model-hero + .band { border-top: 0; }
+.validation-page .model-hero { padding-bottom: var(--s-5); }
+.validation-page .validation-model-nav { margin-top: 0; }
+.validation-page .validation-model-nav + .band { padding-top: clamp(64px, 8vw, 92px); }
+
+/* comparison matrix: strong column headers, anchored row labels, easier scanning */
+.comparison-table-wrap {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-card);
+  background: var(--ink);
+}
+.comparison-table { min-width: 1040px !important; }
+.comparison-table thead { background: var(--ink-2); }
+.comparison-table thead th { padding: 18px 16px; }
+.comparison-table thead th a { color: var(--paper); text-decoration: none; line-height: 1.45; }
+.comparison-table thead th a span { color: var(--brand-strong); font-size: 10px; letter-spacing: .06em; }
+.comparison-table tbody tr:nth-child(even) { background: color-mix(in srgb, var(--ink-2) 58%, transparent); }
+.comparison-table tbody tr:hover { background: var(--brand-wash); }
+.comparison-table th:first-child,
+.comparison-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding-left: 16px;
+  background: var(--ink);
+  box-shadow: 1px 0 0 var(--line-soft);
+}
+.comparison-table thead td:first-child { z-index: 2; background: var(--ink-2); }
+.comparison-table tbody tr:nth-child(even) th:first-child { background: var(--ink-2); }
 
 .vfig { margin: 32px 0 30px; }
 .vfig figcaption {
@@ -832,6 +1030,46 @@ h2 {
   padding-bottom: var(--s-3);
 }
 
+/* compact verification scorecard on the homepage */
+.verification-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-block: var(--s-6);
+}
+.verification-card {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-card);
+  padding: 18px 20px;
+}
+.verification-card > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.verification-card .mono { color: var(--brand-strong); font-size: var(--fs-small); }
+.verification-card p { margin: 0; color: var(--paper-dim); font-size: var(--fs-body-sm); line-height: 1.5; }
+.verification-tag {
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: var(--brand-wash);
+  color: var(--brand-strong);
+  font: 500 10px/1 var(--mono);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.verification-tag-statute { background: #edf4f2; }
+.verification-tag-calibrated { background: #f7eee8; color: #945c42; }
+.verification-card:last-child { grid-column: 1 / -1; }
+
+@media (max-width: 700px) {
+  .verification-grid { grid-template-columns: 1fr; }
+  .verification-card:last-child { grid-column: auto; }
+}
+
 /* one callout treatment (was: left-rule callout + tinted note + bordered box) */
 .callout, .opt-note, .chart-note, .soon-hint, .caveat {
   max-width: 74ch;
@@ -874,7 +1112,29 @@ h2 {
 .library-card p { color: var(--paper-dim); font-size: var(--fs-body-sm); line-height: 1.55; }
 .library-actions { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: var(--s-4); }
 .library-actions a { color: var(--brand-strong); font-family: var(--mono); font-size: var(--fs-label); }
+.paper-meta { margin-top: var(--s-4); color: var(--paper-faint) !important; font-family: var(--mono); font-size: var(--fs-label) !important; }
 @media (max-width: 680px) { .library-grid { grid-template-columns: 1fr; } }
+
+/* The wide comparison matrix is useful on desktop. On phones a deliberate
+   two-model view replaces the clipped horizontal slice. */
+.mobile-compare { display: none; }
+.mobile-compare h3 { margin: 0 0 var(--s-4); font-family: var(--display); font-size: var(--fs-h3); font-weight: 500; }
+.mobile-compare-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); margin-bottom: var(--s-5); }
+.mobile-compare-controls label { display: grid; gap: 7px; color: var(--paper-dim); font-family: var(--mono); font-size: var(--fs-label); }
+.mobile-compare-controls select { width: 100%; min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--paper); background: var(--surface); font: inherit; }
+.mobile-compare-row { padding: var(--s-5) 0; border-top: 1px solid var(--line-soft); }
+.mobile-compare-row h4 { margin: 0 0 var(--s-4); color: var(--brand); font-family: var(--mono); font-size: var(--fs-label); text-transform: uppercase; letter-spacing: var(--ls-label); }
+.mobile-compare-row > div { padding: var(--s-3); border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--surface); }
+.mobile-compare-row > div + div { margin-top: 8px; }
+.mobile-compare-row strong { color: var(--paper); font-size: var(--fs-body-sm); }
+.mobile-compare-row p { margin: 6px 0 0; color: var(--paper-dim); font-size: var(--fs-body-sm); line-height: 1.55; }
+
+@media (max-width: 760px) {
+  .desktop-comparison { display: none; }
+  .mobile-compare { display: block; }
+  .mobile-compare-controls { grid-template-columns: 1fr; }
+  .validation-model-nav { top: 129px; max-width: calc(100% - 20px); }
+}
 
 /* ============================================================
    working papers — index cards + in-page PDF viewer
