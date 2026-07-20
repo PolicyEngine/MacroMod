@@ -41,7 +41,7 @@ The damping criterion is deliberately permissive --- it guards against leaving t
 \subsection{Performance}
 \label{sec:performance}
 
-Table~\ref{tab:perf} reports wall-clock times on the development machine (Apple Silicon laptop, single-threaded), measured on fresh runs of the experiment script in \texttt{figures/}. One-off model construction --- XML parsing, lexing, symbolic differentiation of all 284 equations and compilation --- takes about 0.7 seconds; after that, solving costs about \textbf{4.4 milliseconds per quarter}, so a 20-quarter policy simulation runs in under a tenth of a second and the full experiment suite of Section~\ref{sec:results}, spanning three model configurations and 40-quarter horizons, completes in a few seconds. Add-factoring (\texttt{init\_trac}) is a single equation evaluation per quarter and is essentially free. These times remove any computational barrier to embedding FRB/US in bootstrap loops, optimisation over rule coefficients, or microsimulation pipelines.
+Table~\ref{tab:perf} reports wall-clock times on the development machine (Apple Silicon laptop, single-threaded), measured on fresh runs of the experiment script in \texttt{figures/}. One-off model construction --- XML parsing, lexing, symbolic differentiation of all 284 equations and compilation --- takes about 0.7 seconds; after that, solving costs about \textbf{4.5 milliseconds per quarter}, so a 20-quarter policy simulation runs in under a tenth of a second and the full experiment suite of Section~\ref{sec:results}, spanning three model configurations and 40-quarter horizons, completes in a few seconds. Add-factoring (\texttt{init\_trac}) is a single equation evaluation per quarter and is essentially free. These times remove any computational barrier to embedding FRB/US in bootstrap loops, optimisation over rule coefficients, or microsimulation pipelines.
 
 \begin{table}[htbp]
 \centering
@@ -53,9 +53,9 @@ Operation & Time \\
 \midrule
 Parse \texttt{model.xml} & 0.012\,s \\
 Lex, differentiate and compile (one-off, incl.\ \texttt{init\_trac} over 40q) & 0.68\,s \\
-Solve, 20 quarters & 0.087\,s \\
-Solve, 40 quarters & 0.177\,s \\
-Per solved quarter & $\approx$4.4\,ms \\
+Solve, 20 quarters & 0.088\,s \\
+Solve, 40 quarters & 0.181\,s \\
+Per solved quarter & $\approx$4.5\,ms \\
 \bottomrule
 \end{tabular}
 

@@ -4,13 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PolicyEngine Macro — frb-us</title>
-<meta name="description" content="A from-scratch Python implementation of the Federal Reserve Board's frb-us model — 284 equations solved under VAR expectations, reproducing the April 2026 LONGBASE database to machine precision and matching the Fed's own pyfrbus to its own version-to-version noise floor." />
+<meta name="description" content="A from-scratch Python implementation of the Federal Reserve Board's FRB/US model — 284 equations solved under VAR expectations, reproducing the April 2026 LONGBASE database to machine precision and matching the Fed's own pyfrbus to its own version-to-version noise floor." />
 <link rel="canonical" href="https://policyengine-macro.vercel.app/frb-us" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://policyengine-macro.vercel.app/frb-us" />
 <meta property="og:site_name" content="PolicyEngine Macro" />
 <meta property="og:title" content="frb-us — PolicyEngine Macro" />
-<meta property="og:description" content="A from-scratch Python implementation of the Federal Reserve Board's frb-us model — 284 equations under VAR expectations, reproducing LONGBASE to machine precision." />
+<meta property="og:description" content="A from-scratch Python implementation of the Federal Reserve Board's FRB/US model — 284 equations under VAR expectations, reproducing LONGBASE to machine precision." />
 <meta property="og:image" content="https://policyengine-macro.vercel.app/assets/og-image.png" />
 <meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -36,7 +36,7 @@
   </a>
   <nav class="nav-links" aria-label="Primary">
     <a class="nav-mobile" href="/">Home</a>
-    <a class="nav-mobile" href="/models/" aria-current="page">Explore</a>
+    <a class="nav-mobile" href="/models/">Explore</a>
     <a class="nav-mobile nav-start" href="/connect/">Start</a>
     <a class="nav-mobile" href="/contact/">Contact</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -71,7 +71,7 @@
   </section>
 
   <nav class="model-local-nav" aria-label="On this model page">
-    <a href="#what">Overview</a><a href="#how">Method</a><a href="#run">Run</a><a href="#trust">Validation</a><a href="/papers/frb-us/">Paper</a>
+    <a href="#what">Overview</a><a href="#how">Method</a><a href="#run">Run</a><a href="#answers">Answers</a><a href="#trust">Validation</a><a href="/papers/frb-us/">Paper</a>
   </nav>
 
   <section id="what" class="band">
@@ -81,8 +81,8 @@
     </div>
     <div class="prose">
       <p>
-        This is the large-scale macroeconometric model the Federal Reserve
-        Board has used for policy analysis and forecasting since 1996. The
+        This reimplements the large-scale macroeconometric model the Federal
+        Reserve Board has used for policy analysis and forecasting since 1996. The
         Board publishes the whole thing — the equation system as
         <code>model.xml</code>, the <code>LONGBASE</code> historical and
         projection database, the model documentation, and a reference Python
@@ -192,10 +192,9 @@ pe-macro frbus-summary</code></pre></div>
         one the validation numbers use), <code>taylor</code>, or
         <code>fixed_funds_rate</code>, which holds the funds rate on its
         baseline path so there is no endogenous monetary offset. A four-quarter
-        federal-purchases shock of 0.01 log points peaks at
-        <strong>+0.106%</strong> on real GDP under the inertial rule against
-        <strong>+0.113%</strong> with the funds rate fixed — and the price-level
-        response is nearly three times larger without the offset.
+        federal-purchases shock of 0.01 log points peaks higher on real GDP
+        with the funds rate fixed than under the inertial rule — and the
+        price-level response is larger still without the monetary offset.
       </p>
       <p>
         For the full 284-variable model, the Board's own demo scripts, or
@@ -270,7 +269,7 @@ sim = model.solve(start, end, with_adds)
       <p>
         Fiscal impulses land in the published cross-model ranges. A
         government-purchases shock worth 1% of GDP gives a year-one multiplier
-        of <strong>0.72</strong> under the Taylor rule, inside the 0.7–1.0
+        of <strong>0.72</strong> under the inertial Taylor rule, inside the 0.7–1.0
         no-accommodation range in Coenen et al. (2012); holding the funds rate
         fixed, the year-two multiplier is <strong>0.99</strong>. A personal
         tax cut worth 1% of GDP ex ante gives <strong>0.22 rising to
@@ -368,6 +367,12 @@ sim = model.solve(start, end, with_adds)
       the <a href="/papers/frb-us/">working paper</a>, and
       <a href="/validation/#frbus">validation</a>.
     </p>
+      <p class="callout">
+        This is an independent implementation built from the Federal Reserve
+        Board's published model equations and data. It is not produced,
+        maintained, or endorsed by the Federal Reserve, and its results
+        should not be presented as official Federal Reserve estimates.
+      </p>
   </section>
 
   <section id="caveats" class="band">

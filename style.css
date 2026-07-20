@@ -1366,3 +1366,6 @@ h2 {
    .hf-tick is hidden. */
 .hf-q { fill: var(--paper-faint); }
 @media (max-width: 1000px) { .hf-tick.hf-q { display: initial; } }
+
+/* honest-warning cells in validation tables (over-band, imposed, targeted) */
+.vchart .vc-warn, td.vc-warn, th.vc-warn { color: var(--brand-strong); font-weight: 600; }

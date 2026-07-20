@@ -117,7 +117,7 @@ which the pipeline of Section~\ref{sec:taxfunc} estimates directly rather than d
 \begin{equation}
 \label{eq:eul_labor_raw}
 w_t e_{j,s}\bigl(1-\tau^{mtrx}_{j,s,t}\bigr)\,\mu_{j,s,t}
-\;=\; -\,e^{g_y t(1-\sigma)}\,\chi^n_s\, v'(n_{j,s,t}) \cdot(-1),
+\;=\; e^{g_y t(1-\sigma)}\,\chi^n_s\, v'(n_{j,s,t}),
 \end{equation}
 and substituting \eqref{eq:foc_c} for the multiplier gives the labour-supply Euler equation
 \begin{equation}
@@ -217,7 +217,7 @@ D_{t+1} + Rev_t \;=\; (1+r_{gov,t})\,D_t + G_t + TR_t + Pensions_t + I_{g,t}.
 \label{eq:closure}
 G_t \;=\; \rho_G\,\alpha_g Y_t \;+\; (1-\rho_G)\Bigl[(1+g_{n,t})e^{g_y}\,\alpha_D Y_t - (1+r_{gov,t})D_t + Rev_t - TR_t - Pensions_t\Bigr],
 \end{equation}
-so that with smoothing weight $\rho_G\in[0,1)$ the debt ratio glides towards the long-run target $\alpha_D$; after $T_{G2}$ debt is held exactly at $D_{t+1} = (1+g_{n,t})e^{g_y}\alpha_D Y_t$ and the instrument absorbs the residual one-for-one. The framework supports the same structure with any of the following as closing instrument: public consumption $G$, non-pension transfers $TR$, both in fixed proportion, or (as a budget-balance option) period-by-period balance with debt fixed. The choice matters economically: closing on $G$ (pure waste in the utility function) isolates the tax reform's incentive effects; closing on $TR$ returns resources to households and mutes wealth effects. The deployed configuration closes on $G$. In the steady state, debt is exactly $\bar{D} = \alpha_D \bar{Y}$ and \eqref{eq:govbc} determines the residual spending level consistent with it. Every reform score therefore embeds the closure rule: a tax cut that loses revenue is eventually paid for by the closing instrument, and the reported long-run effects are net of that financing.
+so that with smoothing weight $\rho_G\in[0,1)$ the debt ratio glides towards the long-run target $\alpha_D$; after $T_{G2}$ debt is held exactly at $D_{t+1} = (1+g_{n,t})e^{g_y}\alpha_D Y_t$ and the instrument absorbs the residual one-for-one. The framework supports the same structure with any of the following as closing instrument: public consumption $G$, non-pension transfers $TR$, both in fixed proportion, or (as a budget-balance option) period-by-period balance with debt fixed. The choice matters economically: closing on $G$ (pure waste in the utility function) isolates the tax reform's incentive effects; closing on $TR$ returns resources to households and mutes wealth effects. The deployed configuration closes on $G$, with UK-configured phase parameters that depart deliberately from the OG-Core defaults ($T_{G1}=20$, $T_{G2}=256$, $\rho_G=0.1$): the deployed JSON sets $T_{G1}=4$, $T_{G2}=20$ and $\rho_G=0.6$, so consolidation starts earlier, completes sooner, and adjusts faster. In the steady state, debt is exactly $\bar{D} = \alpha_D \bar{Y}$ and \eqref{eq:govbc} determines the residual spending level consistent with it. Every reform score therefore embeds the closure rule: a tax cut that loses revenue is eventually paid for by the closing instrument, and the reported long-run effects are net of that financing.
 
 \subsection{Market clearing and equilibrium}
 \label{subsec:clearing}

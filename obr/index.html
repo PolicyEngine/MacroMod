@@ -36,7 +36,7 @@
   </a>
   <nav class="nav-links" aria-label="Primary">
     <a class="nav-mobile" href="/">Home</a>
-    <a class="nav-mobile" href="/models/" aria-current="page">Explore</a>
+    <a class="nav-mobile" href="/models/">Explore</a>
     <a class="nav-mobile nav-start" href="/connect/">Start</a>
     <a class="nav-mobile" href="/contact/">Contact</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -86,10 +86,10 @@
         equation listing, but as EViews source that few can run. This project
         transpiles that listing to Python and solves it:
         <strong>372 published equations</strong> in <strong>17 thematic
-        groups</strong> over <strong>636 variables</strong> — 29
-        econometrically estimated, 216 identities, 138 calibrated or technical
-        relationships, and 253 exogenous inputs, which are the judgements and
-        assumptions you get to change.
+        groups</strong> over <strong>636 variables</strong> — 383 solved by
+        the model (roughly 29 econometrically estimated, 216 identities, and
+        138 calibrated or technical relationships) and 253 exogenous inputs,
+        which are the judgements and assumptions you get to change.
       </p>
       <p>
         It is a <strong>structural macroeconometric model</strong> in the
@@ -141,8 +141,8 @@
         For forecasting rather than one-off shocks, the emulator fits
         add-factors over a base window of <strong>2024Q1–2025Q4</strong>,
         <strong>holds them constant</strong>, and projects to
-        <strong>2027Q4</strong> with exogenous inputs held at their last
-        value. Scenario solves run twelve quarters, 2025Q1–2027Q4.
+        <strong>2027Q4</strong> with exogenous inputs extrapolated
+        (seasonal cash series at their trailing annual mean). Scenario solves run twelve quarters, 2025Q1–2027Q4.
       </p>
     </div>
   </section>
@@ -176,7 +176,7 @@ results = run_reform(
         two solves, so about a minute. run the five bundled scenarios with
         charts via <code>python -m obr_macro.reform_analysis</code> — a £5bn
         spending rise, a 5pp corporation-tax cut and rise, £10bn public
-        investment (£3bn nominal <code>CGIPS</code> per quarter), and a £10bn
+        real investment (~£3bn nominal <code>CGIPS</code> per quarter), and a £10bn
         austerity cut. Charts land in <code>outputs/</code>.
       </p>
       <p>
@@ -224,7 +224,7 @@ results = run_reform(
         scored 2026–2030. PolicyEngine puts the direct yield at
         <strong>£6.46bn in 2026</strong>, rising to <strong>£7.38bn by
         2030</strong>; HMRC's June 2025 ready reckoner puts 1p at £6.9bn in
-        2026–27 rising to about £8.2bn, so the static costing sits inside the
+        2026–27 rising to about £8.2bn by 2028–29, so the static costing sits inside the
         official range, toward its lower end. Converted to a quarterly
         <code>HHDI</code> shock of −£1.62bn to −£1.85bn and propagated through
         the consumption function, GDP falls <strong>0.020% on impact in
@@ -310,6 +310,12 @@ results = run_reform(
       <a href="/papers/obr-macro/">working paper</a>; charts and source data
       in <a href="/validation/">validation</a>.
     </p>
+      <p class="callout">
+        This is an independent implementation built from the OBR's published
+        model code and forecast data. It is not produced, maintained, or
+        endorsed by the Office for Budget Responsibility, and its results
+        should not be presented as official OBR estimates.
+      </p>
   </section>
 
   <section id="caveats" class="band">
@@ -328,7 +334,7 @@ results = run_reform(
           </tr>
           <tr>
             <th scope="row"><strong>Impact multiplier ~1 by construction</strong></th>
-            <td>Under the demand closure a spending shock lands directly in the GDP identity and the behavioural second round is largely inactive. The OBR's published impact multiplier for current spending is ~0.45.</td>
+            <td>Under the demand closure a spending shock lands directly in the GDP identity and the behavioural second round is largely inactive. The OBR's published impact multiplier for current spending is 0.6.</td>
           </tr>
           <tr>
             <th scope="row"><strong>Corporation-tax channel unstable</strong></th>

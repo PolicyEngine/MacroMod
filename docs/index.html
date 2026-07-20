@@ -47,7 +47,7 @@
   </a>
   <nav class="nav-links" aria-label="Primary">
     <a class="nav-mobile" href="/">Home</a>
-    <a class="nav-mobile" href="/models/" aria-current="page">Explore</a>
+    <a class="nav-mobile" href="/models/">Explore</a>
     <a class="nav-mobile nav-start" href="/connect/">Start</a>
     <a class="nav-mobile" href="/contact/">Contact</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -86,7 +86,7 @@
       <a href="/pe/"><span>Household taxes, benefits, or distributional effects</span><strong>UK + US · PolicyEngine</strong></a>
       <a href="/frb-us/"><span>US monetary or fiscal shocks</span><strong>US · frb-us</strong></a>
       <a href="/obr/"><span>Near-term growth and borrowing after a UK reform</span><strong>UK · obr-macro</strong></a>
-      <a href="/olg/"><span>Long-run work, saving, and capital effects</span><strong>UK + US · psl-og</strong></a>
+      <a href="/olg/"><span>Long-run work, saving, and capital effects</span><strong>UK · psl-og</strong></a>
       <a href="/svar/"><span>Drivers of UK GDP and inflation</span><strong>UK · boe-svar</strong></a>
     </div>
     <p class="chooser-note">Check evidence and limitations before using a result. <a href="/validation/">Review validation</a>.</p>
@@ -105,8 +105,8 @@
         <tbody>
           <tr><th scope="row"><strong>Question class</strong></th><td>Near-term UK fiscal multipliers and Budget-style scoring</td><td>What's driving the UK economy now; short-run forecasts and revision narratives</td><td>US macro dynamics: monetary and fiscal shocks, quarter by quarter</td><td>Long-run incentives: labour supply, saving, the capital stock over decades</td><td>What a specific family pays and receives; distributional effects</td></tr>
           <tr><th scope="row"><strong>Method</strong></th><td>Structural macroeconometric emulator — Gauss–Seidel over 372 equations per quarter</td><td>Bayesian structural VAR — posterior sampling with zero + sign restrictions naming the shocks</td><td>Large-scale macroeconometric model — 284 equations solved under VAR expectations</td><td>Dynamic general equilibrium (OLG) — steady-state root-find and transition-path iteration</td><td>Static tax-benefit microsimulation — direct rule evaluation, no behavioural response</td></tr>
-          <tr><th scope="row"><strong>Country</strong></th><td>UK</td><td>UK</td><td>US</td><td>UK &amp; US (UK wired today; US newer)</td><td>UK &amp; US</td></tr>
-          <tr><th scope="row"><strong>Data vintage</strong></th><td>OBR <em>Economic and Fiscal Outlook</em>, November 2025</td><td>ONS, BoE and FRED series — estimation sample 1992Q1–2023Q2, packaged to a 2024Q2 edge</td><td>The Fed's <code>model.xml</code> and LONGBASE database, April 2026</td><td>ONS, OBR and BoE national accounts as calibration targets; OG-UK 0.3.0</td><td>UK &amp; US statute; enhanced FRS (53k households) / CPS microdata for population runs</td></tr>
+          <tr><th scope="row"><strong>Country</strong></th><td>UK</td><td>UK</td><td>US</td><td>UK (OG-UK)</td><td>UK &amp; US</td></tr>
+          <tr><th scope="row"><strong>Data vintage</strong></th><td>OBR <em>Economic and Fiscal Outlook</em>, November 2025</td><td>ONS, BoE and FRED series — estimation sample 1992Q1–2023Q2, packaged to a 2024Q2 edge</td><td>The Fed's <code>model.xml</code> and LONGBASE database, April 2026</td><td>ONS, OBR and BoE national accounts as calibration targets; OG-UK 0.3.2 (from GitHub)</td><td>UK &amp; US statute; enhanced FRS microdata for population runs (UK)</td></tr>
           <tr><th scope="row"><strong>Verification class</strong> (<a href="/validation/">numbers →</a>)</th><td>Replication with a published anchor</td><td>Replication with a published anchor</td><td>Replication with a published anchor</td><td>Calibrated counterfactual — no ground truth</td><td>Validated against statute</td></tr>
           <tr><th scope="row"><strong>Reform scoring</strong></th><td>Yes — shocks to exogenous model variables; static-costing bridge from PolicyEngine reforms</td><td>No — the baseline/conditioning member: it reads the economy reforms are scored against</td><td>No — shock experiments only (funds-rate or fiscal shocks under VAR expectations); <code>score_reform</code> refuses <code>model="frbus"</code>, as no PolicyEngine reform bridge exists</td><td>Yes — a PolicyEngine policy translated into estimated tax functions</td><td>Yes — a PolicyEngine parameter + a new value, applied directly to households</td></tr>
           <tr><th scope="row"><strong>Run surface</strong></th><td>Hosted (CLI, MCP, Python API)</td><td>Hosted (CLI, MCP, Python API)</td><td>Hosted (CLI, MCP, Python API) — raw shocks only</td><td>Local only</td><td>Hosted</td></tr>

@@ -36,7 +36,7 @@
   </a>
   <nav class="nav-links" aria-label="Primary">
     <a class="nav-mobile" href="/">Home</a>
-    <a class="nav-mobile" href="/models/" aria-current="page">Explore</a>
+    <a class="nav-mobile" href="/models/">Explore</a>
     <a class="nav-mobile nav-start" href="/connect/">Start</a>
     <a class="nav-mobile" href="/contact/">Contact</a>
     <a class="nav-gh" href="https://github.com/PolicyEngine/macro" aria-label="GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg></a>
@@ -54,13 +54,13 @@
   <section class="hero model-hero">
     <div class="hero-inner">
       <span class="model-breadcrumb"><a href="/models/">Models</a> / PSL OLG</span>
-      <p class="eyebrow reveal" style="--d:0">model 04 — overlapping generations · psl-og · UK · US · local</p>
+      <p class="eyebrow reveal" style="--d:0">model 04 — overlapping generations · psl-og · UK · local</p>
       <h1 class="reveal page-title" style="--d:1;">
         Model long-run behavioural change.
       </h1>
       <p class="lede reveal" style="--d:2">
         Estimate how reforms affect work, saving, investment, and public
-        finances over decades. UK is fully wired; the US integration is newer.
+        finances over decades, for the UK.
       </p>
       <div class="hero-cta reveal" style="--d:3">
         <a class="btn btn-primary" href="#run">Run it</a>
@@ -70,7 +70,7 @@
   </section>
 
   <nav class="model-local-nav" aria-label="On this model page">
-    <a href="#what">Overview</a><a href="#how">Method</a><a href="#run">Run</a><a href="#trust">Validation</a><a href="/papers/psl-og/">Paper</a>
+    <a href="#what">Overview</a><a href="#how">Method</a><a href="#run">Run</a><a href="#answers">Answers</a><a href="#trust">Validation</a><a href="/papers/psl-og/">Paper</a>
   </nav>
 
   <section id="what" class="band">
@@ -86,7 +86,7 @@
         firms rent that capital and labour; the government taxes, spends and
         issues debt. Two solves are on offer: the <strong>steady state</strong>
         ("where does the economy settle under this policy?") and the
-        <strong>transition path</strong> — a 60-year, year-by-year solve of
+        <strong>transition path</strong> — a multi-decade, year-by-year solve of
         how it gets there, which is what a budget profile needs.
       </p>
       <p>
@@ -111,7 +111,7 @@
         from the OBR EFO (<strong>1.1%/yr</strong>), the discount factor
         matched to the ONS household saving ratio, the world interest rate to
         Bank of England gilt-yield data, and a Frisch labour-supply elasticity
-        of <strong>0.35</strong> (Blundell, MaCurdy &amp; Meghir).
+        of <strong>0.35–0.4</strong> (Blundell, MaCurdy &amp; Meghir).
         Demographics — population by age, mortality, immigration — come from
         UN data. Outputs map back to current-price £bn against live ONS
         series, falling back to cached values if ONS is unreachable.
@@ -246,7 +246,7 @@ ss = solve_steady_state(policy=reform,
       </div>
       <p>
         The transition path answers "what happens each year on the way
-        there" — 60 years, baseline and reform in one call, on Dask workers:
+        there" — decade by decade, baseline and reform in one call, on Dask workers:
       </p>
       <div class="codeblock"><button class="cb-copy" data-copy>copy</button><pre><code><span class="kw">from</span> dask.distributed <span class="kw">import</span> Client
 <span class="kw">from</span> oguk <span class="kw">import</span> run_transition_path, map_transition_to_real_world
@@ -360,7 +360,7 @@ impact = map_transition_to_real_world(base_tp, reform_tp)
         <tbody>
           <tr>
             <th scope="row"><strong>Version pin</strong></th>
-            <td>The integration pins <code>oguk==0.3.0</code>, which pins <code>policyengine-uk==2.88.0</code>. Versions ≥ 2.89 renamed the microdata dataset keys (<code>enhanced_frs_2023_24_&lt;year&gt;</code> → <code>populace_uk_*</code>), so mixing them fails with a <code>KeyError</code> at calibration time. The adapter traps this and raises an actionable error. Upstream has moved on; lifting the pin is roadmap work, and until it lands the OLG member scores against a slightly older statute vintage than <a href="/pe/">the microsimulation member</a>. A declared inconsistency, not a hidden one.</td>
+            <td>The integration installs <code>oguk</code> from GitHub (0.3.2), which pins <code>policyengine-uk==2.88.0</code>. Versions ≥ 2.89 renamed the microdata dataset keys (<code>enhanced_frs_2023_24_&lt;year&gt;</code> → <code>populace_uk_*</code>), so mixing them fails with a <code>KeyError</code> at calibration time. The adapter traps this and raises an actionable error. Upstream has moved on; lifting the pin is roadmap work, and until it lands the OLG member scores against a slightly older statute vintage than <a href="/pe/">the microsimulation member</a>. A declared inconsistency, not a hidden one.</td>
           </tr>
           <tr>
             <th scope="row"><strong>Gated data</strong></th>
