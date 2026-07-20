@@ -36,7 +36,7 @@ $bq$, $BQ_j$ & received bequests; aggregate by type & endogenous & accidental-be
 $tr$, $TR_t$, $\alpha_{tr}$ & transfers; aggregate; GDP share & rule & government block \\
 $G_t$, $\alpha_g$ & public consumption; GDP share & rule / closure & government block \\
 $D_t$, $\alpha_D$ & government debt; long-run debt/GDP target & rule / closure & fiscal closure \eqref{eq:closure} \\
-$T_{G1}$, $T_{G2}$, $\rho_G$ & closure phase boundaries; smoothing weight & configured & OG-Core closure defaults \\
+$T_{G1}$, $T_{G2}$, $\rho_G$ & closure phase boundaries; smoothing weight & configured: $4$, $20$, $0.6$ & UK-configured (OG-Core defaults $20$, $256$, $0.1$) \\
 $r_t$, $w_t$ & return on capital; wage & endogenous & firm FOCs \eqref{eq:focL}--\eqref{eq:focK} \\
 $r_{gov,t}$; $\tau_d,\mu_d$ & government rate; its wedge parameters & calibrated & gilt-anchored \eqref{eq:rgov} \\
 $r_{p,t}$ & household portfolio return & derived & \eqref{eq:rport} \\
@@ -62,7 +62,7 @@ The integration touches a deliberately small slice of the two underlying package
 \item \texttt{ogcore.execute.runner} --- the orchestration entry point OG-UK's API wraps (parameter setup, optional tax-function estimation, SS and/or TPI, output pickling to \texttt{OUTPUT/\allowbreak SS/\allowbreak SS\_vars.pkl} and \texttt{OUTPUT/\allowbreak TPI/\allowbreak TPI\_vars.pkl}).
 \item Supporting modules used indirectly: \texttt{demographics} (UN data retrieval and the population machinery of Section~\ref{subsec:demographics}), \texttt{elliptical\_u\_est} (the $(b,\upsilon)$ fit), \texttt{household}, \texttt{firm}, \texttt{fiscal}, \texttt{tax}, \texttt{aggregates} (the equation blocks), and \texttt{output\_plots}/\texttt{output\_tables} (diagnostics).
 \end{itemize}
-From \textbf{OG-UK} (\texttt{oguk} 0.3.0):
+From \textbf{OG-UK} (\texttt{oguk} 0.3.2, installed from GitHub):
 \begin{itemize}
 \item \texttt{oguk.get\_micro\_data} --- runs PolicyEngine UK over the enhanced FRS (cached per year under the suite cache directory) and produces the $(x_i, y_i, ETR_i, MTRx_i, MTRy_i, w_i)$ observations of Section~\ref{subsec:txpipeline}, including the \pounds 1-perturbation marginal rates.
 \item \texttt{oguk.calibrate.Calibration} --- assembles demographics, macro parameters, and estimated tax functions into a \texttt{Specifications}-compatible parameter set.
@@ -81,7 +81,8 @@ The following recipe reproduces the deployed scoring environment exactly, on a m
 \begin{quote}
 \ttfamily
 python -m venv .venv \&\& source .venv/bin/activate\\
-pip install policyengine-uk==2.88.0 oguk==0.3.0\\
+pip install policyengine-uk==2.88.0\\
+pip install git+https://github.com/PSLmodels/OG-UK \# oguk 0.3.2\\
 pip install policyengine-macro
 \end{quote}
 The \texttt{oguk} dependency resolution pulls a compatible \texttt{ogcore} automatically; \texttt{policyengine-\allowbreak uk} must be 2.88.0 exactly --- versions $\geq$ 2.89 renamed the microdata dataset keys (\texttt{enhanced\_\allowbreak frs\_\allowbreak 2023\_\allowbreak 24\_*} $\to$ \texttt{populace\_\allowbreak uk\_*}) and fail at calibration time with a \texttt{KeyError}.
