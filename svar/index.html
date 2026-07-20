@@ -106,7 +106,9 @@
     <div class="prose">
       <p>
         A VAR in eight quarterly variables — three global, five UK — estimated
-        over <strong>1992Q1–2023Q2</strong> (the inflation-targeting era), in
+        over the inflation-targeting era — <strong>1992Q1–2023Q2</strong> in
+        the paper replication, extended to <strong>1992Q1–2025Q1</strong> in
+        the current production round — in
         levels, with <span class="mono">p&nbsp;=&nbsp;4</span> lags and Covid
         dummies for 2020Q1–2021Q2.
       </p>
@@ -142,8 +144,8 @@
         <strong>751 passed</strong> the sign restrictions (7.5%), for an
         importance-weighted effective sample size of <strong>350.3</strong> —
         so medians and bands are correct but noisier than the paper's. The
-        forecast round re-estimates through 2024Q2 with 6,000 draws (487
-        accepted, ESS 207.5).
+        forecast round re-estimates on the current vintage — data through
+        2026Q1 — with 6,000 draws (430 accepted, ESS 197.9).
       </p>
     </div>
   </section>
@@ -216,13 +218,14 @@ python scripts/run_forecast_revision.py</code></pre></div>
         </tbody>
       </table></div>
       <p>
-        In the shipped 2024Q2 round the tool reads the latest quarter as most
-        likely hit by a positive world-demand shock (probability
-        <strong>0.81</strong>) alongside a contractionary, price-raising
-        world-energy shock (<strong>0.80</strong>), with the composite effect
-        of that quarter's shocks revising the year-on-year path by
-        <strong>+0.40pp on GDP growth</strong> and <strong>−0.22pp on CPI
-        inflation</strong>.
+        In the current 2026Q1 round the tool reads the latest quarter as most
+        likely hit by negative world-demand (probability <strong>0.71</strong>)
+        and world-energy (<strong>0.90</strong>) shocks, against positive UK
+        demand (<strong>0.81</strong>) and expansionary monetary policy
+        (<strong>0.84</strong>); the composite effect revises the
+        year-on-year path by <strong>+0.27pp on GDP growth</strong> at impact
+        and <strong>+0.22pp on CPI inflation</strong> at its peak three
+        quarters out.
       </p>
       <div class="callout">
         <strong>It does not score reforms, and it won't.</strong> Mapping a
@@ -244,7 +247,7 @@ python scripts/run_forecast_revision.py</code></pre></div>
       <p>
         Two independent checks. First, against the published paper: Figures
         2–6 replicate and the headline variance decompositions land on the
-        paper's benchmarks. Second — and rarer — the frozen 2024Q2 forecast
+        paper's benchmarks. Second — and rarer — the 2024Q2-frozen forecast study
         can be scored against ONS outturns that have arrived since, a genuine
         out-of-sample test that only exists <em>because</em> the data edge is
         frozen.
@@ -332,7 +335,7 @@ python scripts/run_forecast_revision.py</code></pre></div>
         <tbody>
           <tr>
             <th scope="row"><strong>Frozen data edge</strong></th>
-            <td>Estimation to 2023Q2, conditioning data to 2024Q2. Operational use requires re-running the data pipeline on current vintages, and results will shift with revisions.</td>
+            <td>Estimation to 2025Q1, conditioning data to 2026Q1 (refreshed July 2026). Results shift with data revisions; the replication claims are scored on the paper's original sample.</td>
           </tr>
           <tr>
             <th scope="row"><strong>Proxied world aggregates</strong></th>
@@ -340,7 +343,7 @@ python scripts/run_forecast_revision.py</code></pre></div>
           </tr>
           <tr>
             <th scope="row"><strong>One ranking does not replicate</strong></th>
-            <td>The paper ranks UK monetary policy as the largest domestic contributor to CPI variance; here UK supply (16.2%) exceeds monetary policy (8.0%). Attributed to the proxy world aggregates and the smaller accepted sample, and documented rather than tuned away.</td>
+            <td>The paper ranks UK monetary policy as the largest domestic contributor to CPI variance; here UK supply (13.5%) exceeds monetary policy (10.1%). Attributed to the proxy world aggregates and the smaller accepted sample, and documented rather than tuned away.</td>
           </tr>
           <tr>
             <th scope="row"><strong>Assumed lag length and simplified pandemic prior</strong></th>
