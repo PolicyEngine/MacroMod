@@ -1981,10 +1981,138 @@ def obr_score_reform(
 
 
 # ---------------------------------------------------------------------------
+# Dynamic scoring: OG-UK EconomicAssumptions overlay on the microsim (#11)
+# ---------------------------------------------------------------------------
+
+def _check_overlay_collision(reform: dict) -> None:
+    """Refuse user reforms that touch the overlay's parameter subtree.
+
+    The dynamic score merges the user reform with the overlay's
+    gov.economic_assumptions.* overrides; a user value there would be
+    silently clobbered (or clobber the overlay), so it is an error.
+    """
+    from policyengine_macro.assumptions import OVERLAY_PARAM_PREFIX
+
+    hit = [p for p in reform if p.startswith(OVERLAY_PARAM_PREFIX)]
+    if hit:
+        raise ValueError(
+            "the dynamic overlay overrides gov.economic_assumptions.* "
+            "itself, so the user reform must not touch that subtree "
+            f"(paths: {', '.join(hit)}). Score economic-assumption changes "
+            "with the static microsim (model='microsim') instead."
+        )
+
+
+def dynamic_population_reform_impact(
+    country: str = "uk",
+    reform: dict | None = None,
+    year: int = 2026,
+    dataset: str | None = None,
+    max_iter: int = OG_DEFAULT_MAX_ITER,
+    overlay_years: int = 10,
+    baseline_cache: bool = True,
+) -> dict:
+    """Dynamic population score: OG-UK macro overlay on the microsim (#11).
+
+    Pipeline:
+      1. og_score_reform (baseline steady state cached in-process) —
+         long-run wage and labour-supply changes under the reform;
+      2. EconomicAssumptions.from_og_result — reform/baseline factors;
+      3. the factors become a parametric overlay on the OBR average-earnings
+         uprating index (derived indices overridden directly — overriding
+         yoy_growth would NOT rebuild them; see assumptions.py);
+      4. one pe_population_impact run of the user reform MERGED with the
+         overlay, against the stock-parameter baseline (cached).
+
+    Double-counting rule: the overlay carries only the reform/baseline
+    RATIO from the macro model; the stock baseline already embeds the OBR
+    forecast the OG baseline is calibrated to, so the static effect is
+    never counted twice — a null macro result reduces this exactly to the
+    static score.
+
+    UK only (OG-UK is UK-only). Runtime: two OG steady-state solves
+    (baseline cached; ~10+ min cold) plus one microsim run.
+    """
+    from policyengine_macro.assumptions import (
+        EconomicAssumptions, baseline_index_values,
+    )
+
+    country = _validate_country(country)
+    if country != "uk":
+        raise ValueError(
+            "dynamic scoring is UK-only (OG-UK is a UK model); country "
+            "must be 'uk'"
+        )
+    reform = validate_reform(reform)
+    _check_overlay_collision(reform)
+
+    og = og_score_reform(
+        reform=reform, start_year=year, max_iter=max_iter,
+        baseline_cache=baseline_cache,
+    )
+    ea = EconomicAssumptions.from_og_result(og)
+    base_idx, idx_source = baseline_index_values("average_earnings")
+    overlay = ea.to_parameter_reform(base_idx, years=overlay_years)
+
+    merged = {**reform, **overlay}
+    micro = pe_population_impact(
+        country="uk", reform=merged, year=year, dataset=dataset
+    )
+
+    assumptions = ea.assumption_strings() + [
+        f"baseline index values read via {idx_source}",
+        f"overlay window: {year}..{year + overlay_years - 1}",
+    ]
+    caveats = ea.caveat_strings() + [
+        "corporation-tax incidence stops at the OG model's boundary: any "
+        "wage effect it implies flows through the overlay, but the "
+        "microsim itself still treats corporation tax as not "
+        "household-borne",
+    ]
+    out = {
+        "model": "OG-UK overlay + PolicyEngine population microsimulation",
+        "country": "uk",
+        "year": int(year),
+        "reform": dict(reform),
+        "economic_assumptions": ea.model_dump(),
+        "overlay_reform": overlay,
+        "og": og,
+        "microsim": micro,
+        "assumptions": assumptions,
+        "caveats": caveats,
+    }
+    out["score"] = ScoreResult(
+        model="og+microsim",
+        model_class="olg-ge overlay on microsim",
+        country="uk",
+        reform=dict(reform),
+        horizon=f"annual {year} under long-run steady-state assumptions",
+        quantities={
+            "revenue": ScoreQuantity(
+                delta_bn=micro["budgetary_impact_bn"],
+                units=f"{micro['currency']} bn per year",
+                basis=(
+                    f"{micro['budgetary_impact_basis']}, under the OG-UK "
+                    "earnings overlay"
+                ),
+            ),
+        },
+        assumptions=assumptions,
+        caveats=caveats,
+        distributional=ScoreDistribution(
+            decile_impacts=micro["decile_impacts"],
+            winners=micro["winners"],
+            losers=micro["losers"],
+        ),
+    ).model_dump()
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Unified reform scoring across the suite
 # ---------------------------------------------------------------------------
 
-SCORE_MODELS = ("og", "obr", "microsim")
+SCORE_MODELS = ("og", "obr", "microsim", "og+microsim")
 
 # Models that exist in the suite but deliberately have NO PolicyEngine-reform
 # bridge, mapped to the error explaining what to use instead. score_reform must
@@ -2038,6 +2166,10 @@ def score_reform(
     - "microsim": PolicyEngine population microsimulation itself (static
       annual costing + distribution, no macro feedback). UK or US.
       Extra arg: dataset.
+    - "og+microsim": dynamic scoring (issue #11): OG-UK long-run wage and
+      labour-supply changes become an EconomicAssumptions overlay on the
+      microsim's uprating parameters, and the merged reform is scored
+      against the stock baseline. UK only. Extra args: max_iter, dataset.
 
     "frbus" is deliberately NOT accepted and raises: FRB/US has no
     PolicyEngine-reform bridge (see SCORE_MODELS_WITHOUT_REFORM_BRIDGE), so
@@ -2076,6 +2208,16 @@ def score_reform(
     if model == "microsim":
         return pe_population_impact(
             country=country, reform=reform, year=start_year, dataset=dataset
+        )
+    if model == "og+microsim":
+        if country != "uk":
+            raise ValueError(
+                "the og+microsim member is UK-only (OG-UK); country must "
+                "be 'uk'"
+            )
+        return dynamic_population_reform_impact(
+            country=country, reform=reform, year=start_year,
+            dataset=dataset, max_iter=max_iter,
         )
     raise ValueError(f"model must be one of {SCORE_MODELS}, got {model!r}")
 

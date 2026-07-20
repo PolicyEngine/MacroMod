@@ -2,11 +2,13 @@
 
     modal deploy integration/modal_app.py
 
-Serves the FastMCP instance from `policyengine_macro.mcp_server` (13 tools:
+Serves the FastMCP instance from `policyengine_macro.mcp_server` (14 tools:
 score_reform, obr_shock, list_reform_variables, frbus_shock,
 frbus_list_variables, frbus_summary, forecast_uk, latest_shocks, model_summary,
 calculate_household, household_reform_impact, list_reform_parameters,
-population_reform_impact) as an
+population_reform_impact, dynamic_reform_impact — the last returns an
+actionable "run locally" error here, because oguk is excluded from this
+image; see below) as an
 ASGI app at  https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp
 
 All three model repos resolve their data files relative to their own repo root

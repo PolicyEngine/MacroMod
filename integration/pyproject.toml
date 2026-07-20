@@ -13,6 +13,9 @@ dependencies = [
     "pandas",
     "mcp[cli]>=1.0",
     "pydantic>=2",
+    # assumptions.py reads policyengine-uk's yoy_growth.yaml as the
+    # engine-free fallback for baseline uprating-index values.
+    "pyyaml",
 ]
 
 [project.optional-dependencies]

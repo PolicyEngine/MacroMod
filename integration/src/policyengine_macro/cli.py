@@ -531,6 +531,45 @@ def og_score(reform, year, max_iter, as_json):
     _echo_og_impact(res)
 
 
+@main.command("dynamic-score")
+@click.option("--reform", required=True, help=_REFORM_HELP)
+@click.option("--start-year", "start_year", default=2026, show_default=True,
+              help="Reform start year (OG solve and microsim year).")
+@click.option("--max-iter", default=250, show_default=True,
+              help="Max solver iterations for each OG steady-state solve.")
+@click.option("--dataset", default=None,
+              help="Microdata dataset name override.")
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+def dynamic_score(reform, start_year, max_iter, dataset, as_json):
+    """Dynamic population score: OG-UK macro overlay on the microsim.
+
+    Alias for `score --model og+microsim` (UK only; slow: two OG
+    steady-state solves, baseline cached, plus one microsim run).
+    """
+    try:
+        res = core.dynamic_population_reform_impact(
+            country="uk", reform=_json_opt(reform, "reform"),
+            year=start_year, max_iter=max_iter, dataset=dataset,
+        )
+    except (ValueError, ImportError, RuntimeError) as e:
+        raise click.ClickException(str(e)) from e
+    if as_json:
+        _emit_json(res)
+        return
+    ea = res["economic_assumptions"]
+    click.echo("Dynamic score: OG-UK overlay + PolicyEngine microsim")
+    click.echo(f"Earnings factor: {ea['earnings_factor']}   "
+               f"Labour-supply factor: {ea['labour_supply_factor']}   "
+               f"r: {ea['interest_rate_baseline']} -> "
+               f"{ea['interest_rate_reform']}\n")
+    _echo_score_block(res["score"])
+    micro = res["microsim"]
+    click.echo(f"\n{micro['headline']}")
+    click.echo(_table(micro["decile_impacts"],
+                      ["decile", "avg_income_change", "relative_change_pct",
+                       "count_better_off", "count_worse_off"]))
+
+
 @main.command("og-baseline")
 @click.option("--year", default=2026, show_default=True, help="Start year.")
 @click.option("--max-iter", default=250, show_default=True,

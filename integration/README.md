@@ -35,6 +35,28 @@ scoring model by its declared contract:
   with a pointer to the direct `obr_shock --var TCPRO` lever.
 - `microsim` — the PolicyEngine population costing itself (static, no macro
   feedback).
+- `og+microsim` — dynamic scoring
+  ([#11](https://github.com/PolicyEngine/macro/issues/11)): a two-run
+  structure —
+
+  ```
+  reform ──> OG-UK steady states (baseline cached, reform solved)
+                └─> EconomicAssumptions: earnings factor = w_reform/w_baseline
+                      └─> overlay on gov.economic_assumptions.indices.obr.
+                          average_earnings (the DERIVED index; overriding
+                          yoy_growth would not rebuild it)
+  reform + overlay ──> microsim vs the stock-parameter baseline
+  ```
+
+  The overlay carries only the reform/baseline RATIO, so the static effect
+  embedded in the stock parameters is never double-counted; a null macro
+  result reduces it exactly to `microsim`. Caveats (spelled out in every
+  result): the steady-state factor is applied flat from the start year with
+  no transition dynamics; the aggregate labour-supply change is reported
+  but not distributionally allocated in v1; earnings only (the OG model is
+  real, so there is no price-level overlay). UK-only and local-only (oguk
+  is excluded from the hosted image); also exposed as
+  `pe-macro dynamic-score` and the `dynamic_reform_impact` MCP tool.
 
 Every scoring result also carries a common `score` block — the `ScoreResult`
 schema ([#10](https://github.com/PolicyEngine/macro/issues/10)): model id and
@@ -133,8 +155,10 @@ benefits the MCP server).
 ## MCP server
 
 Runs over stdio via `python -m policyengine_macro.mcp_server`, exposing
-thirteen tools:
+fourteen tools:
 `score_reform` (a PolicyEngine reform through a chosen macro model),
+`dynamic_reform_impact` (the OG-UK overlay dynamic score; local-only —
+the hosted server returns a "run locally" error),
 `obr_shock` and `list_reform_variables` (raw OBR variable shocks),
 `frbus_shock`, `frbus_list_variables` and `frbus_summary` (FRB/US),
 `forecast_uk`, `latest_shocks`, `model_summary` (SVAR), and the PolicyEngine
