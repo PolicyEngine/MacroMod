@@ -24,3 +24,12 @@ def test_router_selects_distribution_model():
         "policy_reform", country="uk", needs_distribution=True
     )
     assert result["primary_model"] == "pe-microsim"
+
+
+def test_every_model_declares_adapter_acceptance_metadata():
+    capabilities.validate_registry()
+    for model in capabilities.list_capabilities():
+        assert model["inputs"]
+        assert model["outputs"]
+        assert model["data_vintage"]
+        assert model["cannot_answer"]

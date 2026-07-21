@@ -167,7 +167,7 @@ def test_obr_bridge_costs_each_year_and_injects_hhdi_path(fake_bridge):
 def test_obr_bridge_score_block(fake_bridge):
     res = core.obr_score_reform({"gov.x": 1}, years=1)
     score = res["score"]
-    assert score["model"] == "obr-emulator"
+    assert score["model"] == "obr-macro"
     assert score["model_class"] == "semi-structural"
     assert score["horizon"] == "quarterly window 2026Q1..2026Q4"
     q = score["quantities"]

@@ -258,6 +258,11 @@ POLICYENGINE_MACRO_REMOTE_TESTS=1 python -m pytest tests/test_remote_mcp.py -v
 
 ## Tests
 
+New model integrations must implement the typed contract in
+`policyengine_macro.adapters` and complete the
+[new-model acceptance checklist](../docs/model-adapter-checklist.md) before
+they are exposed through the CLI, MCP server, or website.
+
 ```bash
 cd integration
 python -m pytest tests -q     # includes an end-to-end stdio MCP client test
