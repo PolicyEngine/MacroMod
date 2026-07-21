@@ -33,3 +33,24 @@ def test_every_model_declares_adapter_acceptance_metadata():
         assert model["outputs"]
         assert model["data_vintage"]
         assert model["cannot_answer"]
+
+
+def test_quality_contract_separates_fidelity_from_economic_evidence():
+    obr = capabilities.get_status("obr-macro")["quality"]
+    svar = capabilities.get_status("boe-svar")["quality"]
+    frbus = capabilities.get_status("frb-us")["quality"]
+
+    assert set(obr) == capabilities.QUALITY_DIMENSIONS
+    assert obr["predictive_validation"]["level"] == "weak"
+    assert svar["identification_robustness"]["level"] == "moderate"
+    assert frbus["implementation_fidelity"]["level"] == "strong"
+    assert frbus["predictive_validation"]["level"] == "not_assessed"
+
+
+def test_quality_assessments_are_explanatory_not_numeric_scores():
+    for model in capabilities.list_capabilities():
+        for assessment in model["quality"].values():
+            assert assessment["level"] in capabilities.QUALITY_LEVELS
+            assert assessment["evidence"]
+            assert assessment["next_gate"]
+            assert "score" not in assessment
