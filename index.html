@@ -103,9 +103,9 @@
     <div class="question-list">
       <a href="/pe/"><span>Taxes and benefits for a household or population</span><strong>UK + US · PolicyEngine</strong></a>
       <a href="/frb-us/"><span>A monetary or fiscal shock in the US over coming quarters</span><strong>US · frb-us</strong></a>
-      <a href="/obr/"><span>A reform's effect on UK growth and borrowing over 3–5 years</span><strong>UK · obr-macro</strong></a>
+      <a href="/obr/"><span>A selected UK fiscal or macro scenario over 3–5 years</span><strong>UK · obr-macro</strong></a>
       <a href="/olg/"><span>Work, saving, and capital effects over decades</span><strong>UK · psl-og</strong></a>
-      <a href="/svar/"><span>What is driving UK GDP and inflation now</span><strong>UK · boe-svar</strong></a>
+      <a href="/svar/"><span>What drove UK GDP and inflation at the latest model-data vintage</span><strong>UK · boe-svar</strong></a>
     </div>
     <p class="chooser-note">Need assumptions and tradeoffs side by side? <a href="/docs/">Compare all five models</a>.</p>
   </section>
@@ -126,8 +126,8 @@
         <header><span class="card-id mono">obr-macro</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>OBR macroeconometric model</h3>
         <p>
-          Estimate how UK reforms affect growth and borrowing over 3–5 years.
-          Anchored to the March 2026 EFO.
+          Run selected UK fiscal and macro scenarios over 3–5 years.
+          Anchored to the March 2026 EFO; borrowing is not yet returned.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -135,8 +135,9 @@
         <header><span class="card-id mono">boe-svar</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>Bank of England structural VAR model</h3>
         <p>
-          Identify what drives UK GDP and inflation, then forecast both with
-          uncertainty ranges. Does not score reforms.
+          Diagnose the latest model-data vintage and forecast GDP and inflation
+          with uncertainty ranges. Coefficients are estimated through 2023Q2;
+          the model does not score reforms.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -144,17 +145,17 @@
         <header><span class="card-id mono">frb-us</span><span class="tag-row"><span class="tag tag-country">US</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>Federal Reserve macroeconomic model</h3>
         <p>
-          Simulate how monetary and fiscal shocks affect US output, inflation,
-          and unemployment. Raw shocks only; no reform scoring.
+          Simulate selected US shocks under VAR expectations. Hosted raw shocks
+          only; no reform scoring or model-consistent expectations.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
       <a class="strategy-card" href="/olg/">
-        <header><span class="card-id mono">psl-og</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-country">US</span><span class="tag tag-local">local</span></span></header>
+        <header><span class="card-id mono">psl-og</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-local">local</span><span class="tag tag-experimental">experimental</span></span></header>
         <h3>PSL overlapping generations model</h3>
         <p>
-          Estimate how reforms affect work, saving, and capital over decades.
-          Runs locally and takes at least 17 minutes per solve.
+          Estimate long-run work, saving, and capital mechanisms. Calibrated
+          research prototype; local solves take at least 17 minutes.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -162,8 +163,9 @@
         <header><span class="card-id mono">pe-microsim</span><span class="tag-row"><span class="tag tag-country">UK</span><span class="tag tag-country">US</span><span class="tag tag-hosted">hosted</span></span></header>
         <h3>PolicyEngine tax-benefit microsimulation</h3>
         <p>
-          Calculate how UK and US reforms affect household taxes, benefits,
-          and net income. Checked directly against statute.
+          Calculate UK and US household taxes, benefits, and net income.
+          Deterministic rule calculation; population estimates depend on survey
+          data and do not include macro feedback.
         </p>
         <span class="strategy-paper-link mono">read the model →</span>
       </a>
@@ -187,7 +189,7 @@
         <article class="verification-card"><div><strong class="mono">obr-macro</strong><span class="verification-tag">Published anchor</span></div><p>Tracks the March 2026 EFO to <strong>0.15% GDP MAPE</strong>.</p></article>
         <article class="verification-card"><div><strong class="mono">boe-svar</strong><span class="verification-tag">Published anchor</span></div><p><strong>0.32pp RMSE</strong>; 14 of 14 outturns inside the 68% ranges.</p></article>
         <article class="verification-card"><div><strong class="mono">frb-us</strong><span class="verification-tag">Published anchor</span></div><p>Matches pyfrbus 1.0.0 to <strong>6.0&times;10⁻⁹</strong> on shock responses.</p></article>
-        <article class="verification-card"><div><strong class="mono">pe-microsim</strong><span class="verification-tag verification-tag-statute">Statute</span></div><p><strong>Exact household arithmetic</strong>, not an approximation.</p></article>
+        <article class="verification-card"><div><strong class="mono">pe-microsim</strong><span class="verification-tag verification-tag-statute">Statute</span></div><p><strong>Deterministic household calculations</strong>, checked rule by rule; population estimates add survey uncertainty.</p></article>
         <article class="verification-card"><div><strong class="mono">psl-og</strong><span class="verification-tag verification-tag-calibrated">Calibrated</span></div><p>Targets met by construction; <strong>no replication ground truth</strong>.</p></article>
       </div>
     </div>

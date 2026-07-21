@@ -107,8 +107,9 @@
       <p>
         A VAR in eight quarterly variables — three global, five UK — estimated
         over the inflation-targeting era — <strong>1992Q1–2023Q2</strong> in
-        the paper replication, extended to <strong>1992Q1–2025Q1</strong> in
-        the current production round — in
+        both the paper replication and the hosted adapter. The hosted forecast
+        conditions on observations through <strong>2026Q1</strong>, but does
+        not re-estimate its coefficients on those later observations. It is estimated in
         levels, with <span class="mono">p&nbsp;=&nbsp;4</span> lags and Covid
         dummies for 2020Q1–2021Q2.
       </p>
@@ -144,8 +145,9 @@
         <strong>751 passed</strong> the sign restrictions (7.5%), for an
         importance-weighted effective sample size of <strong>350.3</strong> —
         so medians and bands are correct but noisier than the paper's. The
-        forecast round re-estimates on the current vintage — data through
-        2026Q1 — with 6,000 draws (430 accepted, ESS 197.9).
+        hosted forecast conditions on the current vintage — data through
+        2026Q1 — with 6,000 draws (430 accepted, ESS 197.9), while retaining
+        the 2023Q2 coefficient-estimation endpoint.
       </p>
     </div>
   </section>
@@ -335,7 +337,7 @@ python scripts/run_forecast_revision.py</code></pre></div>
         <tbody>
           <tr>
             <th scope="row"><strong>Frozen data edge</strong></th>
-            <td>Estimation to 2025Q1, conditioning data to 2026Q1 (refreshed July 2026). Results shift with data revisions; the replication claims are scored on the paper's original sample.</td>
+            <td>Coefficient estimation to 2023Q2; conditioning data to 2026Q1 (refreshed July 2026). Results shift with data revisions; the replication claims are scored on the paper's original sample.</td>
           </tr>
           <tr>
             <th scope="row"><strong>Proxied world aggregates</strong></th>

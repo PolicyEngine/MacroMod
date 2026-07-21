@@ -85,7 +85,7 @@
     <div class="question-list">
       <a href="/pe/"><span>Household taxes, benefits, or distributional effects</span><strong>UK + US · PolicyEngine</strong></a>
       <a href="/frb-us/"><span>US monetary or fiscal shocks</span><strong>US · frb-us</strong></a>
-      <a href="/obr/"><span>Near-term growth and borrowing after a UK reform</span><strong>UK · obr-macro</strong></a>
+      <a href="/obr/"><span>Selected near-term UK fiscal or macro scenarios</span><strong>UK · obr-macro</strong></a>
       <a href="/olg/"><span>Long-run work, saving, and capital effects</span><strong>UK · psl-og</strong></a>
       <a href="/svar/"><span>Drivers of UK GDP and inflation</span><strong>UK · boe-svar</strong></a>
     </div>
@@ -103,16 +103,24 @@
         <caption>The five models compared across question class, method, country, vintage, verification and run surface</caption>
         <thead><tr><td></td><th scope="col"><a href="/obr/">OBR macroeconometric<br><span>obr-macro</span></a></th><th scope="col"><a href="/svar/">Bank of England structural VAR<br><span>boe-svar</span></a></th><th scope="col"><a href="/frb-us/">Federal Reserve model<br><span>frb-us</span></a></th><th scope="col"><a href="/olg/">Overlapping generations<br><span>psl-og</span></a></th><th scope="col"><a href="/pe/">PolicyEngine microsimulation<br><span>pe-microsim</span></a></th></tr></thead>
         <tbody>
-          <tr><th scope="row"><strong>Question class</strong></th><td>Near-term UK fiscal multipliers and Budget-style scoring</td><td>What's driving the UK economy now; short-run forecasts and revision narratives</td><td>US macro dynamics: monetary and fiscal shocks, quarter by quarter</td><td>Long-run incentives: labour supply, saving, the capital stock over decades</td><td>What a specific family pays and receives; distributional effects</td></tr>
+          <tr><th scope="row"><strong>Question class</strong></th><td>Selected near-term UK fiscal and macro scenarios</td><td>What drove the UK economy at the latest model-data vintage; short-run forecasts and revision narratives</td><td>US macro dynamics: monetary and fiscal shocks, quarter by quarter</td><td>Long-run incentives: labour supply, saving, the capital stock over decades</td><td>What a specific family pays and receives; distributional effects</td></tr>
           <tr><th scope="row"><strong>Method</strong></th><td>Structural macroeconometric emulator — Gauss–Seidel over 372 equations per quarter</td><td>Bayesian structural VAR — posterior sampling with zero + sign restrictions naming the shocks</td><td>Large-scale macroeconometric model — 284 equations solved under VAR expectations</td><td>Dynamic general equilibrium (OLG) — steady-state root-find and transition-path iteration</td><td>Static tax-benefit microsimulation — direct rule evaluation, no behavioural response</td></tr>
           <tr><th scope="row"><strong>Country</strong></th><td>UK</td><td>UK</td><td>US</td><td>UK (OG-UK)</td><td>UK &amp; US</td></tr>
-          <tr><th scope="row"><strong>Data vintage</strong></th><td>OBR <em>Economic and Fiscal Outlook</em>, March 2026</td><td>ONS, BoE and FRED series — estimation sample to 2025Q1, data edge 2026Q1 (refreshed July 2026)</td><td>The Fed's <code>model.xml</code> and LONGBASE database, April 2026</td><td>ONS, OBR and BoE national accounts as calibration targets; OG-UK 0.3.2 (from GitHub)</td><td>UK &amp; US statute; enhanced FRS microdata for population runs (UK)</td></tr>
-          <tr><th scope="row"><strong>Verification class</strong> (<a href="/validation/">numbers →</a>)</th><td>Replication with a published anchor</td><td>Replication with a published anchor</td><td>Replication with a published anchor</td><td>Calibrated counterfactual — no ground truth</td><td>Validated against statute</td></tr>
+          <tr><th scope="row"><strong>Data vintage</strong></th><td>OBR <em>Economic and Fiscal Outlook</em>, March 2026</td><td>ONS, BoE and FRED series — coefficients estimated through 2023Q2; conditioned through the 2026Q1 data edge</td><td>The Fed's <code>model.xml</code> and LONGBASE database, April 2026</td><td>ONS, OBR and BoE national accounts as calibration targets; OG-UK 0.3.2 (from GitHub)</td><td>UK &amp; US statute; enhanced FRS 2023–24 microdata for UK population runs</td></tr>
+          <tr><th scope="row"><strong>Evidence class</strong> (<a href="/validation/">numbers →</a>)</th><td>Validated for selected scenarios; published anchor is not out-of-sample validation</td><td>Validated replication for selected outputs</td><td>Validated software replication; substantive comparisons are approximate</td><td>Research prototype; calibrated counterfactual with no ground truth</td><td>Deterministic rule calculation; population estimates add survey uncertainty</td></tr>
           <tr><th scope="row"><strong>Reform scoring</strong></th><td>Yes — shocks to exogenous model variables; static-costing bridge from PolicyEngine reforms</td><td>No — the baseline/conditioning member: it reads the economy reforms are scored against</td><td>No — shock experiments only (funds-rate or fiscal shocks under VAR expectations); <code>score_reform</code> refuses <code>model="frbus"</code>, as no PolicyEngine reform bridge exists</td><td>Yes — a PolicyEngine policy translated into estimated tax functions</td><td>Yes — a PolicyEngine parameter + a new value, applied directly to households</td></tr>
+          <tr><th scope="row"><strong>Cannot establish</strong></th><td>Arbitrary reform incidence or borrowing through the current adapter</td><td>The causal effect of a specific statutory reform</td><td>PolicyEngine reform effects, anticipated-policy paths, or MCE scenarios</td><td>A short-run forecast or independently validated reform effect</td><td>GDP, inflation, interest rates, or macro feedback</td></tr>
           <tr><th scope="row"><strong>Run surface</strong></th><td>Hosted (CLI, MCP, Python API)</td><td>Hosted (CLI, MCP, Python API)</td><td>Hosted (CLI, MCP, Python API) — raw shocks only</td><td>Local only</td><td>Hosted</td></tr>
           <tr><th scope="row"><strong>Typical runtime</strong></th><td>Seconds to minutes per scenario</td><td>Minutes per full estimation + identification run</td><td>Seconds to minutes per simulation</td><td>~17+ min per steady-state solve (two per score); hours for transition paths</td><td>Sub-second per household; minutes for population runs</td></tr>
         </tbody>
       </table>
+      </div>
+      <div class="callout">
+        <strong>Comparison rule.</strong> These models use different horizons,
+        baselines, mechanisms, and output definitions. Related results should
+        be interpreted together, not added, averaged, or ranked. The CLI and
+        JSON result schema retain units, time basis, provenance, and an explicit
+        comparability label for this reason.
       </div>
       <div class="mobile-compare" data-mobile-compare aria-labelledby="mobile-compare-title">
         <h3 id="mobile-compare-title">Compare two models</h3>

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import os
 import re
+from datetime import datetime, timezone
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import numpy as np
@@ -21,6 +23,34 @@ BOE_VAR_REPO_ENV = "POLICYENGINE_MACRO_BOE_VAR_REPO"
 # name against the loaded dataset's own columns, so an upstream reorder can
 # never silently mislabel a series.
 _COL_CPI, _COL_GDP = "cpisa", "uk_gdp"
+
+
+def _package_version(distribution: str) -> str:
+    """Installed distribution version, without making provenance optional."""
+    try:
+        return version(distribution)
+    except PackageNotFoundError:
+        return "not-installed"
+
+
+def _provenance(
+    *,
+    model_id: str,
+    distribution: str,
+    data_vintage: str,
+    baseline: str,
+    estimation_sample: str | None = None,
+) -> dict:
+    """Common model/run provenance returned by every public adapter."""
+    return {
+        "model_id": model_id,
+        "package": distribution,
+        "package_version": _package_version(distribution),
+        "data_vintage": data_vintage,
+        "baseline": baseline,
+        "estimation_sample": estimation_sample,
+        "run_at": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -138,6 +168,12 @@ def obr_shock(
     peak = max(rows, key=lambda r: abs(r["pct_gdp"]))
     return {
         "name": name,
+        "provenance": _provenance(
+            model_id="obr-emulator",
+            distribution="obr-macro-model",
+            data_vintage="March 2026 EFO",
+            baseline="March 2026 EFO anchored baseline",
+        ),
         "var": var,
         "shock": float(shock),
         "periods": int(periods),
@@ -508,6 +544,12 @@ def frbus_shock(
 
     result = {
         "name": name or f"{var} shock {shock:+g}",
+        "provenance": _provenance(
+            model_id="frb-us",
+            distribution="frbus",
+            data_vintage="April 2026 LONGBASE",
+            baseline="Federal Reserve April 2026 LONGBASE",
+        ),
         "var": var,
         "shock": float(shock),
         "units": _FRBUS_VAR_INDEX.get(var, {}).get("units", "model units"),
@@ -609,6 +651,12 @@ def frbus_summary() -> dict:
         out["source"] = str(_frbus_repo())
     except Exception as e:  # frbus not installed: metadata is still useful
         out["source_error"] = str(e)
+    out["provenance"] = _provenance(
+        model_id="frb-us",
+        distribution="frbus",
+        data_vintage="April 2026 LONGBASE",
+        baseline="Federal Reserve LONGBASE tracking baseline",
+    )
     return out
 
 
@@ -714,6 +762,13 @@ def svar_forecast(horizons: int = 12, draws: int = 500) -> dict:
 
     out = {
         "model": "UK SVAR (BVAR, sign-identified)",
+        "provenance": _provenance(
+            model_id="boe-svar",
+            distribution="boe_var",
+            data_vintage=f"conditioned through {last_q}",
+            baseline=f"unconditional forecast from {last_q}",
+            estimation_sample="1992Q1-2023Q2",
+        ),
         "forecast_origin": str(last_q),
         "horizons": int(horizons),
         "draws": int(draws),
@@ -772,6 +827,13 @@ def svar_latest_shocks(draws: int = 500) -> dict:
         )
     out = {
         "quarter": last_q,
+        "provenance": _provenance(
+            model_id="boe-svar",
+            distribution="boe_var",
+            data_vintage=f"conditioned through {last_q}",
+            baseline="identified structural shocks",
+            estimation_sample="1992Q1-2023Q2",
+        ),
         "draws": key,
         "accepted_draws": est["n_accepted"],
         "ess": round(est["ess"], 1),
@@ -1248,6 +1310,12 @@ def pe_household(
         "summary": _pe_summary(country, result),
         "person": [_pe_entity_dict(p) for p in result.person],
         "household": _pe_entity_dict(result.household),
+        "provenance": _provenance(
+            model_id="pe-microsim",
+            distribution="policyengine-uk" if country == "uk" else "policyengine-us",
+            data_vintage=f"{year} policy parameters",
+            baseline="current law" if not reform else "submitted reform",
+        ),
     }
     if country == "uk":
         out["benunit"] = _pe_entity_dict(result.benunit)
@@ -1295,6 +1363,12 @@ def pe_household_impact(
         "with_reform": ref,
         "change": deltas,
         "net_income_change": deltas.get("household_net_income"),
+        "provenance": _provenance(
+            model_id="pe-microsim",
+            distribution="policyengine-uk" if country == "uk" else "policyengine-us",
+            data_vintage=f"{year} policy parameters",
+            baseline="current law compared with submitted reform",
+        ),
     }
 
 
@@ -1512,6 +1586,12 @@ def pe_population_impact(
     sym = "£" if country == "uk" else "$"
     out = {
         "model": "PolicyEngine population microsimulation",
+        "provenance": _provenance(
+            model_id="pe-microsim",
+            distribution="policyengine",
+            data_vintage=ds.name,
+            baseline=f"baseline policy for {year}",
+        ),
         "country": country,
         "year": int(year),
         "dataset": ds.name,
@@ -1646,6 +1726,12 @@ def og_baseline(start_year: int = 2026, max_iter: int = OG_DEFAULT_MAX_ITER) -> 
     ss = _og_solve_baseline(start_year, max_iter)
     return {
         "model": "OG-UK overlapping generations (steady state)",
+        "provenance": _provenance(
+            model_id="og-uk",
+            distribution="oguk",
+            data_vintage="OG-UK packaged calibration inputs",
+            baseline=f"steady state starting {start_year}",
+        ),
         "assumptions": "pooled ages, single representative sector, "
                        "steady state only",
         "start_year": int(start_year),
@@ -1680,6 +1766,12 @@ def og_score_reform(
     imp = impact.model_dump()
     out = {
         "model": "OG-UK overlapping generations (steady state)",
+        "provenance": _provenance(
+            model_id="og-uk",
+            distribution="oguk",
+            data_vintage="OG-UK packaged calibration inputs",
+            baseline=f"steady state starting {start_year}",
+        ),
         "assumptions": "pooled ages, single representative sector, "
                        "long-run steady-state comparison (not a budget-window "
                        "costing)",
@@ -1719,14 +1811,19 @@ SCORE_QUANTITIES = (
 
 
 class ScoreQuantity(BaseModel):
-    """One comparable macro quantity. A model fills only what it produces:
-    e.g. the microsim fills revenue only; the OG member has no uncertainty."""
+    """One model quantity with enough metadata to assess comparability.
+
+    A shared name does not make two values like-for-like: units, basis,
+    time_basis, and comparability must all be inspected.
+    """
 
     level_bn: float | None = None
     delta_bn: float | None = None
     delta_pct: float | None = None
     units: str
     basis: str
+    time_basis: str
+    comparability: str = "related-not-like-for-like"
 
 
 class ScoreDistribution(BaseModel):
@@ -1744,8 +1841,11 @@ class ScoreResult(BaseModel):
 
     model: str        # adapter id, e.g. "og-uk", "obr-emulator", "pe-microsim"
     model_class: str  # "microsim" | "semi-structural" | "olg-ge"
+    analysis_type: str
     country: str
     reform: dict
+    baseline: str
+    provenance: dict
     horizon: str      # "steady-state" | "quarterly window ..." | "annual ..."
     quantities: dict[str, ScoreQuantity]
     assumptions: list[str] = []
@@ -1768,12 +1868,22 @@ def _og_score_block(res: dict) -> dict:
             delta_pct=imp["changes_pct"][f"{k}_pct"],
             units=units,
             basis="oguk.map_to_real_world baseline-vs-reform steady states",
+            time_basis="long-run annual steady-state level",
         )
+    start_year = int(res.get("start_year", 2026))
     return ScoreResult(
         model="og-uk",
         model_class="olg-ge",
+        analysis_type="long-run structural reform",
         country="uk",
         reform=res["reform"],
+        baseline=f"OG-UK steady state starting {start_year}",
+        provenance=_provenance(
+            model_id="og-uk",
+            distribution="oguk",
+            data_vintage="OG-UK packaged calibration inputs",
+            baseline=f"steady state starting {start_year}",
+        ),
         horizon="steady-state",
         quantities=q,
         assumptions=[res["assumptions"]],
@@ -1789,14 +1899,23 @@ def _pop_score_block(res: dict) -> dict:
     return ScoreResult(
         model="pe-microsim",
         model_class="microsim",
+        analysis_type="population policy reform",
         country=res["country"],
         reform=res["reform"],
+        baseline=f"PolicyEngine baseline policy for {res['year']}",
+        provenance=_provenance(
+            model_id="pe-microsim",
+            distribution="policyengine",
+            data_vintage=res["dataset"],
+            baseline=f"baseline policy for {res['year']}",
+        ),
         horizon=f"annual {res['year']}",
         quantities={
             "revenue": ScoreQuantity(
                 delta_bn=res["budgetary_impact_bn"],
                 units=f"{cur} bn per year",
                 basis=res["budgetary_impact_basis"],
+                time_basis=f"annual {res['year']}",
             ),
         },
         assumptions=[
@@ -1961,14 +2080,23 @@ def obr_score_reform(
     out["score"] = ScoreResult(
         model="obr-emulator",
         model_class="semi-structural",
+        analysis_type="translated fiscal scenario",
         country="uk",
         reform=dict(reform),
+        baseline="OBR Economic and Fiscal Outlook, March 2026",
+        provenance=_provenance(
+            model_id="obr-emulator",
+            distribution="obr-macro-model",
+            data_vintage="March 2026 EFO",
+            baseline="March 2026 EFO anchored baseline",
+        ),
         horizon=f"quarterly window {start}..{end}",
         quantities={
             "gdp": ScoreQuantity(
                 delta_bn=cumulative_gdp_bn,
                 units="GBP bn, cumulative over the shocked quarters",
                 basis="GDPM delta vs baseline, OBR emulator solve",
+                time_basis=f"cumulative quarterly {start}..{end}",
             ),
             "consumption": ScoreQuantity(
                 delta_bn=round(
@@ -1976,6 +2104,7 @@ def obr_score_reform(
                 ),
                 units="GBP bn, cumulative over the shocked quarters",
                 basis="CONS delta vs baseline, OBR emulator solve",
+                time_basis=f"cumulative quarterly {start}..{end}",
             ),
             "investment": ScoreQuantity(
                 delta_bn=round(
@@ -1983,12 +2112,14 @@ def obr_score_reform(
                 ),
                 units="GBP bn, cumulative over the shocked quarters",
                 basis="IF delta vs baseline, OBR emulator solve",
+                time_basis=f"cumulative quarterly {start}..{end}",
             ),
             "revenue": ScoreQuantity(
                 delta_bn=mean_costing_bn,
                 units="GBP bn per year, mean over the window",
                 basis="PolicyEngine static costing (the bridge INPUT, not "
                       "an emulator output)",
+                time_basis=f"mean annual {window[0]}..{window[-1]}",
             ),
         },
         assumptions=[
@@ -2116,8 +2247,22 @@ def dynamic_population_reform_impact(
     out["score"] = ScoreResult(
         model="og+microsim",
         model_class="olg-ge overlay on microsim",
+        analysis_type="experimental steady-state earnings overlay",
         country="uk",
         reform=dict(reform),
+        baseline=(
+            f"PolicyEngine baseline policy for {year}, with OG-UK steady-state "
+            "reform-to-baseline earnings feedback"
+        ),
+        provenance=_provenance(
+            model_id="og+microsim",
+            distribution="policyengine-macro",
+            data_vintage=(
+                f"PolicyEngine dataset {micro.get('dataset', dataset or 'default')}; "
+                "OG-UK packaged calibration inputs"
+            ),
+            baseline=f"baseline policy for {year} and OG-UK steady state",
+        ),
         horizon=f"annual {year} under long-run steady-state assumptions",
         quantities={
             "revenue": ScoreQuantity(
@@ -2126,6 +2271,10 @@ def dynamic_population_reform_impact(
                 basis=(
                     f"{micro['budgetary_impact_basis']}, under the OG-UK "
                     "earnings overlay"
+                ),
+                time_basis=(
+                    f"annual {year}, applying a long-run steady-state wage "
+                    "ratio from the first year"
                 ),
             ),
         },
@@ -2311,7 +2460,15 @@ def svar_summary() -> dict:
         rdir = Path(env) / "results"
     summary_path = rdir / "summary.md"
     fsummary_path = rdir / "forecast_summary.md"
-    out: dict = {"source": str(rdir)}
+    out: dict = {
+        "source": str(rdir),
+        "provenance": _provenance(
+            model_id="boe-svar",
+            distribution="boe-var-model",
+            data_vintage="estimation through 2023Q2; conditioning data through 2026Q1",
+            baseline="committed replication and forecast artefacts",
+        ),
+    }
 
     if summary_path.exists():
         text = summary_path.read_text()

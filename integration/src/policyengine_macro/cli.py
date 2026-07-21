@@ -7,6 +7,7 @@ import json
 import click
 
 from policyengine_macro import core
+from policyengine_macro import capabilities
 
 
 def _emit_json(obj) -> None:
@@ -26,6 +27,30 @@ def _table(rows: list[dict], columns: list[str]) -> str:
 @click.group()
 def main() -> None:
     """PolicyEngine Macro: unified CLI over the OBR emulator and the UK SVAR model."""
+
+
+@main.command("model-status")
+@click.argument("model_id", required=False)
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+def model_status(model_id, as_json):
+    """Show supported uses, access, and limitations for one or all models."""
+    try:
+        rows = ([capabilities.get_status(model_id)] if model_id
+                else capabilities.list_capabilities())
+    except ValueError as e:
+        raise click.ClickException(str(e)) from e
+    if as_json:
+        _emit_json(rows[0] if model_id else rows)
+        return
+    click.echo(_table([
+        {
+            "model": row["model_id"],
+            "country": ",".join(row["geography"]),
+            "status": row["status"],
+            "access": "; ".join(row["access"]),
+        }
+        for row in rows
+    ], ["model", "country", "status", "access"]))
 
 
 @main.command()
@@ -104,7 +129,7 @@ def _echo_score_block(score: dict) -> None:
 @click.option("--year", default=2026, show_default=True, help="Reform start year.")
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON list of ScoreResults.")
 def compare(country, reform, models, year, as_json):
-    """Score the SAME reform through several model classes, side by side.
+    """Run one reform through supported adapters, with comparability warnings.
 
     Runs `score` once per model and renders one table from the common
     ScoreResult blocks (PolicyEngine/macro#10)."""
@@ -133,12 +158,16 @@ def compare(country, reform, models, year, as_json):
                 "quantity": name,
                 "delta_bn": q.get("delta_bn"),
                 "delta_pct": q.get("delta_pct"),
+                "units": q["units"],
+                "time_basis": q["time_basis"],
+                "comparability": q["comparability"],
             })
     click.echo(_table(rows, ["model", "class", "horizon", "quantity",
-                             "delta_bn", "delta_pct"]))
-    click.echo("\nDeltas are each model's own concept (see `score --json` "
-               "for units/basis per quantity): steady-state vs budget-window "
-               "numbers are NOT directly additive.")
+                             "delta_bn", "delta_pct", "units", "time_basis",
+                             "comparability"]))
+    click.echo("\nThese results use different horizons and mechanisms. "
+               "Treat related-not-like-for-like rows as complementary: they "
+               "must not be added, averaged, or ranked.")
 
 
 @main.command("obr-shock")

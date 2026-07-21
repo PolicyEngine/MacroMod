@@ -68,7 +68,9 @@ def test_og_score_block_schema():
     assert set(score["quantities"]) == set(core.SCORE_QUANTITIES)
     q = score["quantities"]["revenue"]  # tax_revenue is renamed to revenue
     assert q["level_bn"] == 100.0 and q["delta_bn"] == 1.5
-    assert q["units"] and q["basis"]
+    assert q["units"] and q["basis"] and q["time_basis"]
+    assert score["analysis_type"] == "long-run structural reform"
+    assert score["provenance"]["model_id"] == "og-uk"
     assert score["distributional"] is None
     json.dumps(score)
 
@@ -90,6 +92,7 @@ def test_pop_score_block_schema():
     # A static microsim fills only the revenue quantity.
     assert set(score["quantities"]) == {"revenue"}
     assert score["quantities"]["revenue"]["delta_bn"] == 6.5
+    assert score["quantities"]["revenue"]["comparability"] == "related-not-like-for-like"
     dist = score["distributional"]
     assert dist["winners"] == 3 and dist["losers"] == 7
     assert dist["decile_impacts"][0]["decile"] == 1

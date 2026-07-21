@@ -2,7 +2,8 @@
 
     modal deploy integration/modal_app.py
 
-Serves the FastMCP instance from `policyengine_macro.mcp_server` (14 tools:
+Serves the FastMCP instance from `policyengine_macro.mcp_server` (17 tools:
+list_model_capabilities, get_model_status, recommend_model,
 score_reform, obr_shock, list_reform_variables, frbus_shock,
 frbus_list_variables, frbus_summary, forecast_uk, latest_shocks, model_summary,
 calculate_household, household_reform_impact, list_reform_parameters,

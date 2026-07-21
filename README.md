@@ -1,11 +1,9 @@
 # PolicyEngine Macro
 
-**PolicyEngine Macro** is PolicyEngine's suite of open-source **macroeconomic simulation
-models** for scoring public policy. Where microsimulation tells you who pays
-what the morning after a reform, PolicyEngine Macro traces the second act — how people
-work, save, and invest differently, how firms adjust capital, and how wages,
-interest rates, and the revenue estimate move with them — in a structural,
-general-equilibrium engine.
+**PolicyEngine Macro** is an open platform for answering economic and public-policy
+questions with transparent, reproducible models. It brings household analysis,
+macroeconomic scenarios, forecasts, empirical shock identification, and long-run
+structural analysis behind a common discovery and run surface.
 
 🌐 **[policyengine-macro.vercel.app](https://policyengine-macro.vercel.app)** · a PolicyEngine project
 
@@ -13,23 +11,18 @@ general-equilibrium engine.
 
 ## The models
 
-Every model in the suite scores the same PolicyEngine reform objects and reports
-the same real-world quantities (GDP, consumption, investment, government,
-revenue, debt in £bn), so results are comparable across model classes. Two
-current exceptions, stated plainly: the OBR emulator does not take PolicyEngine
-reform objects yet (the microsim static-costing bridge is
-[#9](https://github.com/PolicyEngine/macro/issues/9); raw variable shocks go
-through `obr_shock`), and the structural VAR — a Python replication of the Bank
-of England's Bayesian SVAR for the UK — reads the current state of the economy
-in structural-shock terms and forecasts it, but does not score reforms.
+Each model answers a different class of economic question. MacroMod provides a
+common way to discover, run, and interpret them while preserving the assumptions,
+horizons, evidence, and outputs specific to each model. Results from different
+model classes are often complementary rather than directly comparable.
 
 | model | status | repo |
 |-------|--------|------|
-| **Overlapping generations (OG-UK)** | shipped | [PSLmodels/OG-UK](https://github.com/PSLmodels/OG-UK) |
-| **OBR macroeconometric model** | shipped | [PolicyEngine/obr-macroeconomic-model](https://github.com/PolicyEngine/obr-macroeconomic-model) |
-| **Bank of England structural VAR (boe-svar)** | shipped (baseline/conditioning member: forecasts with bands, shock readings, revision narratives — does not score reforms) | [PolicyEngine/boe-var-model](https://github.com/PolicyEngine/boe-var-model) |
-| **PolicyEngine tax-benefit microsimulation** | shipped (household calculator, household reform impacts, and population-level scoring) | [PolicyEngine/policyengine.py](https://github.com/PolicyEngine/policyengine.py) |
-| **FRB/US (US macroeconometric model)** | shipped (from-scratch Python implementation of the Fed's model; VAR expectations, validated against pyfrbus; wired into the CLI and the hosted MCP server as `frbus_shock`) | [PolicyEngine/us-frb-model](https://github.com/PolicyEngine/us-frb-model) |
+| **Overlapping generations (OG-UK)** | experimental; local steady-state scoring | [PSLmodels/OG-UK](https://github.com/PSLmodels/OG-UK) |
+| **OBR macroeconometric model** | validated for selected hosted scenarios | [PolicyEngine/obr-macroeconomic-model](https://github.com/PolicyEngine/obr-macroeconomic-model) |
+| **Bank of England structural VAR (boe-svar)** | validated replication for selected hosted outputs; does not score reforms | [PolicyEngine/boe-var-model](https://github.com/PolicyEngine/boe-var-model) |
+| **PolicyEngine tax-benefit microsimulation** | hosted household and population analysis; no macro feedback | [PolicyEngine/policyengine.py](https://github.com/PolicyEngine/policyengine.py) |
+| **FRB-US (US macroeconometric model)** | hosted raw-shock experiments; VAR expectations only | [PolicyEngine/us-frb-model](https://github.com/PolicyEngine/us-frb-model) |
 | More model classes (incl. OG-USA) | planned | — |
 
 PolicyEngine is the *micro* member: person/household-resolution taxes and
@@ -96,9 +89,8 @@ models:
   claude mcp add --transport http policyengine-macro https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp
   ```
 
-  Thirteen tools: `score_reform` (a PolicyEngine reform — the same
-  `{parameter_path: value}` dict as the microsimulation tools — through a
-  chosen macro model), `obr_shock` and `list_reform_variables` (raw OBR
+  The tools include `score_reform` (a PolicyEngine reform through a supported
+  scoring adapter), `obr_shock` and `list_reform_variables` (raw OBR
   variable shocks in model units), `frbus_shock`, `frbus_list_variables` and
   `frbus_summary` (FRB/US impulse responses under a selectable monetary policy
   rule; `score_reform` refuses `model='frbus'` because there is deliberately no
@@ -107,20 +99,25 @@ models:
   (`calculate_household`, `household_reform_impact`, `list_reform_parameters`,
   `population_reform_impact`). `score_reform` with `model='og'` works locally
   only: OG-UK is deliberately excluded from the hosted image (a score takes
-  tens of minutes) — use `pe-macro score --model og` instead; `model='obr'`
-  awaits the microsim static-costing bridge (#9), so raw shocks go through
-  `obr_shock`.
+  tens of minutes) — use `pe-macro score --model og` instead. The OBR reform
+  bridge translates a static population costing into a household-disposable-
+  income scenario; it is a demand-side approximation, not a general reform-
+  incidence model. Direct OBR scenarios use `obr_shock`.
   The server runs serverless and scales to zero — the first call after idle
   may take ~10 s to wake.
 - **CLI** — the `pe-macro` CLI (`score`, `obr-shock`, `variables`, `forecast`,
   `shocks`, `summary`, `household`, `household-impact`, `population-impact`,
   `parameters`, `og-score`) lives
-  in [`integration/`](integration/); PyPI publish is planned. Install it —
-  with all three hosted-model packages and their data, no clone — via:
+  in [`integration/`](integration/); PyPI publish is planned. Install it with
+  PolicyEngine, the OBR emulator, and the SVAR via:
 
   ```bash
   pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
   ```
+
+  FRB-US needs an editable checkout until its upstream wheel includes its two
+  runtime data files. See [`integration/README.md`](integration/README.md) for
+  the supported local setup. Hosted FRB-US already uses that layout.
 - **Code** — drive each model's Python API yourself.
 
 ## The site

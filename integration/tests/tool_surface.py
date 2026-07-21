@@ -23,16 +23,19 @@ GOLDEN_TOOLS = frozenset(
         "frbus_summary",
         "household_reform_impact",
         "latest_shocks",
+        "list_model_capabilities",
         "list_reform_parameters",
         "list_reform_variables",
         "model_summary",
+        "get_model_status",
         "obr_shock",
         "population_reform_impact",
         "score_reform",
+        "recommend_model",
     }
 )
 
-GOLDEN_TOOL_COUNT = 14
+GOLDEN_TOOL_COUNT = 17
 
 assert len(GOLDEN_TOOLS) == GOLDEN_TOOL_COUNT
 

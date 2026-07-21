@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://policyengine-macro.vercel.app/pe" />
 <meta property="og:site_name" content="PolicyEngine Macro" />
 <meta property="og:title" content="PolicyEngine tax-benefit microsimulation — PolicyEngine Macro" />
-<meta property="og:description" content="The UK and US tax-benefit engine behind policyengine.org — household calculations and population scoring, validated against statute itself." />
+<meta property="og:description" content="The UK and US tax-benefit engine behind policyengine.org — deterministic household rule calculations and survey-based population scoring." />
 <meta property="og:image" content="https://policyengine-macro.vercel.app/assets/og-image.png" />
 <meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -251,7 +251,7 @@ agg.run()
   <section id="trust" class="band band-result">
     <div class="band-head">
       <span class="kicker mono">05 — how far to trust it</span>
-      <h2>Validated against statute, not against a forecast.</h2>
+      <h2>Checked rule by rule, not against a forecast.</h2>
     </div>
     <div class="prose">
       <p>
@@ -264,7 +264,9 @@ agg.run()
         of income tax, at 8% <strong>£2,994</strong> of National Insurance,
         leaving <strong>£39,520</strong> net. Raising the basic rate 5pp adds
         5% of £37,430 = <strong>£1,872</strong>. Every figure printed by the
-        code sample is the arithmetic of statute, exactly.
+        code sample is deterministic arithmetic from the implemented rules.
+        This example verifies those rules; it is not a claim that every area
+        of legislation has complete test coverage.
       </p>
       <p>
         What is <em>not</em> exact is anything resting on survey microdata —
@@ -281,9 +283,9 @@ agg.run()
     </div>
     <div class="metrics">
       <div class="metric">
-        <span class="metric-label mono">household arithmetic</span>
-        <span class="metric-val">exact</span>
-        <span class="metric-note">statute applied, not estimated</span>
+        <span class="metric-label mono">household calculation</span>
+        <span class="metric-val">deterministic</span>
+        <span class="metric-note">implemented rules applied, not estimated</span>
       </div>
       <div class="metric">
         <span class="metric-label mono">countries</span>

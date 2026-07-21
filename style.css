@@ -170,9 +170,16 @@ body {
   font-size: var(--fs-body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: visible;
   position: relative;
 }
+
+/* Let content shrink inside grid/flex tracks. Horizontal scrolling belongs
+   only to explicit table and code scrollers, never to the whole document. */
+main, section, article, header, nav, .hero-inner, .hero-copy, .band-head,
+.lede, h1, h2, h3, p, figure, figcaption { min-width: 0; max-inline-size: 100%; }
+img, svg, canvas { max-width: 100%; }
+h1, h2, h3, p, figcaption, a { overflow-wrap: anywhere; }
 
 /* ---------- background: deliberately nothing ----------
    The page used to stack three ambient layers behind the reading column: two
@@ -560,6 +567,7 @@ h2 {
 /* model access + status badges (accurate to how each model can be used) */
 .tag-hosted { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--text-success); }
 .tag-local { background: color-mix(in srgb, var(--brand-warning) 16%, transparent); color: var(--brand-warning); }
+.tag-experimental { background: var(--muted); color: var(--paper-dim); border-color: var(--line); }
 .tag-country { background: transparent; color: var(--paper-dim); border-color: var(--line); }
 /* two badges sit side by side in a card header */
 .tag-row { display: inline-flex; gap: 6px; flex-wrap: wrap; }
@@ -848,10 +856,20 @@ h2 {
 .chooser-note a { color: var(--brand-strong); }
 
 @media (max-width: 620px) {
-  .nav { gap: 10px; }
-  .brand { font-size: 11px; }
-  .nav-links { gap: 10px; }
-  .nav-links a.nav-mobile:first-child { display: none; }
+  .nav {
+    min-height: 112px;
+    align-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-block: 10px;
+  }
+  .brand { width: 100%; font-size: 12px; }
+  .nav-links { width: 100%; justify-content: space-between; gap: 6px; }
+  .nav-links a.nav-mobile:first-child { display: inline-flex; }
+  .nav-links .nav-start { min-height: 44px; padding-inline: 12px; }
+  .nav-gh { min-width: 44px; min-height: 44px; justify-content: center; }
+  .section-tabs { top: 112px; }
+  .has-section-tabs .hero { padding-top: 210px; }
   .question-list a { grid-template-columns: 1fr 18px; gap: 8px 14px; }
   .question-list strong { grid-column: 1; grid-row: 2; }
   .question-list a::after { grid-column: 2; grid-row: 1 / span 2; }
@@ -1133,7 +1151,15 @@ h2 {
   .desktop-comparison { display: none; }
   .mobile-compare { display: block; }
   .mobile-compare-controls { grid-template-columns: 1fr; }
-  .validation-model-nav { top: 129px; max-width: calc(100% - 20px); }
+  .validation-model-nav {
+    top: 172px;
+    width: calc(100% - 20px);
+    max-width: none;
+    border-radius: var(--radius);
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+  .validation-model-nav a { flex: 1 1 auto; min-height: 40px; text-align: center; }
 }
 
 /* ============================================================

@@ -69,7 +69,7 @@
     <div class="hero-inner">
       <p class="eyebrow reveal" style="--d:0">evidence by model</p>
       <h1 class="reveal page-title" style="--d:1;">
-        See how each model is validated.
+        See the evidence for each model.
       </h1>
       <p class="lede reveal" style="--d:2">
         Compare results with official benchmarks—and see clearly where no
@@ -127,9 +127,9 @@
           </tr>
           <tr>
             <th scope="row"><a href="#pe"><strong>pe-microsim</strong></a></th>
-            <td>Validated against statute</td>
-            <td>UK and US law, rule by rule, for an exact household</td>
-            <td>Exact household arithmetic — not an approximation</td>
+            <td>Checked against implemented legislation</td>
+            <td>Implemented UK and US legislation, rule by rule, for a specified household</td>
+            <td>Deterministic household calculation; population estimates add survey and calibration uncertainty</td>
           </tr>
           <tr>
             <th scope="row"><a href="#olg"><strong>psl-og</strong></a></th>
@@ -720,7 +720,7 @@
   <section id="pe" class="band">
     <div class="band-head">
       <span class="kicker mono">05 — pe-microsim</span>
-      <h2>Against statute itself.</h2>
+      <h2>Against implemented legislation.</h2>
     </div>
     <div class="prose">
       <p>
@@ -728,10 +728,10 @@
         members, and it is validated differently. It does not forecast, so it
         has no forecast error; it encodes UK and US tax and benefit law as
         parameterised statute and computes every variable for a specific
-        household. The ground truth is <strong>the law</strong> — checkable
+        household. The reference is <strong>the law</strong> — checkable
         rule by rule, line by line, against the legislation and the official
-        guidance. For an exact household, the arithmetic is exact, not an
-        approximation.
+        guidance. For a specified household, the calculation is deterministic;
+        coverage still depends on the rules and tests implemented upstream.
       </p>
       <p>
         That is a strong form of validation for the question it answers

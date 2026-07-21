@@ -10,8 +10,44 @@ from __future__ import annotations
 from mcp.server.fastmcp import FastMCP
 
 from policyengine_macro import core
+from policyengine_macro import capabilities
 
 mcp = FastMCP("policyengine-macro")
+
+
+@mcp.tool()
+def list_model_capabilities() -> list[dict]:
+    """List supported questions, outputs, access, runtime, evidence status,
+    and explicit non-capabilities for every model."""
+    return capabilities.list_capabilities()
+
+
+@mcp.tool()
+def get_model_status(model_id: str) -> dict:
+    """Return the capability and operational status for one model id."""
+    return capabilities.get_status(model_id)
+
+
+@mcp.tool()
+def recommend_model(
+    question_type: str,
+    country: str = "uk",
+    needs_distribution: bool = False,
+    horizon: str | None = None,
+) -> dict:
+    """Deterministically recommend only models registered for a question.
+
+    question_type must be one of household, population, policy_reform,
+    economic_shock, translated_policy_scenario, forecast,
+    economic_diagnosis, or structural_change. Unsupported combinations return
+    no model rather than an invented mapping.
+    """
+    return capabilities.recommend(
+        question_type=question_type,
+        country=country,
+        needs_distribution=needs_distribution,
+        horizon=horizon,
+    )
 
 
 @mcp.tool()
@@ -27,8 +63,9 @@ def score_reform(
     """Score a tax/benefit reform with one of the suite's scoring models, using
     the SAME PolicyEngine reform dict as the microsimulation tools. Every
     result carries a common `score` block (ScoreResult: model class, horizon,
-    per-quantity deltas with units and basis, assumptions, caveats) so results
-    from different model classes are comparable side by side.
+    provenance, per-quantity units/time basis, assumptions, caveats, and a
+    comparability label). Cross-class results are often complementary rather
+    than like-for-like and must not be averaged or ranked.
 
     Args:
         country: 'uk' (macro members are UK models; 'us' works for microsim).

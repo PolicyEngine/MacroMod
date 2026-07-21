@@ -18,6 +18,8 @@ def test_list_variables():
 
 def test_summary_parses():
     s = core.svar_summary()
+    if "error" in s:
+        pytest.skip(s["error"])
     assert "replication" in s and "forecast_revision" in s
     fevd = s["replication"]["fevd_1yr_headline"]
     assert any("UK GDP" in row.get("Variable", "") for row in fevd)

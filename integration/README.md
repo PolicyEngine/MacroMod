@@ -72,15 +72,17 @@ schema ([#10](https://github.com/PolicyEngine/macro/issues/10)): model id and
 class, horizon, per-quantity deltas with units and basis, assumptions,
 caveats, and an optional distributional block — so `pe-macro compare
 --reform '...' --models microsim,obr` renders the same reform through
-different model classes in one table.
+different model classes in one table. The rows are not automatically
+like-for-like: each quantity retains its units, basis, and horizon, and the CLI
+labels cross-class results as complementary unless their definitions align.
 
 `src/policyengine_macro/core.py` holds the model adapters (single source of truth);
 `cli.py` and `mcp_server.py` are thin wrappers over the same functions.
 
 ## Install
 
-No clone needed — one pip install pulls the CLI plus the hosted-model
-packages (the OBR emulator and the SVAR ship their data as package data):
+One pip install pulls the CLI, PolicyEngine, OBR emulator, and SVAR. The OBR
+and SVAR packages ship their data as package data:
 
 ```bash
 pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
@@ -88,14 +90,28 @@ pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/ma
 
 A shorter `pip install policyengine-macro` will come with PyPI publication.
 
-For development, install with the full model set (policyengine included via
-the `[models]` extra), then override the two model packages with local
+FRB-US currently requires an editable checkout because its upstream wheel
+does not package `vendor/model.xml` and `vendor/LONGBASE.TXT`. A normal Git
+dependency can import but cannot run, so it is intentionally not included in
+the `[models]` extra. Install the supported local route explicitly:
+
+```bash
+git clone https://github.com/PolicyEngine/us-frb-model
+pip install -e ./us-frb-model
+```
+
+Alternatively set `POLICYENGINE_MACRO_FRB_REPO` to that checkout. The hosted
+Modal image already clones and installs this repository using the same layout.
+
+For development, install with the available model set (PolicyEngine included
+via the `[models]` extra), then override model packages with local
 editable checkouts in a second step (`--no-deps`: mixing the extra's Git URLs
 and editable paths in one resolution is a conflict):
 
 ```bash
 uv venv && uv pip install -e "./integration[models]" pytest
-uv pip install --no-deps -e ../obr-macroeconomic-model -e ../boe-var-model
+uv pip install --no-deps -e ../obr-macroeconomic-model -e ../boe-var-model \
+    -e ../us-frb-model
 ```
 
 OG-UK (optional, for `--model og`) pins `policyengine-uk==2.88.0`, which
