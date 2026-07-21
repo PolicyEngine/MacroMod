@@ -217,7 +217,7 @@ h1, h2, h3, p, figcaption, a { overflow-wrap: anywhere; }
    The old background depicted a field of synthetic households — a
    microsimulation metaphor on a site about macro models. The artifact this
    subject actually produces is a forecast fan, so the hero *is* one, drawn from
-   papers/boe-svar/figures/figure_numbers.json by assets/make_hero.py. The
+   papers/boe-svar/figures/current_forecast.json by assets/make_hero.py. The
    ornament is the output. Static: no entrance animation, nothing loops. */
 .hero-fig {
   margin: 0;
@@ -1084,6 +1084,9 @@ h2 {
 .vchart .vc-b1 { fill: var(--brand); }
 .vchart .vc-b2 { fill: color-mix(in srgb, var(--paper) 34%, transparent); }
 .vchart .vc-b3 { fill: color-mix(in srgb, var(--paper) 18%, transparent); }
+.vchart .vc-band90 { fill: color-mix(in srgb, var(--brand) 13%, transparent); }
+.vchart .vc-band68 { fill: color-mix(in srgb, var(--brand) 26%, transparent); }
+.current-outlook { margin: 28px 0 8px; }
 
 /* Paper index result emphasis. */
 .paper-result strong { color: var(--brand); font-weight: 600; }

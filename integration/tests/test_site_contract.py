@@ -1,6 +1,8 @@
 """High-risk website claims that must stay aligned with runtime contracts."""
 
 from pathlib import Path
+import csv
+import json
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,8 +21,11 @@ def test_svar_site_uses_runtime_estimation_endpoint():
 
 def test_og_is_not_labelled_as_us_model():
     pages = "".join(
-        _read(path) for path in (
-            "index.html", "models/index.html", "papers/index.html",
+        _read(path)
+        for path in (
+            "index.html",
+            "models/index.html",
+            "papers/index.html",
             "docs/index.html",
         )
     )
@@ -39,3 +44,30 @@ def test_mobile_css_does_not_hide_document_overflow():
     assert "overflow-x: hidden" not in body
     assert "min-height: 112px" in css
     assert "min-height: 44px" in css
+
+
+def test_current_boe_forecast_starts_after_latest_complete_data_edge():
+    payload = json.loads(_read("papers/boe-svar/figures/current_forecast.json"))
+    assert payload["data_edge"] == "2026Q1"
+    assert payload["forecast_start"] == "2026Q2"
+    assert list(payload["forecast"])[0] == "2026Q2"
+    assert list(payload["forecast"])[-1] == "2029Q2"
+    assert "2026Q2 to 2029Q2" in _read("index.html")
+    assert "frozen 2024Q2 validation experiment" in _read("svar/index.html")
+
+
+def test_current_obr_outlook_uses_latest_official_efo_window():
+    rows = list(
+        csv.DictReader((ROOT / "papers/obr-macro/figures/current_outlook.csv").open())
+    )
+    assert rows[0]["quarter"] == "2026Q1"
+    assert rows[-1]["quarter"] == "2031Q1"
+    page = _read("obr/index.html")
+    assert "Latest official baseline available on 21 July 2026" in page
+    assert "OBR March 2026 detailed forecast tables" in page
+
+
+def test_frozen_validation_vintages_are_not_relabelled_as_current_forecasts():
+    page = _read("validation/index.html")
+    assert "frozen 2024Q2 data edge" in page
+    assert "working paper's study, not the live March 2026 baseline" in page
