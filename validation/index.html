@@ -95,12 +95,9 @@
     </div>
     <div class="prose">
       <p>
-        The five models differ in <strong>how far they can be checked
-        against ground truth at all</strong>, and that difference matters
-        more than any single percentage on this page. The
-        <a href="/docs/#choose">verification gradient</a> sorts them into
-        three classes. Read the row you care about, then open the section
-        below it for the full working.
+        The five models support different kinds of checks. The
+        <a href="/docs/#choose">verification gradient</a> groups them into
+        three classes; choose a row, then open its evidence below.
       </p>
       <div class="table-scroll">
       <table>
@@ -141,13 +138,9 @@
       </table>
       </div>
       <div class="callout">
-        A match on an <em>imposed</em> or <em>targeted</em> quantity is
-        anchoring, not validation. Several of the strongest-looking numbers
-        below — the OBR emulator's anchored fit, the OLG model's calibration
-        targets — are true by construction, and are labelled as such. The
-        numbers that carry evidential weight are the ones the model had to
-        <em>deliver</em>: out-of-sample forecasts, reform costings against an
-        independent official costing, and solver residuals.
+        Imposed or targeted matches are anchors, not validation. Stronger
+        evidence comes from out-of-sample forecasts, independent reform
+        costings, and solver residuals.
       </div>
     </div>
   </section>
@@ -159,17 +152,13 @@
     </div>
     <div class="prose">
       <p>
-        The emulator is anchored to the March 2026 EFO using the OBR's own
-        add-factor device, so reproducing the published aggregates is a
-        by-construction <em>invariant</em>, not a forecast success: real GDP
-        tracks to a mean absolute percentage error of <strong>0.15%</strong>
-        and consumption to <strong>0.25%</strong> over 2025Q1&ndash;2027Q4,
-        against a CI gate of 1%. The anchored horizon now extends to 2031Q1,
-        where GDP is reproduced to 0.29% — though anchored unemployment is
-        unreliable beyond 2027Q4 (it drifts to 0.9% against the EFO's 4.1% by
-        2031Q1). The number that carries evidential weight is the reform
-        costing below. The charts in this section are the working paper's
-        figures and show its November 2025 EFO study vintage.
+        Anchored to the March 2026 EFO with OBR add-factors, the emulator
+        reproduces GDP to <strong>0.15% MAPE</strong> and consumption to
+        <strong>0.25%</strong> over 2025Q1&ndash;2027Q4 (CI gate: 1%). GDP
+        remains within 0.29% through 2031Q1, but unemployment becomes
+        unreliable after 2027Q4. This fit is by construction; the independent
+        reform costing below is the stronger test. Charts use the working
+        paper's November 2025 vintage.
       </p>
       <figure class="vfig">
         <svg class="vchart" data-chart="obr-anchored" viewBox="0 0 760 326" role="img" aria-labelledby="obr-anchored-t obr-anchored-d">
@@ -464,14 +453,10 @@
     </div>
     <div class="prose">
       <p>
-        The replication target is Brignone &amp; Piffer (2025), Bank of
-        England Macro Technical Paper No. 3. Its headline calibration figure
-        is the share of UK forecast-error variance attributed to identified
-        global shocks — world demand, energy, and supply — at the one-year
-        horizon: roughly <strong>40%</strong> for GDP and roughly
-        <strong>50%</strong> for CPI. The full 10,000-draw production run
-        yields <strong>40.9%</strong> and <strong>50.1%</strong>, deviations
-        of a percentage point or less.
+        Against Brignone &amp; Piffer (2025), the one-year share of UK
+        forecast-error variance from global shocks is
+        <strong>40.9%</strong> for GDP and <strong>50.1%</strong> for CPI.
+        The paper reports roughly 40% and 50%.
       </p>
       <figure class="vfig">
         <svg class="vchart" data-chart="svar-fevd" viewBox="0 0 760 304" role="img" aria-labelledby="svar-fevd-t svar-fevd-d">
@@ -528,16 +513,10 @@
       </details>
       <p>
         <strong>Out-of-sample.</strong> Forecasting seven quarters ahead from
-        a frozen 2024Q2 data edge, the root-mean-squared error over
-        2024Q3&ndash;2026Q1 is <strong>0.32 percentage points</strong> for
-        both GDP growth and CPI inflation, with <strong>all fourteen
-        outturns inside the 68% credible bands</strong>. The scorecard is
-        mixed in an informative way: activity is tracked well throughout,
-        while the medians progressively undershoot the 2025 inflation
-        re-acceleration — outturns of 3.5% and 3.8% against medians of 3.2%,
-        still inside the band but on its upper half. The model was right that
-        the hump would mean-revert and wrong, by up to 0.6 points, about its
-        peak.
+        a frozen 2024Q2 edge, RMSE is <strong>0.32pp</strong> for both GDP
+        growth and CPI inflation. <strong>All fourteen outturns fall inside
+        the 68% bands.</strong> Activity tracks well; the median misses the
+        2025 inflation peak by up to 0.6pp but captures its reversal.
       </p>
       <figure class="vfig">
         <svg class="vchart" data-chart="svar-fan" viewBox="0 0 760 340" role="img" aria-labelledby="svar-fan-t svar-fan-d">
@@ -622,27 +601,17 @@
     </div>
     <div class="prose">
       <p>
-        The tracking invariant is the sharpest test in the suite: after
-        <code>init_trac</code>, solving the baseline must reproduce the Fed's
-        LONGBASE database exactly for all 284 endogenous variables in all 20
-        quarters. The maximum absolute error across all 5,680
-        variable-quarters is <strong>5.6&times;10<sup>&minus;17</sup></strong>
-        — machine precision, against a CI gate of 10<sup>&minus;8</sup>.
+        The baseline reproduces the Fed's LONGBASE database across 284
+        variables and 20 quarters with a maximum error of
+        <strong>5.6&times;10<sup>&minus;17</sup></strong> — machine precision,
+        against a 10<sup>&minus;8</sup> CI gate.
       </p>
       <p>
-        The shock-response comparison needs a yardstick, and the honest one
-        is <em>the reference implementation's own version-to-version
-        variation</em>. Our responses match the vendored <code>pyfrbus</code>
-        1.0.0 to <strong>6.0&times;10<sup>&minus;9</sup></strong> and the
-        current 1.1.1 release to
-        <strong>1.4&times;10<sup>&minus;8</sup></strong>. But the Board's two
-        releases — whose <code>model.xml</code> and LONGBASE are
-        byte-identical, differing only in the Newton routine's LU-factorisation
-        reuse — <strong>differ from each other by
-        1.3&times;10<sup>&minus;8</sup></strong>. Our agreement therefore sits
-        at the scale of the reference implementation's own numerical noise,
-        not at some tolerance we chose. All three residuals concentrate in the
-        same near-zero series (<code>wpsn</code>, <code>zgap05</code>).
+        Shock responses match <code>pyfrbus</code> 1.0.0 to
+        <strong>6.0&times;10<sup>&minus;9</sup></strong> and 1.1.1 to
+        <strong>1.4&times;10<sup>&minus;8</sup></strong>. The Fed's two
+        releases differ by <strong>1.3&times;10<sup>&minus;8</sup></strong>, so
+        our differences sit at the reference solver's own numerical noise.
       </p>
       <figure class="vfig">
         <svg class="vchart" data-chart="frbus-residuals" viewBox="0 0 760 300" role="img" aria-labelledby="frbus-residuals-t frbus-residuals-d">
@@ -724,29 +693,17 @@
     </div>
     <div class="prose">
       <p>
-        The microsimulation is a different kind of object from the four macro
-        members, and it is validated differently. It does not forecast, so it
-        has no forecast error; it encodes UK and US tax and benefit law as
-        parameterised statute and computes every variable for a specific
-        household. The reference is <strong>the law</strong> — checkable
-        rule by rule, line by line, against the legislation and the official
-        guidance. For a specified household, the calculation is deterministic;
-        coverage still depends on the rules and tests implemented upstream.
+        This model does not forecast. It deterministically applies encoded UK
+        and US tax-benefit law to a specified household, so its reference is
+        <strong>legislation and official guidance</strong>. Coverage depends
+        on the upstream rules and tests.
       </p>
       <p>
-        That is a strong form of validation for the question it answers
-        ("what does this reform mean for a nurse on £35,000 with two kids?")
-        and it does not transfer to population aggregates, where the binding
-        constraint is the microdata rather than the rules: population-level
-        scoring runs on the enhanced Family Resources Survey dataset
-        (<code>enhanced_frs_2023_24</code>) for the UK. The clearest read on how
-        those aggregates land against an official costing is the
-        <a href="#obr">1pp basic-rate comparison above</a>, which runs through
-        this engine — a &minus;6.4% deviation from HMRC in the first year,
-        widening later. That residual is attributable to
-        survey-versus-administrative data vintage, baseline policy
-        assumptions, and HMRC's embedded taxable-income elasticities, none of
-        which are rule-encoding errors.
+        Population estimates also depend on survey data and calibration. The
+        UK run uses <code>enhanced_frs_2023_24</code>; in the
+        <a href="#obr">1pp basic-rate check</a>, it is 6.4% below HMRC in
+        year one. Survey versus administrative data, policy assumptions, and
+        HMRC behavioural elasticities explain that separate aggregate gap.
       </p>
       <p class="vlinks mono">
         <a href="/pe/">pe-microsim model page →</a>
@@ -762,16 +719,10 @@
     </div>
     <div class="prose">
       <div class="callout">
-        <strong>Read this section differently.</strong> Unlike the OBR
-        emulator, the structural VAR, and frb-us, the overlapping-generations
-        member has <em>no published ground truth to replicate</em>. What
-        follows is a comparison of the deployed calibration's targets against
-        current official UK aggregates. Where the model matches, that is
-        because the quantity was imposed or targeted — it is anchoring, not
-        validation, and it is labelled as such in every row. This model is a
-        structural counterfactual: you can audit its assumptions and its
-        code, but you cannot check its answer against anyone's published
-        answer, because there isn't one.
+        <strong>No published replication target exists.</strong> The table
+        compares calibration targets with official UK aggregates. Imposed
+        matches are anchors; structural counterfactuals remain conditional on
+        the model's auditable assumptions and code.
       </div>
       <div class="table-scroll">
       <table>
@@ -788,9 +739,7 @@
       </table>
       </div>
       <p>
-        The treatment column is the whole point: imposed quantities cannot
-        disagree with the data, so a zero deviation there carries no
-        information.
+        A zero deviation on an imposed quantity is not independent evidence.
       </p>
       <details class="more">
         <summary>What would count as over-identifying evidence, and the dating and structural caveats</summary>
@@ -829,9 +778,8 @@
     </div>
     <div class="prose">
       <p>
-        Where a named institution has published an answer to the same
-        question, here is theirs next to ours. Definitions never line up
-        perfectly — each row says how comparable the two numbers really are.
+        Published institutional answers sit beside ours; each row states how
+        closely the definitions align.
       </p>
       <div class="table-scroll">
       <table>
