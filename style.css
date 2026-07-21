@@ -759,6 +759,38 @@ h2 {
 .doc .prose li code,
 .connect-panel p code { overflow-wrap: anywhere; }
 
+/* AI-client identity cues: names stay visible, while the marks make the
+   hosted path quicker to scan without turning third-party brands into CTAs. */
+.ai-client-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+.ai-client {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background, #fff) 92%, transparent);
+  color: var(--text);
+  font-weight: 600;
+}
+.ai-client img { display: block; flex: 0 0 auto; }
+.seg button[data-client] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+}
+.seg button[data-client] img { display: block; flex: 0 0 auto; }
+.seg button[data-client="chatgpt"] img { color: currentColor; }
+.seg button[data-client="chatgpt"][aria-selected="true"] img { filter: invert(1); }
+
 /* section headings on content pages read a touch tighter than the band default */
 .doc .band-head { margin-bottom: var(--s-6); }
 .doc h2 { max-width: 30ch; }
