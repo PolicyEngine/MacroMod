@@ -43,7 +43,7 @@ def n(x: float) -> str:
 # ---------------------------------------------------------------- data loading
 
 def load_obr_anchored():
-    """Quarterly % deviation of the anchored emulator from the Nov-2025 EFO.
+    """Quarterly % deviation of the anchored emulator from the March-2026 EFO.
 
     Source: papers/obr-macro/figures/fig_anchored_data.csv (model vs EFO levels).
     """
@@ -133,14 +133,15 @@ def chart_obr_anchored():
     step = (x1 - x0) / (len(quarters) - 1)
 
     xs = [x0 + i * step for i in range(len(quarters))]
-    ymap = lambda v: zero_y - v * per_unit
+    def ymap(v):
+        return zero_y - v * per_unit
 
     mape_g = sum(abs(v) for v in gdp) / len(gdp)
     mape_c = sum(abs(v) for v in cons) / len(cons)
 
     desc = (
         f"Line chart. Quarterly percentage deviation of the anchored emulator from the "
-        f"published November 2025 EFO, {quarters[0]} to {quarters[-1]}. Real GDP ranges from "
+        f"published March 2026 EFO, {quarters[0]} to {quarters[-1]}. Real GDP ranges from "
         f"{min(gdp):+.2f}% to {max(gdp):+.2f}% (mean absolute deviation {mape_g:.2f}%); "
         f"consumption from {min(cons):+.2f}% to {max(cons):+.2f}% (mean absolute deviation "
         f"{mape_c:.2f}%). Both series stay well inside the plus or minus 1% band at which "
@@ -148,7 +149,7 @@ def chart_obr_anchored():
         f"this frame."
     )
     out = svg_open(W, H, "obr-anchored",
-                   "obr-macro: anchored baseline vs November 2025 EFO, quarterly deviation",
+                   "obr-macro: anchored baseline vs March 2026 EFO, quarterly deviation",
                    desc)
 
     # legend
@@ -307,7 +308,8 @@ def chart_obr_freerun():
     lo, hi = 660.0, 740.0
     base_y, top_y = 292.0, 56.0
     per_unit = (base_y - top_y) / (hi - lo)
-    ymap = lambda v: base_y - (v - lo) * per_unit
+    def ymap(v):
+        return base_y - (v - lo) * per_unit
 
     mad_a = sum(abs(m / e - 1) for m, e in zip(anch["GDPM_model"], anch["GDPM_efo"])) / len(quarters) * 100
     mad_f = sum(abs(m / e - 1) for m, e in zip(free["GDPM_model"], free["GDPM_efo"])) / len(quarters) * 100
@@ -315,7 +317,7 @@ def chart_obr_freerun():
 
     desc = (
         f"Line chart of quarterly real GDP levels in billions of pounds, {quarters[0]} to "
-        f"{quarters[-1]}. The published November 2025 EFO path rises from {efo[0]:.1f} to "
+        f"{quarters[-1]}. The published March 2026 EFO path rises from {efo[0]:.1f} to "
         f"{efo[-1]:.1f}. The anchored emulator is visually indistinguishable from it, running "
         f"from {anchored[0]:.1f} to {anchored[-1]:.1f} (mean absolute deviation {mad_a:.2f} per "
         f"cent, recomputed here from the plotted series). The free-running emulator, de-seeded "
@@ -328,14 +330,14 @@ def chart_obr_freerun():
         f"of {len(quarters)} maps to x = {x0:g} + i * {step:.3f}."
     )
     out = svg_open(W, H, "obr-freerun",
-                   "obr-macro: real GDP level, anchored vs free-running vs the November 2025 EFO (£bn/qtr)",
+                   "obr-macro: real GDP level, anchored vs free-running vs the March 2026 EFO (£bn/qtr)",
                    desc)
 
     out.append('<line class="vc-s1" x1="58" y1="26" x2="84" y2="26"/><circle class="vc-s1-dot" cx="71" cy="26" r="3"/>')
     out.append(f'<text class="vc-lab" x="92" y="30">anchored ({mad_a:.2f}% MAD)</text>')
     out.append('<line class="vc-s2" x1="288" y1="26" x2="314" y2="26"/><circle class="vc-s2-dot" cx="301" cy="26" r="3"/>')
     out.append(f'<text class="vc-lab vc-lab2" x="322" y="30">free-running ({mad_f:.2f}% MAD)</text>')
-    out.append('<line class="vc-grid" x1="540" y1="26" x2="566" y2="26"/><text class="vc-lab" x="574" y="30">EFO Nov 2025</text>')
+    out.append('<line class="vc-grid" x1="540" y1="26" x2="566" y2="26"/><text class="vc-lab" x="574" y="30">EFO Mar 2026</text>')
 
     tick = lo
     while tick <= hi + 1e-9:
