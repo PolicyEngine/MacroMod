@@ -385,6 +385,35 @@ def _frbus_repo() -> Path:
     )
 
 
+def _frbus_paths() -> tuple[str, str]:
+    """Resolve (model.xml path, LONGBASE.TXT path).
+
+    Prefers the packaged-data accessors added to the frbus package
+    (``frbus.default_model_path()`` / ``frbus.default_data_path()``, which
+    look in frbus/_data/ and fall back to the repo vendor/ dir for editable
+    installs). An explicit POLICYENGINE_MACRO_FRB_REPO env override, or an
+    older frbus without the accessors, falls back to the checkout-based
+    ``_frbus_repo()`` resolution.
+    """
+    if not os.environ.get(FRB_REPO_ENV):
+        try:
+            frbus_mod, _, _ = _import_frbus()
+            model_path = str(frbus_mod.default_model_path())
+            data_path = str(frbus_mod.default_data_path())
+            if Path(model_path).exists() and Path(data_path).exists():
+                return model_path, data_path
+        except (ImportError, AttributeError):
+            pass  # older frbus without the accessors
+        except Exception as e:  # frbus.MissingDataError, without importing it
+            if type(e).__name__ != "MissingDataError":
+                raise
+    repo = _frbus_repo()
+    return (
+        str(repo / "vendor" / "pyfrbus_package" / "models" / "model.xml"),
+        str(repo / "vendor" / "data_only_package" / "LONGBASE.TXT"),
+    )
+
+
 def _frbus_period(value, *, argument: str):
     import pandas as pd
 
@@ -409,9 +438,9 @@ def _frbus_baseline(policy_rule: str, start, end):
         return _FRBUS_BASELINE_CACHE[key]
 
     _, Frbus, load_data = _import_frbus()
-    repo = _frbus_repo()
-    data = load_data(str(repo / "vendor" / "data_only_package" / "LONGBASE.TXT"))
-    model = Frbus(str(repo / "vendor" / "pyfrbus_package" / "models" / "model.xml"))
+    model_xml, longbase = _frbus_paths()
+    data = load_data(longbase)
+    model = Frbus(model_xml)
 
     spec = FRBUS_POLICY_RULES[policy_rule]
     # Standard demo fiscal configuration: surplus-ratio targeting, so the
@@ -664,7 +693,7 @@ def frbus_summary() -> dict:
         ),
     }
     try:
-        out["source"] = str(_frbus_repo())
+        out["source"] = str(Path(_frbus_paths()[0]).parent)
     except Exception as e:  # frbus not installed: metadata is still useful
         out["source_error"] = str(e)
     out["provenance"] = _provenance(

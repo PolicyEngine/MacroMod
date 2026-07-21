@@ -1,0 +1,301 @@
+{
+  "method": "expanding-window pseudo-out-of-sample evaluation",
+  "lags": 4,
+  "origins": 49,
+  "first_origin": 80,
+  "last_origin": 128,
+  "horizons": [
+    {
+      "horizon": 1,
+      "variables_beating_random_walk": 4,
+      "relative_rmse_by_variable": {
+        "world_gdp": 1.0449602705974248,
+        "world_cpi": 0.7328656942968828,
+        "oil_price": 1.0300980810728804,
+        "bank_rate": 0.8808832834356799,
+        "eri": 1.038568373183694,
+        "cpisa": 0.6293364096128017,
+        "cpi_energy": 0.9761631928761039,
+        "uk_gdp": 1.0637175663796972
+      },
+      "bvar_rmse_by_variable": {
+        "world_gdp": 2.1137339373128765,
+        "world_cpi": 0.6262409889909649,
+        "oil_price": 14.104443065989923,
+        "bank_rate": 0.26865702518002055,
+        "eri": 2.4199357051207717,
+        "cpisa": 0.6469285006662072,
+        "cpi_energy": 5.103412788140357,
+        "uk_gdp": 4.331581111107817
+      },
+      "random_walk_rmse_by_variable": {
+        "world_gdp": 2.0227888052666465,
+        "world_cpi": 0.8545098970579945,
+        "oil_price": 13.692330201508279,
+        "bank_rate": 0.30498595016150887,
+        "eri": 2.330068744248918,
+        "cpisa": 1.0279533978722588,
+        "cpi_energy": 5.22803238780597,
+        "uk_gdp": 4.0721158021768025
+      }
+    },
+    {
+      "horizon": 2,
+      "variables_beating_random_walk": 4,
+      "relative_rmse_by_variable": {
+        "world_gdp": 1.0265405808866364,
+        "world_cpi": 0.6832761881547914,
+        "oil_price": 1.0450100956575803,
+        "bank_rate": 0.9585456882439158,
+        "eri": 1.1080316451728267,
+        "cpisa": 0.6175943235612229,
+        "cpi_energy": 0.9778246871517929,
+        "uk_gdp": 1.0847782974756341
+      },
+      "bvar_rmse_by_variable": {
+        "world_gdp": 2.6371135372052295,
+        "world_cpi": 1.0426175808575247,
+        "oil_price": 21.925456192801935,
+        "bank_rate": 0.5592746031981239,
+        "eri": 4.0937891785487075,
+        "cpisa": 1.207241138698609,
+        "cpi_energy": 7.985531258794981,
+        "uk_gdp": 5.202231768153291
+      },
+      "random_walk_rmse_by_variable": {
+        "world_gdp": 2.5689325744214813,
+        "world_cpi": 1.5259094330114824,
+        "oil_price": 20.981095095550423,
+        "bank_rate": 0.5834616023600624,
+        "eri": 3.6946500547916874,
+        "cpisa": 1.9547477893535623,
+        "cpi_energy": 8.166628807516847,
+        "uk_gdp": 4.795663574998965
+      }
+    },
+    {
+      "horizon": 3,
+      "variables_beating_random_walk": 4,
+      "relative_rmse_by_variable": {
+        "world_gdp": 0.9733527420706541,
+        "world_cpi": 0.6912901531547437,
+        "oil_price": 1.0588379335503806,
+        "bank_rate": 0.9943220112628112,
+        "eri": 1.166682029648086,
+        "cpisa": 0.6457630654383809,
+        "cpi_energy": 1.011439115988643,
+        "uk_gdp": 1.081404670023141
+      },
+      "bvar_rmse_by_variable": {
+        "world_gdp": 2.922375142979022,
+        "world_cpi": 1.5443394136061515,
+        "oil_price": 28.806826222633894,
+        "bank_rate": 0.840555138738562,
+        "eri": 5.514951087473926,
+        "cpisa": 1.865809791200636,
+        "cpi_energy": 11.458485669845588,
+        "uk_gdp": 5.59474187681635
+      },
+      "random_walk_rmse_by_variable": {
+        "world_gdp": 3.0023803464735,
+        "world_cpi": 2.2339959661778295,
+        "oil_price": 27.20607687905737,
+        "bank_rate": 0.8453550552210327,
+        "eri": 4.727038685199803,
+        "cpisa": 2.8893101681713826,
+        "cpi_energy": 11.328893147112822,
+        "uk_gdp": 5.173587678973708
+      }
+    },
+    {
+      "horizon": 4,
+      "variables_beating_random_walk": 3,
+      "relative_rmse_by_variable": {
+        "world_gdp": 0.9252177990458005,
+        "world_cpi": 0.6883541904477545,
+        "oil_price": 1.0625221805641283,
+        "bank_rate": 1.017928036419632,
+        "eri": 1.223364821725461,
+        "cpisa": 0.6625245693943699,
+        "cpi_energy": 1.0386821520550784,
+        "uk_gdp": 1.0865173095255691
+      },
+      "bvar_rmse_by_variable": {
+        "world_gdp": 3.2140388723627,
+        "world_cpi": 1.988662377351084,
+        "oil_price": 33.711581561098754,
+        "bank_rate": 1.1092456574841418,
+        "eri": 6.789598681318507,
+        "cpisa": 2.507077828038847,
+        "cpi_energy": 14.415726089333896,
+        "uk_gdp": 6.5099256845130595
+      },
+      "random_walk_rmse_by_variable": {
+        "world_gdp": 3.4738186788855727,
+        "world_cpi": 2.889010345179299,
+        "oil_price": 31.72788500584539,
+        "bank_rate": 1.089709309300196,
+        "eri": 5.54993781147173,
+        "cpisa": 3.7841280819677814,
+        "cpi_energy": 13.878861845090672,
+        "uk_gdp": 5.991552667813123
+      }
+    },
+    {
+      "horizon": 5,
+      "variables_beating_random_walk": 3,
+      "relative_rmse_by_variable": {
+        "world_gdp": 0.8751391076936442,
+        "world_cpi": 0.6930722652538598,
+        "oil_price": 1.0641160466614388,
+        "bank_rate": 1.0286179038483312,
+        "eri": 1.2728436894722746,
+        "cpisa": 0.6754570037742479,
+        "cpi_energy": 1.0636649983312114,
+        "uk_gdp": 1.0860831326567804
+      },
+      "bvar_rmse_by_variable": {
+        "world_gdp": 3.4176993147390036,
+        "world_cpi": 2.4761045008215827,
+        "oil_price": 38.050424767263685,
+        "bank_rate": 1.346563010401385,
+        "eri": 7.908145637220779,
+        "cpisa": 3.149126988335552,
+        "cpi_energy": 17.186212519315507,
+        "uk_gdp": 6.932293149762276
+      },
+      "random_walk_rmse_by_variable": {
+        "world_gdp": 3.905321205157959,
+        "world_cpi": 3.572649815837935,
+        "oil_price": 35.75777744038652,
+        "bank_rate": 1.3090993316016932,
+        "eri": 6.212974698016159,
+        "cpisa": 4.662216796538033,
+        "cpi_energy": 16.15754259685054,
+        "uk_gdp": 6.382838423062953
+      }
+    },
+    {
+      "horizon": 6,
+      "variables_beating_random_walk": 3,
+      "relative_rmse_by_variable": {
+        "world_gdp": 0.8127438220907905,
+        "world_cpi": 0.688146308068257,
+        "oil_price": 1.0638104916437514,
+        "bank_rate": 1.029664575038099,
+        "eri": 1.3229299636802794,
+        "cpisa": 0.6794011734102733,
+        "cpi_energy": 1.0867457870836836,
+        "uk_gdp": 1.0749149122403938
+      },
+      "bvar_rmse_by_variable": {
+        "world_gdp": 3.48927683766739,
+        "world_cpi": 2.8987974032375727,
+        "oil_price": 41.95206601774128,
+        "bank_rate": 1.5488728379401122,
+        "eri": 8.87071120416801,
+        "cpisa": 3.743453751532669,
+        "cpi_energy": 19.628645425770852,
+        "uk_gdp": 7.147062252927553
+      },
+      "random_walk_rmse_by_variable": {
+        "world_gdp": 4.293206226644941,
+        "world_cpi": 4.212472506573474,
+        "oil_price": 39.435657334906395,
+        "bank_rate": 1.5042499037929917,
+        "eri": 6.705352095503561,
+        "cpisa": 5.509931242453259,
+        "cpi_energy": 18.061855549902738,
+        "uk_gdp": 6.6489562769496535
+      }
+    },
+    {
+      "horizon": 7,
+      "variables_beating_random_walk": 3,
+      "relative_rmse_by_variable": {
+        "world_gdp": 0.7541096873945587,
+        "world_cpi": 0.6834302533007695,
+        "oil_price": 1.0683389635656206,
+        "bank_rate": 1.0290378731567837,
+        "eri": 1.3719972502648479,
+        "cpisa": 0.6773348491332495,
+        "cpi_energy": 1.1074292201001925,
+        "uk_gdp": 1.0645703901910275
+      },
+      "bvar_rmse_by_variable": {
+        "world_gdp": 3.5221500399949983,
+        "world_cpi": 3.3110284385767312,
+        "oil_price": 45.85852549578429,
+        "bank_rate": 1.7236502401823408,
+        "eri": 9.634371341370324,
+        "cpisa": 4.278194071441691,
+        "cpi_energy": 21.517938125960313,
+        "uk_gdp": 7.326226854448629
+      },
+      "random_walk_rmse_by_variable": {
+        "world_gdp": 4.670607073307851,
+        "world_cpi": 4.844720324547277,
+        "oil_price": 42.9250706561612,
+        "bank_rate": 1.6750114695921654,
+        "eri": 7.022150619843095,
+        "cpisa": 6.316217269665477,
+        "cpi_energy": 19.43053130204883,
+        "uk_gdp": 6.881862319253502
+      }
+    },
+    {
+      "horizon": 8,
+      "variables_beating_random_walk": 3,
+      "relative_rmse_by_variable": {
+        "world_gdp": 0.7107677610271683,
+        "world_cpi": 0.6741103874429449,
+        "oil_price": 1.0836621684358045,
+        "bank_rate": 1.0280071093872238,
+        "eri": 1.4103654832274268,
+        "cpisa": 0.6731249369621635,
+        "cpi_energy": 1.1342596124392086,
+        "uk_gdp": 1.0580583349373853
+      },
+      "bvar_rmse_by_variable": {
+        "world_gdp": 3.6045172009878006,
+        "world_cpi": 3.669811824589866,
+        "oil_price": 48.9148077148332,
+        "bank_rate": 1.8730131432432773,
+        "eri": 10.297395392249847,
+        "cpisa": 4.777977230756301,
+        "cpi_energy": 23.322817043224696,
+        "uk_gdp": 7.482339771357195
+      },
+      "random_walk_rmse_by_variable": {
+        "world_gdp": 5.071300920822184,
+        "world_cpi": 5.443933060444747,
+        "oil_price": 45.13842887533716,
+        "bank_rate": 1.8219846206703239,
+        "eri": 7.301224763871616,
+        "cpisa": 7.098202678865948,
+        "cpi_energy": 20.562150664140567,
+        "uk_gdp": 7.071764877500815
+      }
+    }
+  ],
+  "limitations": [
+    "Errors use the transformed model units supplied by the caller.",
+    "This evaluates reduced-form forecasts, not structural identification.",
+    "No-change is a minimum benchmark, not an official forecast comparison."
+  ],
+  "variables": [
+    "world_gdp",
+    "world_cpi",
+    "oil_price",
+    "bank_rate",
+    "eri",
+    "cpisa",
+    "cpi_energy",
+    "uk_gdp"
+  ],
+  "sample": {
+    "start": "1992Q1",
+    "end": "2026Q1"
+  },
+  "finite": true
+}

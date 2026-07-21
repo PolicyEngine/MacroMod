@@ -86,6 +86,7 @@
     <a href="#pe">pe-microsim</a>
     <a href="#olg">psl-og</a>
     <a href="#shops">vs others</a>
+    <a href="#forecasters">vs forecasters</a>
   </nav>
 
   <section id="gradient" class="band">
@@ -865,6 +866,136 @@
         Comparators that could not be verified against a fetchable source —
         CBO's FRB/US multiplier tables, IFS decile charts, per-band Scottish
         ready-reckoner figures — are omitted rather than quoted from memory.
+      </div>
+    </div>
+  </section>
+
+  <section id="forecasters" class="band">
+    <div class="band-head">
+      <span class="kicker mono">08 — forecast accuracy</span>
+      <h2>How do we compare to other forecasters?</h2>
+    </div>
+    <div class="prose">
+      <p>
+        Three different statistics answer three different questions, and they
+        are <strong>not averaged, ranked, or plotted on one axis</strong>: our
+        SVAR's pseudo-out-of-sample accuracy against a naive benchmark
+        (computed here, quarterly), the OBR's and external forecasters' own
+        published real-time errors (cited, annual), and our OBR emulator's
+        tracking of the official forecast (replication accuracy, not
+        forecasting accuracy).
+      </p>
+
+      <h3>boe-svar against a random walk, computed from our own runs</h3>
+      <p>
+        An expanding-window pseudo-out-of-sample exercise re-fits the BVAR at
+        49 quarterly origins (2012Q1&ndash;2024Q1, data sample
+        1992Q1&ndash;2026Q1) and scores forecasts one to eight quarters ahead
+        against a no-change random walk. A ratio below 1.0 means the model
+        beats the naive benchmark. The honest result: it beats the random
+        walk clearly on CPI at every horizon, and does <em>not</em> beat it
+        on the level of real GDP.
+      </p>
+      <figure class="vfig">
+        <svg class="vchart" data-chart="svar-relrmse" viewBox="0 0 760 304" role="img" aria-labelledby="svar-relrmse-t svar-relrmse-d">
+          <title id="svar-relrmse-t">boe-svar RMSE relative to a random walk, by horizon</title>
+          <desc id="svar-relrmse-d">Line chart of RMSE ratios versus a random-walk benchmark at horizons one to eight quarters. UK CPI stays between 0.62 and 0.68 at all horizons, well below the 1.0 parity line. UK real GDP sits between 1.06 and 1.09 at all horizons, slightly above parity. Expanding-window evaluation with 49 origins from 2012Q1 to 2024Q1.</desc>
+          <text class="vc-lab" x="58" y="25">RMSE &divide; random-walk RMSE &middot; horizons 1&ndash;8 quarters &middot; below 1.0 beats naive</text>
+          <line class="vc-grid" x1="58" y1="40.0" x2="730" y2="40.0"/>
+          <text class="vc-tick" x="48" y="44" text-anchor="end">1.2</text>
+          <line class="vc-axis" x1="58" y1="102.9" x2="730" y2="102.9"/>
+          <text class="vc-tick" x="48" y="106.9" text-anchor="end">1.0</text>
+          <line class="vc-grid" x1="58" y1="165.7" x2="730" y2="165.7"/>
+          <text class="vc-tick" x="48" y="169.7" text-anchor="end">0.8</text>
+          <line class="vc-grid" x1="58" y1="228.6" x2="730" y2="228.6"/>
+          <text class="vc-tick" x="48" y="232.6" text-anchor="end">0.6</text>
+          <polyline class="vc-s2" points="58.0,82.8 154.0,76.2 250.0,77.3 346.0,75.7 442.0,75.8 538.0,79.3 634.0,82.6 730.0,84.6"/>
+          <circle class="vc-s2-dot" cx="730.0" cy="84.6" r="3.5"/>
+          <polyline class="vc-s1" points="58.0,219.4 154.0,223.0 250.0,214.2 346.0,208.9 442.0,204.9 538.0,203.6 634.0,204.3 730.0,205.6"/>
+          <circle class="vc-s1-dot" cx="730.0" cy="205.6" r="3.5"/>
+          <text class="vc-note" x="730" y="70" text-anchor="end">UK real GDP (level)</text>
+          <text class="vc-note" x="730" y="226" text-anchor="end">UK CPI (level)</text>
+          <text class="vc-tick" x="58" y="290" text-anchor="middle">h=1</text>
+          <text class="vc-tick" x="250" y="290" text-anchor="middle">h=3</text>
+          <text class="vc-tick" x="442" y="290" text-anchor="middle">h=5</text>
+          <text class="vc-tick" x="634" y="290" text-anchor="middle">h=7</text>
+        </svg>
+        <figcaption>Expanding-window pseudo-out-of-sample RMSE ratios, boe-svar over random walk, on the level of each series. 49 forecast origins, 2012Q1&ndash;2024Q1 (the window includes the Covid quarters); estimation sample starts 1992Q1, data through 2026Q1; 4 lags. Source and provenance: <code>papers/boe-svar/figures/rolling_evaluation.json</code>.</figcaption>
+      </figure>
+      <div class="table-scroll">
+      <table>
+        <caption>boe-svar RMSE relative to a random-walk benchmark (ratio; below 1.0 beats naive), by forecast horizon in quarters</caption>
+        <thead><tr><th scope="col">variable</th><th scope="col">h=1</th><th scope="col">h=2</th><th scope="col">h=3</th><th scope="col">h=4</th><th scope="col">h=6</th><th scope="col">h=8</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">UK CPI (level)</th><td><strong>0.63</strong></td><td><strong>0.62</strong></td><td><strong>0.65</strong></td><td><strong>0.66</strong></td><td><strong>0.68</strong></td><td><strong>0.67</strong></td></tr>
+          <tr><th scope="row">World CPI (level)</th><td><strong>0.73</strong></td><td><strong>0.68</strong></td><td><strong>0.69</strong></td><td><strong>0.69</strong></td><td><strong>0.69</strong></td><td><strong>0.67</strong></td></tr>
+          <tr><th scope="row">Bank Rate</th><td><strong>0.88</strong></td><td><strong>0.96</strong></td><td><strong>0.99</strong></td><td>1.02</td><td>1.03</td><td>1.03</td></tr>
+          <tr><th scope="row">UK real GDP (level)</th><td>1.06</td><td>1.08</td><td>1.08</td><td>1.09</td><td>1.07</td><td>1.06</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="chart-note" style="max-width: 80ch;">
+        Bank Rate crosses parity beyond h=3
+        (source file has all eight variables and horizons). These are
+        quarterly, level-basis, pseudo-out-of-sample ratios computed with
+        hindsight-final data &mdash; they are <strong>not</strong> comparable
+        with the real-time annual-growth errors the OBR publishes, which is
+        why they get separate tables.
+      </p>
+
+      <h3>What the OBR and external forecasters report about themselves</h3>
+      <p>
+        The OBR's <a href="https://obr.uk/fer/forecast-evaluation-report-july-2025/">Forecast
+        Evaluation Report (July 2025)</a> publishes its own real-time errors
+        on annual growth rates since 2010, beside the median of external
+        forecasters compiled by HM Treasury. Cited, not recomputed; the
+        statistic is the median absolute error on annual rates, so it cannot
+        be compared with the quarterly RMSE ratios above.
+      </p>
+      <div class="table-scroll">
+      <table>
+        <caption>Median absolute forecast errors reported in the OBR Forecast Evaluation Report, July 2025 (annual rates, percentage points, forecasts since 2010)</caption>
+        <thead><tr><th scope="col">variable &middot; horizon</th><th scope="col">OBR</th><th scope="col">external median</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Real GDP growth &middot; 1 year ahead</th><td>0.6pp</td><td>0.6pp</td></tr>
+          <tr><th scope="row">Real GDP growth &middot; 2 years ahead</th><td>0.4pp</td><td>0.4pp</td></tr>
+          <tr><th scope="row">CPI inflation &middot; 1 year ahead</th><td>0.3pp</td><td>0.3pp</td></tr>
+          <tr><th scope="row">CPI inflation &middot; 2 years ahead</th><td>0.9pp</td><td>0.9pp</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>
+        Our own frozen-edge experiment is the nearest in-house analogue: the
+        boe-svar RMSE of <strong>0.32pp</strong> on quarterly year-on-year GDP
+        growth and CPI inflation over seven quarters from a 2024Q2 data edge
+        (section 03 above). Different statistic (RMSE vs median absolute
+        error), different frequency (quarterly vs annual), one origin against
+        many &mdash; so it sits beside the OBR's numbers, not against them.
+        For the Bank of England, the single matched-vintage episode already
+        cited in section 07 &mdash; the August 2024 MPR modal CPI path of
+        about 2.4% for late 2025 against an outturn peak of 3.8% &mdash; is
+        the only comparison we can source precisely; the Bank does not
+        publish an RMSE-by-horizon table in the MPR.
+      </p>
+
+      <h3>Our OBR emulator: replication accuracy, not forecast accuracy</h3>
+      <p>
+        The obr-macro numbers in section 02 measure how closely the anchored
+        emulator reproduces the OBR's <em>published</em> March 2026 path
+        (MAPE 0.15% GDP, 0.25% consumption) &mdash; that is replication
+        accuracy. It is not an independent forecast: de-seeded and stripped
+        of add-factors, the same model drifts 5.75% below the EFO path over
+        twelve quarters. Any forecast-accuracy credit for obr-macro therefore
+        belongs to the OBR's own forecast, whose errors are the FER numbers
+        above.
+      </p>
+      <div class="callout">
+        Omitted for lack of a defensible source: a NIESR or consensus RMSE
+        table by horizon (NIESR does not publish one in a fetchable form we
+        could verify), a Bank of England RMSE-by-horizon table (not published
+        in the MPR), and an AR(1) benchmark for the SVAR exercise (our stored
+        evaluation includes only the random walk). Each would need a new
+        computation or source before it can appear here.
       </div>
     </div>
   </section>
