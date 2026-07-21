@@ -1,4 +1,4 @@
-"""Figure 1: anchored baseline vs the OBR November 2025 EFO (GDP, consumption).
+"""Figure 1: anchored baseline vs the OBR March 2026 EFO (GDP, consumption).
 
 Runs the anchored solve (add-factors on) over 2025Q1--2027Q4 and plots the
 emulator path against the published EFO path. Reproducible:
@@ -39,7 +39,7 @@ def main():
     ]:
         m = model[code].values / 1000.0
         o = official[code].values / 1000.0
-        ax.plot(range(len(periods)), o, color=ORANGE, lw=2.2, label="OBR EFO (Nov 2025)")
+        ax.plot(range(len(periods)), o, color=ORANGE, lw=2.2, label="OBR EFO (Mar 2026)")
         ax.plot(
             range(len(periods)),
             m,

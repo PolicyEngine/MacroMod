@@ -70,4 +70,17 @@ def test_current_obr_outlook_uses_latest_official_efo_window():
 def test_frozen_validation_vintages_are_not_relabelled_as_current_forecasts():
     page = _read("validation/index.html")
     assert "frozen 2024Q2 data edge" in page
-    assert "working paper's study, not the live March 2026 baseline" in page
+    assert "outturn backtest above retains November 2025" in page
+
+
+def test_validation_and_paper_landings_lead_with_current_uk_vintages():
+    validation = _read("validation/index.html")
+    assert "anchored baseline vs March 2026 EFO" in validation
+    assert "Current March 2026 EFO baseline" in validation
+    assert "anchored baseline vs November 2025 EFO" not in validation
+
+    obr_paper = _read("papers/obr-macro/index.html")
+    assert "Current baseline: March 2026 EFO" in obr_paper
+    boe_paper = _read("papers/boe-svar/index.html")
+    assert "Current forecast: data through" in boe_paper
+    assert "2026Q2&ndash;2029Q2" in boe_paper

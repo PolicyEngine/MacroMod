@@ -4,13 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Open OBR macro model for UK fiscal scoring — PolicyEngine Macro</title>
-<meta name="description" content="Transpiles the OBR's 372 published EViews equations into Python, solves them by Gauss-Seidel iteration, and anchors the baseline to the November 2025 Economic and Fiscal Outlook." />
+<meta name="description" content="Transpiles the OBR's 372 published EViews equations into Python, solves them by Gauss-Seidel iteration, and anchors the live baseline to the March 2026 Economic and Fiscal Outlook." />
 <link rel="canonical" href="https://policyengine-macro.vercel.app/papers/obr-macro" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://policyengine-macro.vercel.app/papers/obr-macro" />
 <meta property="og:site_name" content="PolicyEngine Macro" />
 <meta property="og:title" content="An open emulator of the OBR macroeconometric model" />
-<meta property="og:description" content="Equations, anchoring, calibration against the November 2025 EFO, and worked policy experiments benchmarked to HMRC's ready reckoner." />
+<meta property="og:description" content="Equations, anchoring, current calibration against the March 2026 EFO, and worked policy experiments benchmarked to HMRC's ready reckoner." />
 <meta property="og:image" content="https://policyengine-macro.vercel.app/assets/og-image.png" />
 <meta property="og:image:alt" content="PolicyEngine Macro — open economic models for the UK and US" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -49,7 +49,7 @@
   <section class="band paper-viewer">
     <div class="paper-viewer-head">
       <div>
-        <span class="di-id mono">obr-macro · UK · hosted · 35 pages</span>
+        <span class="di-id mono">obr-macro · UK · hosted · 36 pages</span>
         <h1>An open OBR macro model for UK fiscal scoring</h1>
       </div>
       <div class="paper-viewer-actions">
@@ -58,7 +58,7 @@
       </div>
     </div>
 
-    <p class="paper-result" style="max-width:78ch;">Anchored to the Nov 2025 EFO: GDP MAPE <strong>0.18%</strong>, consumption <strong>0.29%</strong> over 2025Q1&ndash;2027Q4 &mdash; hard-gated in CI. Free-running fit reported without flattery: only 4 of 11 computed variables in band.</p>
+    <p class="paper-result" style="max-width:78ch;">Current baseline: March 2026 EFO, with GDP MAPE <strong>0.15%</strong> and consumption <strong>0.25%</strong> over 2025Q1&ndash;2027Q4. The PDF preserves its November 2025 historical study below a dated current-vintage note.</p>
 
     <!-- desktop: render the PDF inline with the browser's own viewer.
          No third-party script — the <object> child content is the fallback
@@ -78,7 +78,7 @@
     <!-- touch / narrow viewports: inline embedding is unreliable, so show a
          download card rather than an empty box -->
     <div class="pdf-mobile">
-      <span class="di-id mono">35 pages · pdf</span>
+      <span class="di-id mono">36 pages · pdf</span>
       <p>
         Inline PDF viewing is unreliable on mobile browsers, so it’s disabled
         here. Open the paper in your device’s PDF reader instead.

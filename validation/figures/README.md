@@ -37,7 +37,7 @@ audit line by line, which is the point of the page.
 
 | Chart (`data-chart`) | Plots | Source |
 | --- | --- | --- |
-| `obr-anchored` | Quarterly % deviation of the anchored emulator from the Nov-2025 EFO, 2025Q1–2027Q4, for real GDP and consumption | Computed from `papers/obr-macro/figures/fig_anchored_data.csv` (`*_model` vs `*_efo` levels) |
+| `obr-anchored` | Quarterly % deviation of the anchored emulator from the March-2026 EFO, 2025Q1–2027Q4, for real GDP and consumption | Computed from `papers/obr-macro/figures/fig_anchored_data.csv` (`*_model` vs `*_efo` levels) |
 | `obr-reform` | 1pp basic-rate rise: PolicyEngine static costing vs HMRC ready reckoner, 2026–27 and 2028–29 | `chart_data.json` → `papers/obr-macro/sections/comparison.tex`, table `tab:comparison` panel B |
 | `svar-fevd` | Global-shock FEVD shares at the 1-year horizon, ours vs the paper, for UK GDP and CPI | `papers/boe-svar/figures/comparison_numbers.json` |
 | `frbus-residuals` | Max absolute residuals against the Fed's `pyfrbus`, log scale | `chart_data.json` → `papers/frb-us/sections/validation.tex`, tables `tab:tracking` and `tab:refnoise` |
