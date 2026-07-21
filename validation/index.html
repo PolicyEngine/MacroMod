@@ -142,6 +142,27 @@
         evidence comes from out-of-sample forecasts, independent reform
         costings, and solver residuals.
       </div>
+      <h3>Software fidelity and economic validity are separate.</h3>
+      <p>
+        This audit covers the three macro models. Levels are categorical
+        evidence judgements, not a synthetic score: a model can reproduce its
+        reference code perfectly while still lacking independent forecast or
+        counterfactual validation.
+      </p>
+      <div class="table-scroll">
+      <table>
+        <caption>Independent model-quality audit by evidence dimension</caption>
+        <thead><tr><th scope="col">Evidence dimension</th><th scope="col">obr-macro</th><th scope="col">boe-svar</th><th scope="col">frb-us</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Implementation fidelity</th><td>Moderate — incomplete channels</td><td>Strong — restrictions and identities gated</td><td>Strong — reference-solver noise floor</td></tr>
+          <tr><th scope="row">Predictive validation</th><td class="vc-warn">Weak — raw GDP 5.75%, consumption 9.56% MAPE</td><td>Moderate — CPI beats no change; GDP does not in rolling tests</td><td>Not assessed — LONGBASE is not a Fed forecast</td></tr>
+          <tr><th scope="row">Identification robustness</th><td>Not applicable</td><td>Moderate — proxy data and specification matter</td><td>Not applicable</td></tr>
+          <tr><th scope="row">Policy-counterfactual validity</th><td class="vc-warn">Weak — one independent tax benchmark, constrained channels</td><td>Not applicable — reform scoring refused</td><td>Moderate — published ranges, VAR expectations only</td></tr>
+          <tr><th scope="row">Uncertainty calibration</th><td class="vc-warn">Weak — sensitivity envelopes pending</td><td>Moderate — posterior bands, limited coverage history</td><td class="vc-warn">Weak — bootstrap engine exists, public runs remain deterministic</td></tr>
+          <tr><th scope="row">Vintage reproducibility</th><td>Moderate — multi-EFO archive pending</td><td>Moderate — public proxies replace internal series</td><td>Moderate — artifacts hashed; multi-vintage tests pending</td></tr>
+        </tbody>
+      </table>
+      </div>
     </div>
   </section>
 
@@ -518,6 +539,15 @@
         the 68% bands.</strong> Activity tracks well; the median misses the
         2025 inflation peak by up to 0.6pp but captures its reversal.
       </p>
+      <p>
+        <strong>Rolling-origin audit.</strong> A stricter expanding-window test
+        now evaluates 49 historical origins without future-data leakage. Against
+        a no-change benchmark, CPI-level relative RMSE is 0.63 at one quarter
+        and 0.67 at eight quarters (lower is better), while UK GDP is worse at
+        1.06 at both horizons. The model therefore has useful inflation signal,
+        but the single frozen-edge result must not be read as broad GDP forecast
+        superiority.
+      </p>
       <figure class="vfig">
         <svg class="vchart" data-chart="svar-fan" viewBox="0 0 760 340" role="img" aria-labelledby="svar-fan-t svar-fan-d">
 <title id="svar-fan-t">boe-svar: out-of-sample forecast fan from the frozen 2024Q2 edge vs ONS outturns</title>
@@ -666,6 +696,15 @@
         </tbody>
       </table>
       </div>
+      <p>
+        <strong>Uncertainty engine.</strong> The implementation now supports
+        seeded stochastic simulations that jointly resample the official
+        stochastic-equation residual vector, preserving contemporaneous
+        dependence and reporting failed replications. Model and LONGBASE
+        packages are also verified against separate SHA-256 provenance gates.
+        Published probability results still require a reviewed simulation
+        design; model-consistent expectations remain unavailable.
+      </p>
       <details class="more">
         <summary>Two scope caveats: expectations path, and the 2014 FEDS Note comparison</summary>
       <p>

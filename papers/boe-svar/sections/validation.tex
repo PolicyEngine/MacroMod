@@ -37,6 +37,17 @@ Largest domestic CPI contributor & UK supply & monetary policy & disclosed miss 
 
 \paragraph{Internal consistency.} Identities are verified to numerical precision rather than assumed: FEVD shares sum to one at every horizon on every draw within $10^{-10}$ (equation~\ref{eq:fevd}); the historical decomposition~\eqref{eq:hd} --- structural shocks plus Covid component plus deterministic component --- reconstructs the observed data within $10^{-8}$, and the stochastic component equals the sum over shocks within $10^{-10}$; and in the forecast-revision exercise the identity ``forecast at $T$ $=$ pseudo-forecast at $T{-}1$ $+$ composite impulse response'' holds per draw with a maximum absolute error of $5.3\times10^{-12}$ across all draws, horizons and variables.
 
+\paragraph{Rolling-origin forecast evidence.} A separate expanding-window
+pseudo-out-of-sample evaluation estimates the reduced-form BVAR at 49 historical
+origins and compares its posterior-mean path with a no-change benchmark. No
+structural restriction or FEVD target enters this exercise. CPI-level relative
+RMSE is 0.63 at one quarter and 0.67 at eight quarters (values below one beat
+the benchmark), while UK GDP is worse than no change at both horizons (1.06 and
+1.06). This is less flattering, and more general, than the seven-quarter frozen
+edge result: the model contains useful inflation signal but has not demonstrated
+superior GDP forecasting performance. The generated evidence is committed as
+\texttt{results/rolling\_evaluation.json} in the model repository.
+
 \subsection{Replication figures}
 \label{sec:repl-figures}
 

@@ -89,10 +89,166 @@ MODELS = {
     },
 }
 
+# Evidence is deliberately split into dimensions. A model can reproduce its
+# reference software perfectly while still having limited independent evidence
+# for forecasts or policy counterfactuals. These are categorical audit
+# judgements, not a synthetic score that invites false precision.
+QUALITY_LEVELS = {"strong", "moderate", "weak", "not_assessed", "not_applicable"}
+QUALITY_DIMENSIONS = {
+    "implementation_fidelity",
+    "predictive_validation",
+    "identification_robustness",
+    "policy_counterfactual_validity",
+    "uncertainty_calibration",
+    "vintage_reproducibility",
+}
+
+
+def _quality(level: str, evidence: str, next_gate: str) -> dict:
+    return {"level": level, "evidence": evidence, "next_gate": next_gate}
+
+
+MODEL_QUALITY = {
+    "obr-macro": {
+        "implementation_fidelity": _quality(
+            "moderate",
+            "Anchored GDP/consumption reproduce the March 2026 EFO within 1%, "
+            "but passthrough and inactive equations limit equation coverage.",
+            "Exercise every published behavioural equation and eliminate or "
+            "explicitly scope every inactive channel.",
+        ),
+        "predictive_validation": _quality(
+            "weak",
+            "Free-running GDP and consumption MAPE are 5.75% and 9.56%; the "
+            "anchored fit is by construction.",
+            "Pass rolling-origin historical-vintage tests against simple "
+            "benchmarks and first-release outturns.",
+        ),
+        "identification_robustness": _quality(
+            "not_applicable",
+            "The model is an equation-based emulator rather than an identified "
+            "structural-shock model.",
+            "Keep this dimension explicitly not applicable.",
+        ),
+        "policy_counterfactual_validity": _quality(
+            "weak",
+            "One income-tax costing is independently compared with HMRC; trade, "
+            "labour, prices and parts of household income remain constrained.",
+            "Validate a frozen suite of fiscal shocks against independent "
+            "official costings and published multiplier ranges.",
+        ),
+        "uncertainty_calibration": _quality(
+            "weak",
+            "Results are point scenarios without comprehensive uncertainty over "
+            "add factors, closures or missing-input proxies.",
+            "Publish sensitivity envelopes for judgement, closure and bridge "
+            "assumptions.",
+        ),
+        "vintage_reproducibility": _quality(
+            "moderate",
+            "The live March 2026 baseline and November 2025 paper vintage are "
+            "labelled, but a multi-vintage archive is not yet a test fixture.",
+            "Archive source hashes and reproduce at least three historical EFO "
+            "vintages end to end.",
+        ),
+    },
+    "boe-svar": {
+        "implementation_fidelity": _quality(
+            "strong",
+            "Zero/sign restrictions and decomposition identities are tested on "
+            "real data to numerical precision.",
+            "Keep all exact invariants hard-gated for every specification.",
+        ),
+        "predictive_validation": _quality(
+            "moderate",
+            "Across 49 leakage-safe rolling origins, CPI beats no change at one- "
+            "and eight-quarter horizons, while GDP is about 6% worse; the separate "
+            "seven-quarter frozen-edge evaluation gives 0.32pp RMSE.",
+            "Compare with a declared BVAR benchmark and publish proper predictive "
+            "scores across the rolling origins.",
+        ),
+        "identification_robustness": _quality(
+            "moderate",
+            "Headline FEVD shares replicate the paper in the weighted production "
+            "run, but proxy world data and undisclosed source settings matter.",
+            "Show conclusions across lag, prior, proxy-data and weighting grids "
+            "with effective-sample-size diagnostics.",
+        ),
+        "policy_counterfactual_validity": _quality(
+            "not_applicable",
+            "The model diagnoses shocks and forecasts; it does not score statutory "
+            "policy reforms.",
+            "Continue to refuse reform-scoring requests.",
+        ),
+        "uncertainty_calibration": _quality(
+            "moderate",
+            "Posterior 68% and 90% intervals are produced, but empirical coverage "
+            "has been checked over only seven forecast quarters.",
+            "Report rolling empirical coverage and proper predictive scores.",
+        ),
+        "vintage_reproducibility": _quality(
+            "moderate",
+            "The estimation sample and conditioning edge are recorded, while key "
+            "internal Bank world aggregates require public proxies.",
+            "Freeze input manifests and retain both real-time and revised vintages.",
+        ),
+    },
+    "frb-us": {
+        "implementation_fidelity": _quality(
+            "strong",
+            "The baseline and a reference shock match LONGBASE and pyfrbus at the "
+            "reference solver's numerical noise floor.",
+            "Extend like-for-like gates across official demos, closures and recodes.",
+        ),
+        "predictive_validation": _quality(
+            "not_assessed",
+            "LONGBASE is an illustrative tracking baseline, not an official Fed "
+            "forecast, and no historical forecast evaluation is published here.",
+            "Run vintage-preserving pseudo-out-of-sample forecast evaluation.",
+        ),
+        "identification_robustness": _quality(
+            "not_applicable",
+            "FRB/US is a large behavioural equation model, not a structural VAR "
+            "identified by sign or zero restrictions.",
+            "Keep this dimension explicitly not applicable.",
+        ),
+        "policy_counterfactual_validity": _quality(
+            "moderate",
+            "Selected monetary and fiscal multipliers lie in published ranges, but "
+            "only VAR expectations are supported.",
+            "Implement and cross-validate model-consistent expectations before "
+            "forward-guidance or permanent-policy use.",
+        ),
+        "uncertainty_calibration": _quality(
+            "weak",
+            "A seeded joint historical-residual bootstrap now exists upstream, but "
+            "the public run surface and published experiments remain deterministic.",
+            "Review residual windows and closures, expose the stochastic surface, "
+            "and publish coverage and convergence diagnostics.",
+        ),
+        "vintage_reproducibility": _quality(
+            "moderate",
+            "Model and LONGBASE archives are independently SHA-256 gated because "
+            "the Board updates their pages and artifacts on separate schedules.",
+            "Retain and test multiple historical model/data artifact pairs.",
+        ),
+    },
+}
+
+for _model_id, _model in MODELS.items():
+    _model["quality"] = deepcopy(MODEL_QUALITY.get(_model_id, {
+        dimension: _quality(
+            "not_assessed",
+            "Outside the scope of the current three-model audit.",
+            "Complete a model-specific evidence review before assigning a level.",
+        )
+        for dimension in QUALITY_DIMENSIONS
+    }))
+
 REQUIRED_CAPABILITY_FIELDS = {
     "display_name", "model_class", "geography", "question_types", "inputs",
     "outputs", "cannot_answer", "horizon", "access", "runtime", "uncertainty",
-    "status", "data_vintage",
+    "status", "data_vintage", "quality",
 }
 
 
@@ -108,6 +264,23 @@ def validate_registry(registry: dict | None = None) -> None:
         ):
             if not isinstance(model[field], list) or not model[field]:
                 raise ValueError(f"{model_id}.{field} must be a non-empty list")
+        quality = model["quality"]
+        if set(quality) != QUALITY_DIMENSIONS:
+            raise ValueError(
+                f"{model_id}.quality must contain exactly "
+                f"{sorted(QUALITY_DIMENSIONS)}"
+            )
+        for dimension, assessment in quality.items():
+            if assessment.get("level") not in QUALITY_LEVELS:
+                raise ValueError(
+                    f"{model_id}.quality.{dimension}.level must be one of "
+                    f"{sorted(QUALITY_LEVELS)}"
+                )
+            for field in ("evidence", "next_gate"):
+                if not assessment.get(field):
+                    raise ValueError(
+                        f"{model_id}.quality.{dimension}.{field} is required"
+                    )
 
 
 validate_registry()
