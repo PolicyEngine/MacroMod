@@ -152,10 +152,12 @@ def test_null_macro_result_yields_no_modifier():
 # ---------------------------------------------------------------------------
 
 def test_guard_rejects_dead_economic_assumption_reforms():
-    """gov.economic_assumptions.* overrides silently do nothing in
-    population runs (pre-uprated datasets; see module docstring), so the
-    dynamic score refuses them — before any heavy import."""
-    with pytest.raises(ValueError, match="no effect in"):
+    """Dynamic scoring refuses gov.economic_assumptions.* user overrides:
+    they double-drive the overlay's channel, and the input-uprating index
+    paths are additionally inert on pre-built datasets (some paths in the
+    namespace ARE live at sim time — the guard's error says to apply those
+    via a static run). Refused before any heavy import."""
+    with pytest.raises(ValueError, match="double-drive"):
         core.dynamic_population_reform_impact(
             reform={
                 "gov.economic_assumptions.indices.obr.average_earnings": 1.0
@@ -194,6 +196,12 @@ def fake_dynamic(monkeypatch):
             "budgetary_impact_basis": "change in gov_balance",
             "headline": "The reform raises £5.0bn/year in 2026.",
             "decile_impacts": [], "winners": 0, "losers": 0,
+            # Nested static score, as the real pe_population_impact
+            # returns: the dynamic wrapper must STRIP it (one
+            # authoritative score) — without this key the single-score
+            # test would be vacuous.
+            "score": {"model": "pe-microsim",
+                      "analysis_type": "static microsimulation"},
         }
 
     monkeypatch.setattr(core, "og_score_reform", fake_og)
@@ -214,7 +222,7 @@ def test_dynamic_applies_modifier_to_reform_side_only(fake_dynamic):
     assert res["application"]["variables_tried"] == list(SCALED_INPUT_VARIABLES)
     assert res["score"]["model"] == "og+microsim"
     assert res["economic_assumptions"]["earnings_factor"] == pytest.approx(0.99)
-    assert any("hours change" in c for c in res["caveats"])
+    assert any("effective-labour change" in c for c in res["caveats"])
     assert any("input" in a for a in res["assumptions"])
     json.dumps(res)
 
@@ -303,3 +311,224 @@ def test_input_scaling_actually_bites():
         f"input-scaling overlay did not bite: employment income ratio "
         f"{ratio:.4f} (expected ~0.99). Do NOT ship the overlay."
     )
+
+
+# ---------------------------------------------------------------------------
+# The PRODUCTION attachment seam (review #72.6): pe_population_impact must
+# attach the modifier as Dynamic(simulation_modifier=..., no-LSR) on the
+# reform Simulation, and attach nothing when the modifier is None — pinned
+# with fake engine modules, no policyengine install needed.
+# ---------------------------------------------------------------------------
+
+class _FakeDS:
+    name = "fake-ds"
+
+    class data:
+        household = [0] * 3
+
+
+class _FakeAggregate:
+    def __init__(self, simulation=None, variable=None, aggregate_type=None,
+                 entity=None):
+        self.result = 0.0
+
+    def run(self):
+        pass
+
+
+class _FakeDynamic:
+    def __init__(self, name=None, simulation_modifier=None,
+                 affects_labor_supply_response=None):
+        self.name = name
+        self.simulation_modifier = simulation_modifier
+        self.affects_labor_supply_response = affects_labor_supply_response
+
+
+class _CaptureSimulation:
+    captured: list = []
+
+    def __init__(self, **kwargs):
+        _CaptureSimulation.captured.append(kwargs)
+
+    def run(self):
+        pass
+
+
+@pytest.fixture
+def fake_engine(monkeypatch):
+    import sys
+    import types
+
+    _CaptureSimulation.captured = []
+    pe_mod = types.ModuleType("policyengine")
+    pe_mod.uk = types.SimpleNamespace(model="fake-uk-model")
+    core_mod = types.ModuleType("policyengine.core")
+    core_mod.Simulation = _CaptureSimulation
+    core_mod.Dynamic = _FakeDynamic
+    outputs_mod = types.ModuleType("policyengine.outputs")
+    agg_mod = types.ModuleType("policyengine.outputs.aggregate")
+    agg_mod.Aggregate = _FakeAggregate
+    agg_mod.AggregateType = types.SimpleNamespace(SUM="sum")
+    dec_mod = types.ModuleType("policyengine.outputs.decile_impact")
+    dec_mod.calculate_decile_impacts = (
+        lambda **kw: types.SimpleNamespace(outputs=[])
+    )
+    for name, mod in {
+        "policyengine": pe_mod,
+        "policyengine.core": core_mod,
+        "policyengine.outputs": outputs_mod,
+        "policyengine.outputs.aggregate": agg_mod,
+        "policyengine.outputs.decile_impact": dec_mod,
+    }.items():
+        monkeypatch.setitem(sys.modules, name, mod)
+    monkeypatch.setattr(core, "_import_pe", lambda: pe_mod)
+    monkeypatch.setattr(
+        core, "_pe_pop_baseline", lambda c, y, d: (_FakeDS(), object())
+    )
+    return _CaptureSimulation
+
+
+def test_seam_attaches_dynamic_on_reform_side(fake_engine):
+    sentinel = object()
+    core.pe_population_impact(
+        country="uk", reform={"x": 1.0}, year=2026, reform_modifier=sentinel
+    )
+    (sim_kwargs,) = fake_engine.captured
+    dyn = sim_kwargs["dynamic"]
+    assert dyn.simulation_modifier is sentinel
+    assert dyn.affects_labor_supply_response is False
+
+
+def test_seam_attaches_nothing_when_modifier_none(fake_engine):
+    core.pe_population_impact(
+        country="uk", reform={"x": 1.0}, year=2026, reform_modifier=None
+    )
+    (sim_kwargs,) = fake_engine.captured
+    assert "dynamic" not in sim_kwargs
+
+
+# ---------------------------------------------------------------------------
+# og_payload: the two-environment pipeline (review #72.1)
+# ---------------------------------------------------------------------------
+
+def _payload_for(reform, year=2026, w_reform=0.99):
+    p = _synthetic_og(w_reform=w_reform, start_year=year)
+    p["reform"] = dict(reform)
+    return p
+
+
+def test_og_payload_skips_og_solve(fake_dynamic, monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("og_score_reform must not run when a payload is given")
+
+    monkeypatch.setattr(core, "og_score_reform", boom)
+    reform = {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}
+    res = core.dynamic_population_reform_impact(
+        reform=reform, year=2026, og_payload=_payload_for(reform)
+    )
+    assert res["economic_assumptions"]["earnings_factor"] == pytest.approx(0.99)
+    assert res["application"]["applied"] is True
+
+
+def test_og_payload_reform_and_year_mismatch_refused(fake_dynamic):
+    reform = {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}
+    with pytest.raises(ValueError, match="different reform"):
+        core.dynamic_population_reform_impact(
+            reform=reform, year=2026,
+            og_payload=_payload_for({"other.param": 1.0}),
+        )
+    with pytest.raises(ValueError, match="start_year"):
+        core.dynamic_population_reform_impact(
+            reform=reform, year=2027, og_payload=_payload_for(reform, year=2026)
+        )
+    with pytest.raises(ValueError, match="missing required keys"):
+        core.dynamic_population_reform_impact(
+            reform=reform, year=2026, og_payload={"reform": reform}
+        )
+
+
+def test_dynamic_result_has_single_authoritative_score(fake_dynamic):
+    """The embedded static microsim score is dropped (review #72.4): one
+    dynamic result, one score block."""
+    reform = {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}
+    res = core.dynamic_population_reform_impact(
+        reform=reform, year=2026, og_payload=_payload_for(reform)
+    )
+    assert "score" not in res["microsim"]
+    assert res["score"]["model"] == "og+microsim"
+
+
+def test_implausible_og_ratio_refused():
+    with pytest.raises(ValueError, match="implausible"):
+        EconomicAssumptions.from_og_result(_synthetic_og(w_reform=0.30))
+    with pytest.raises(ValueError, match="degenerate"):
+        EconomicAssumptions.from_og_result(_synthetic_og(w_reform=float("nan")))
+
+
+def test_small_factor_survives_unrounded():
+    """Review #72.2 / verify-round: a wage ratio of 1.00004 must NOT
+    quantize to 1.0 — traversing core._og_ss_dict, the layer where the
+    original 4dp rounding lived, not just the assumptions math."""
+
+    class _SS:
+        def __init__(self, w):
+            self._d = {"r": 0.05, "w": w, "Y": 2.0, "K": 6.0, "L": 1.0,
+                       "C": 1.4, "I": 0.4, "G": 0.2, "tax_revenue": 0.6,
+                       "debt": 1.8}
+
+        def model_dump(self):
+            return dict(self._d)
+
+    payload = {
+        "start_year": 2026,
+        "baseline_steady_state_model_units": core._og_ss_dict(_SS(1.0)),
+        "reform_steady_state_model_units": core._og_ss_dict(_SS(1.00004)),
+    }
+    ea = EconomicAssumptions.from_og_result(payload)
+    assert ea.earnings_factor == pytest.approx(1.00004, abs=1e-9)
+    assert ea.earnings_factor != 1.0
+    assert ea.input_scaling_modifier() is not None
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(_PE_SKIP is not None, reason=_PE_SKIP or "")
+def test_dynamic_og_payload_end_to_end_bites():
+    """Engine-level proof of the PRODUCTION path (review #72.6): the full
+    dynamic_population_reform_impact pipeline with a pre-computed OG payload
+    (no oguk needed) must move aggregates vs the static score."""
+    reform = {"gov.hmrc.income_tax.rates.uk[0].rate": 0.20}
+    res = core.dynamic_population_reform_impact(
+        reform=reform, year=2026, og_payload=_payload_for(reform, w_reform=0.99)
+    )
+    assert res["application"]["applied"] is True
+    assert abs(res["microsim"]["household_net_income_change_bn"]) > 1.0
+
+
+def test_mixed_mode_valueerror_gets_two_step_guidance(fake_dynamic, monkeypatch):
+    """A mixed-computation-mode import clash is rewritten into the two-env
+    guidance; an unrelated ValueError mentioning 'computation' is NOT."""
+    reform = {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}
+
+    def clash(**kw):
+        raise ValueError("mixed computation mode: policyengine-uk 2.88 ...")
+
+    monkeypatch.setattr(core, "og_score_reform", clash)
+    with pytest.raises(RuntimeError, match="og-payload"):
+        core.dynamic_population_reform_impact(reform=reform, year=2026)
+
+    def unrelated(**kw):
+        raise ValueError("steady-state computation did not converge")
+
+    monkeypatch.setattr(core, "og_score_reform", unrelated)
+    with pytest.raises(ValueError, match="did not converge"):
+        core.dynamic_population_reform_impact(reform=reform, year=2026)
+
+
+def test_non_numeric_payload_field_is_actionable(fake_dynamic):
+    reform = {"gov.hmrc.income_tax.rates.uk[0].rate": 0.21}
+    bad = _payload_for(reform)
+    bad["reform_steady_state_model_units"]["w"] = "not-a-number"
+    with pytest.raises(ValueError, match="og-score"):
+        core.dynamic_population_reform_impact(
+            reform=reform, year=2026, og_payload=bad
+        )

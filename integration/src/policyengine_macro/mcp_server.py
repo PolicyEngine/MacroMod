@@ -38,7 +38,7 @@ def recommend_model(
     """Deterministically recommend only models registered for a question.
 
     question_type must be one of household, population, policy_reform,
-    economic_shock, translated_policy_scenario, forecast,
+    dynamic_scoring, economic_shock, translated_policy_scenario, forecast,
     economic_diagnosis, or structural_change. Unsupported combinations return
     no model rather than an invented mapping.
     """
@@ -97,6 +97,10 @@ def score_reform(
                     few minutes (one microsim run per year + two OBR solves).
             'microsim' — the PolicyEngine population costing itself (static,
                     no macro feedback), wrapped in the same ScoreResult.
+            'og+microsim' — dynamic scoring: the OG-UK long-run wage change
+                    becomes an earnings overlay on the reform simulation
+                    (see dynamic_reform_impact for details and the
+                    local-only caveat). UK only.
             'frbus' — NOT ACCEPTED, and deliberately so: it raises an error.
                     FRB/US has no PolicyEngine-reform bridge, because no
                     mapping exists today from a PolicyEngine US reform to
@@ -462,8 +466,9 @@ def dynamic_reform_impact(
     re-scored against the untouched stock baseline. (Input scaling, not a
     parameter overlay: uprating-parameter overrides are dead in population
     runs because the per-year microdata are pre-uprated at dataset build
-    time; reforms touching gov.economic_assumptions.* are refused here for
-    the same reason.)
+    time; reforms touching gov.economic_assumptions.* are refused — they
+    would double-drive the overlay's channel, and the input-uprating index
+    paths among them are additionally inert; see the reform arg below.)
 
     The overlay carries only the reform/baseline RATIO from the macro
     model (the stock baseline already embeds the OBR forecast), so the
@@ -474,8 +479,12 @@ def dynamic_reform_impact(
         country: 'uk' only (OG-UK is a UK model).
         reform: REQUIRED flat {parameter_path: value} dict, same shape as
             population_reform_impact. Must NOT touch
-            gov.economic_assumptions.* (such overrides are silently dead
-            in population runs, so they are refused).
+            gov.economic_assumptions.*: the overlay already carries the
+            macro model's economic assumptions (an override would
+            double-drive the channel), and the input-uprating index paths
+            there are additionally inert in population runs — so such
+            reforms are refused. Some paths in that namespace ARE live at
+            simulation time; apply those via a static run if intended.
         year: Reform start year / microsim year (default 2026).
         dataset: Optional microdata dataset name override.
         max_iter: OG steady-state solver iteration cap (default 250).
@@ -484,31 +493,26 @@ def dynamic_reform_impact(
     in-process, but a cold solve takes >10 minutes) plus one microsim run.
     NOT AVAILABLE on the hosted server: oguk is deliberately excluded from
     the Modal image (a solve cannot fit the 600s request timeout), so this
-    tool returns an actionable error there — run it locally via
-    `pe-macro dynamic-score --reform '...'` instead.
+    tool returns an actionable error there — run it locally instead, as
+    the TWO-STEP pipeline (oguk needs its own environment until
+    PSLmodels/OG-UK#68): in an OG env, `pe-macro og-score --reform '...'
+    --json > og.json`; then `pe-macro dynamic-score --reform '...'
+    --og-payload og.json`.
 
     Returns the microsim result plus the OG payload, the
     economic_assumptions factors, an `application` block describing the
     input scaling actually applied,
     and a common `score` block (model 'og+microsim').
     """
-    try:
-        return core.dynamic_population_reform_impact(
-            country=country, reform=reform, year=year, dataset=dataset,
-            max_iter=max_iter,
-        )
-    except ImportError as e:
-        return {
-            "error": (
-                "dynamic scoring is not available on the hosted server: "
-                "oguk is excluded from the Modal image because an OG-UK "
-                "steady-state solve cannot fit the request timeout. Run "
-                "it locally: pip install "
-                "git+https://github.com/PSLmodels/OG-UK, then "
-                "`pe-macro dynamic-score --reform '...'`. "
-                f"(underlying error: {e})"
-            )
-        }
+    # Errors — including the hosted "oguk not importable" case — surface as
+    # MCP tool errors (isError=true), never as a successful result whose
+    # payload happens to contain an "error" key; core raises the actionable
+    # two-step guidance itself, so score_reform(model="og+microsim") gets
+    # the identical behaviour.
+    return core.dynamic_population_reform_impact(
+        country=country, reform=reform, year=year, dataset=dataset,
+        max_iter=max_iter,
+    )
 
 
 if __name__ == "__main__":

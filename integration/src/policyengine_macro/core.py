@@ -1625,8 +1625,11 @@ def pe_population_impact(
                 "count_worse_off": int(d.count_worse_off),
             }
         )
-        winners += d.count_better_off
-        losers += d.count_worse_off
+        # Accumulate the SAME integers the decile rows display, so the
+        # headline totals always equal the sum of the rows (truncating the
+        # floats independently let them disagree).
+        winners += int(d.count_better_off)
+        losers += int(d.count_worse_off)
 
     sym = "£" if country == "uk" else "$"
     out = {
@@ -1757,8 +1760,13 @@ def _og_solve_baseline(start_year: int, max_iter: int, use_cache: bool = True):
 
 
 def _og_ss_dict(ss) -> dict:
-    """SteadyStateResult -> plain rounded dict (model units)."""
-    return {k: round(float(v), 4) for k, v in ss.model_dump().items()}
+    """SteadyStateResult -> plain dict (model units), FULL PRECISION.
+
+    No rounding here: the dynamic overlay computes reform/baseline ratios
+    from these values, and 4dp rounding quantized small reforms to an exact
+    factor of 1.0 — silently returning static results as dynamic (Sol
+    review of #72, blocking #2). Round for display only, at the CLI."""
+    return {k: float(v) for k, v in ss.model_dump().items()}
 
 
 def og_baseline(start_year: int = 2026, max_iter: int = OG_DEFAULT_MAX_ITER) -> dict:
@@ -2285,10 +2293,16 @@ def _check_overlay_collision(reform: dict) -> None:
     hit = [p for p in reform if p.startswith(OVERLAY_PARAM_PREFIX)]
     if hit:
         raise ValueError(
-            "gov.economic_assumptions.* overrides have no effect in "
-            "population runs (the per-year microdata are pre-uprated at "
-            "dataset build time), so the dynamic score refuses them rather "
-            f"than silently ignoring them (paths: {', '.join(hit)})."
+            "dynamic scoring refuses user overrides under "
+            "gov.economic_assumptions.*: the overlay already carries the "
+            "macro model's economic assumptions, so a user override would "
+            "double-drive the same channel — and for input-uprating index "
+            "paths (e.g. indices.obr.average_earnings) such overrides are "
+            "additionally inert in population runs, because the per-year "
+            "microdata are pre-uprated at dataset build time (verified "
+            "2026-07-20). Some paths in this namespace ARE consulted at "
+            "simulation time; apply those in a STATIC population run if "
+            f"intended. (paths: {', '.join(hit)})"
         )
 
 
@@ -2299,6 +2313,7 @@ def dynamic_population_reform_impact(
     dataset: str | None = None,
     max_iter: int = OG_DEFAULT_MAX_ITER,
     baseline_cache: bool = True,
+    og_payload: dict | None = None,
 ) -> dict:
     """Dynamic population score: OG-UK macro overlay on the microsim (#11).
 
@@ -2339,10 +2354,58 @@ def dynamic_population_reform_impact(
     reform = validate_reform(reform)
     _check_overlay_collision(reform)
 
-    og = og_score_reform(
-        reform=reform, start_year=year, max_iter=max_iter,
-        baseline_cache=baseline_cache,
-    )
+    # TWO-ENVIRONMENT REALITY (until PSLmodels/OG-UK#68): oguk pins
+    # policyengine-uk==2.88.0, and importing the current policyengine
+    # wrapper alongside it raises a mixed-computation-mode error — the OG
+    # solve and the population microsim cannot share one process today.
+    # ``og_payload`` accepts a pre-computed og_score_reform result (run in
+    # the OG environment: `pe-macro og-score --json`), so the pipeline is
+    # runnable NOW as an explicit two-step rather than an impossible
+    # single-process import.
+    if og_payload is not None:
+        required = {"baseline_steady_state_model_units",
+                    "reform_steady_state_model_units", "start_year"}
+        missing = required - set(og_payload)
+        if missing:
+            raise ValueError(
+                f"og_payload missing required keys: {sorted(missing)} — "
+                "pass the unmodified JSON output of `pe-macro og-score`"
+            )
+        if og_payload.get("reform") != reform:
+            raise ValueError(
+                "og_payload was produced for a different reform than the "
+                "one being scored (payload reform "
+                f"{og_payload.get('reform')!r} vs {reform!r}); refusing to "
+                "mix them"
+            )
+        if int(og_payload["start_year"]) != int(year):
+            raise ValueError(
+                f"og_payload start_year {og_payload['start_year']} does not "
+                f"match the requested year {year}"
+            )
+        og = og_payload
+    else:
+        try:
+            og = og_score_reform(
+                reform=reform, start_year=year, max_iter=max_iter,
+                baseline_cache=baseline_cache,
+            )
+        except (ImportError, ValueError) as e:
+            if isinstance(e, ValueError) and (
+                "computation mode" not in str(e).lower()
+            ):
+                raise  # an unrelated ValueError, not the mixed-mode import clash
+            raise RuntimeError(
+                "dynamic scoring needs an OG-UK solve, and oguk is not "
+                "usable in this process (on the hosted server it is deliberately "
+                "excluded: a solve cannot fit the request timeout; locally "
+                "it needs its own environment until PSLmodels/OG-UK#68 — "
+                "oguk pins policyengine-uk==2.88.0, which cannot share a "
+                "process with the current policyengine wrapper). Run the "
+                "two-step: in an OG env, `pe-macro og-score --reform '...' "
+                "--json > og.json`; then here, `pe-macro dynamic-score "
+                f"--reform '...' --og-payload og.json`. (underlying: {e})"
+            ) from e
     ea = EconomicAssumptions.from_og_result(og)
     modifier = ea.input_scaling_modifier()
 
@@ -2375,6 +2438,15 @@ def dynamic_population_reform_impact(
         "assumptions": assumptions,
         "caveats": caveats,
     }
+    # The embedded microsim payload was produced WITH the overlay attached;
+    # its own nested `score` block, generated by the static scorer, would
+    # carry a "static microsimulation: no behavioural or macro feedback"
+    # basis that contradicts this dynamic result. The outer ScoreResult
+    # below is authoritative — drop the nested one rather than shipping two
+    # scores that disagree about what was run.
+    micro = dict(micro)
+    micro.pop("score", None)
+    out["microsim"] = micro
     out["score"] = ScoreResult(
         model="og+microsim",
         model_class="olg-ge overlay on microsim",

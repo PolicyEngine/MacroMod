@@ -67,6 +67,26 @@ scoring model by its declared contract:
   is excluded from the hosted image); also exposed as
   `pe-macro dynamic-score` and the `dynamic_reform_impact` MCP tool.
 
+  **Two-environment pipeline (required until
+  [PSLmodels/OG-UK#68](https://github.com/PSLmodels/OG-UK/issues/68)):**
+  oguk pins `policyengine-uk==2.88.0`, and importing the current
+  `policyengine` wrapper alongside it raises a mixed-computation-mode
+  error — the OG solve and the population microsim cannot share one
+  process today. Run the OG solve in its own env and hand the payload
+  across:
+
+  ```bash
+  # env A (.venv-og): the OG solve
+  pe-macro og-score --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
+      --json > og.json
+  # env B (main env): the dynamic score, consuming the payload
+  pe-macro dynamic-score --reform '{"gov.hmrc.income_tax.rates.uk[0].rate":0.21}' \
+      --og-payload og.json
+  ```
+
+  The payload is validated against the reform and start year it was
+  produced for; a mismatch is refused.
+
 Every scoring result also carries a common `score` block — the `ScoreResult`
 schema ([#10](https://github.com/PolicyEngine/macro/issues/10)): model id and
 class, horizon, per-quantity deltas with units and basis, assumptions,

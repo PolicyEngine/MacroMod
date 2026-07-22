@@ -3,7 +3,8 @@ from policyengine_macro import capabilities
 
 def test_registry_has_exact_integrated_models():
     assert set(capabilities.MODELS) == {
-        "pe-microsim", "obr-macro", "boe-svar", "frb-us", "og-uk"
+        "pe-microsim", "obr-macro", "boe-svar", "frb-us", "og-uk",
+        "og+microsim",
     }
 
 
@@ -54,3 +55,12 @@ def test_quality_assessments_are_explanatory_not_numeric_scores():
             assert assessment["evidence"]
             assert assessment["next_gate"]
             assert "score" not in assessment
+
+
+def test_distribution_routing_keeps_dynamic_member():
+    """Reverting the needs_distribution filter to pe-microsim-only must
+    fail here, not pass silently."""
+    rec = capabilities.recommend(
+        "policy_reform", country="uk", needs_distribution=True
+    )
+    assert "og+microsim" in rec["candidate_models"]

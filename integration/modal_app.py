@@ -353,4 +353,10 @@ def check_overlay_gate() -> dict:
         "bites": abs(scaled["household_net_income_change_bn"]) > 1.0,
     }
     print("GATE RESULT:", out)
+    if not out["bites"]:
+        raise RuntimeError(
+            f"OVERLAY GATE FAILED: a 0.99 earnings scaling moved net income "
+            f"by only {out['net_income_change_bn']}bn — the input-scaling "
+            "mechanism is dead; do NOT ship the overlay. " + str(out)
+        )
     return out

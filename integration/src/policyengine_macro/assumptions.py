@@ -69,9 +69,12 @@ class EconomicAssumptions(BaseModel):
     - ``earnings_factor`` scales the employment-income input arrays of the
       reform simulation only (see ``input_scaling_modifier``).
     - Other earnings-linked inputs (self-employment/mixed income, pension
-      income) are NOT scaled in v1: the OG wage is the price of dependent
-      labour, and stretching it over self-employment or pension uprating
-      would assert an incidence the model does not deliver.
+      income) are NOT scaled in v1. This is a v1 INCIDENCE CHOICE, not a
+      distinction OG identifies: the OG ``w`` is the price of an effective
+      labour unit (its calibration blends employment and self-employment
+      income) and ``L`` is effective labour, not raw hours — restricting
+      the pass-through to employment income keeps the applied margin
+      narrow and explicit rather than asserting broader incidence.
     - ``labour_supply_factor`` is REPORTED in assumptions/caveats but not
       allocated to any input: an aggregate hours change has no
       distributional incidence the microsim could apply without inventing
@@ -95,17 +98,51 @@ class EconomicAssumptions(BaseModel):
         K, L, ...). The model is real, so w and L ratios are the only price
         signals carried; r is reported for context.
         """
-        base = og_payload["baseline_steady_state_model_units"]
-        ref = og_payload["reform_steady_state_model_units"]
-        start_year = int(og_payload["start_year"])
+        try:
+            base = og_payload["baseline_steady_state_model_units"]
+            ref = og_payload["reform_steady_state_model_units"]
+            start_year = int(og_payload["start_year"])
+            (base["w"], base["L"], base["r"], ref["w"], ref["L"], ref["r"])
+        except (KeyError, TypeError) as e:
+            raise ValueError(
+                "og_payload is not an og-score result (missing field "
+                f"{e}); pass the unmodified output of "
+                "`pe-macro og-score --json`"
+            ) from e
+        for name in ("w", "L"):
+            for side, vals in (("baseline", base), ("reform", ref)):
+                try:
+                    v = float(vals[name])
+                except (TypeError, ValueError) as e:
+                    raise ValueError(
+                        f"OG {side} steady state has non-numeric "
+                        f"{name}={vals[name]!r}; pass the unmodified output "
+                        "of `pe-macro og-score --json`"
+                    ) from e
+                if not (v and v > 0) or v != v or v in (float("inf"),):
+                    raise ValueError(
+                        f"OG {side} steady state has non-positive/non-finite "
+                        f"{name}={v!r}; refusing to build an overlay from a "
+                        "degenerate solve"
+                    )
+        earnings_factor = ref["w"] / base["w"]
+        labour_supply_factor = ref["L"] / base["L"]
+        for label, f in (("earnings", earnings_factor),
+                         ("labour-supply", labour_supply_factor)):
+            if not 0.5 <= f <= 2.0:
+                raise ValueError(
+                    f"implausible steady-state {label} ratio {f:.4f} "
+                    "(outside [0.5, 2.0]) — inspect the OG solve rather "
+                    "than applying it as an overlay"
+                )
         return cls(
             source=(
                 "OG-UK overlapping generations (steady state), "
                 "pooled ages, single representative sector"
             ),
             start_year=start_year,
-            earnings_factor=round(ref["w"] / base["w"], 6),
-            labour_supply_factor=round(ref["L"] / base["L"], 6),
+            earnings_factor=earnings_factor,
+            labour_supply_factor=labour_supply_factor,
             interest_rate_baseline=base["r"],
             interest_rate_reform=ref["r"],
             notes=[
@@ -167,11 +204,12 @@ class EconomicAssumptions(BaseModel):
         ]
 
     def caveat_strings(self) -> list[str]:
-        hours_pct = 100.0 * (self.labour_supply_factor - 1.0)
+        labour_pct = 100.0 * (self.labour_supply_factor - 1.0)
         return [
-            f"aggregate hours change {hours_pct:+.2f}% not distributionally "
-            "allocated in v1 (labour_supply_factor is reported, not applied "
-            "to any input)",
+            f"aggregate effective-labour change {labour_pct:+.2f}% not "
+            "distributionally allocated in v1 (labour_supply_factor is "
+            "reported, not applied to any input; OG's L is effective "
+            "labour units, not raw hours)",
             "earnings factor applied to employment income only; "
             "self-employment/mixed income and pension income are not "
             "adjusted in v1",
