@@ -198,6 +198,11 @@ image = (
         # container start stays fast; only the first policyengine tool call
         # in a fresh container pays the load.
         "policyengine[models]>=4,<5",  # [models] extra REQUIRED: base install leaves pe.uk/pe.us as None
+        # policyengine's bundled data-release manifest certifies an exact
+        # country-package version; a newer policyengine-us makes every US
+        # (and via import, UK) call raise at import time. Keep this pin in
+        # sync with the manifest version reported by the certification error.
+        "policyengine-us==1.764.6",
     )
 )
 

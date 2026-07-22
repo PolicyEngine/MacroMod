@@ -25,6 +25,10 @@ models = [
     # [models] pulls the pinned policyengine-uk / policyengine-us country
     # packages that pe.uk / pe.us need at runtime.
     "policyengine[models]>=4,<5",
+    # policyengine's bundled data-release manifest certifies an exact
+    # policyengine-us version; anything newer fails certification at import
+    # (every pe.* call raises). Keep in sync with the manifest pin.
+    "policyengine-us==1.764.6",
 ]
 
 [project.scripts]
