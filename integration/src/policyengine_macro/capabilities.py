@@ -93,7 +93,7 @@ MODELS = {
         "runtime": "seconds to minutes",
         "uncertainty": "not comprehensive",
         "status": "validated software replication with scope limits",
-        "data_vintage": "LONGBASE file from the installed editable checkout",
+        "data_vintage": "LONGBASE file from the installed frbus package",
     },
     "og-uk": {
         "display_name": "OG-UK overlapping generations model",

@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import sys
 
 import click
 
 from policyengine_macro import core
 from policyengine_macro import capabilities
+from policyengine_macro import reporting
 
 
 def _emit_json(obj) -> None:
@@ -118,6 +120,34 @@ def _echo_score_block(score: dict) -> None:
             click.echo(f"\n{label}:")
             for it in items:
                 click.echo(f"  - {it}")
+
+
+@main.command("report")
+@click.argument("input_file", type=click.Path(exists=True, dir_okay=False),
+                required=False)
+@click.option("--format", "output_format",
+              type=click.Choice(["json", "markdown"]), default="markdown",
+              show_default=True)
+def report(input_file, output_format):
+    """Render a stored ScoreResult (or a response containing ``score``).
+
+    Reads INPUT_FILE, or standard input when omitted.
+    """
+    source = open(input_file, encoding="utf-8") if input_file else sys.stdin
+    try:
+        payload = json.load(source)
+    except (OSError, json.JSONDecodeError) as e:
+        raise click.ClickException(f"could not read result JSON: {e}") from e
+    finally:
+        if input_file:
+            source.close()
+    try:
+        if output_format == "json":
+            _emit_json(reporting.build_report(payload))
+        else:
+            click.echo(reporting.render_markdown(payload), nl=False)
+    except ValueError as e:
+        raise click.ClickException(f"invalid ScoreResult: {e}") from e
 
 
 @main.command()

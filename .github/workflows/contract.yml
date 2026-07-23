@@ -29,7 +29,14 @@ jobs:
       - uses: astral-sh/setup-uv@v8.3.2
       - name: Install with full models
         run: uv pip install --system -e ".[models]" pytest
-      - name: Contract tests (failures fail, never skip)
-        run: pytest tests/test_contract.py tests/test_og.py::test_og_build_policy_real --runslow -q
+      - name: Contract and real-model benchmarks (failures fail, never skip)
+        run: >-
+          pytest
+          tests/test_contract.py
+          tests/test_og.py::test_og_build_policy_real
+          tests/test_frbus.py::test_model_and_data_files_resolve_from_installed_package
+          tests/test_frbus.py::test_tracking_invariant_holds_after_init_trac
+          tests/test_frbus.py::test_monetary_tightening_has_the_documented_signs_and_magnitudes
+          --runslow -q
         env:
           POLICYENGINE_MACRO_REQUIRE_PE: "1"

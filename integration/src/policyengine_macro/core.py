@@ -207,10 +207,8 @@ def obr_shock(
 # FRB/US adapters
 # ---------------------------------------------------------------------------
 
-# Fallback checkout of us-frb-model, used only if the `frbus` package is
-# installed non-editably (a wheel does not ship vendor/). The hosted image and
-# the documented local setup both `pip install -e`, so __file__-relative
-# resolution normally wins and this never fires.
+# Optional checkout override for legacy editable installs. Current frbus wheels
+# ship their runtime files under frbus/_data and need no repository path.
 FRB_REPO_ENV = "POLICYENGINE_MACRO_FRB_REPO"
 
 # The model is only defined out to the LONGBASE horizon and the demo/validation
@@ -360,13 +358,11 @@ def _import_frbus():
 
 
 def _frbus_repo() -> Path:
-    """Locate the checkout holding vendor/ (model.xml + LONGBASE.TXT).
+    """Locate a legacy checkout holding vendor/ (model.xml + LONGBASE.TXT).
 
-    The package resolves nothing itself: `Frbus(path)` and `load_data(path)`
-    both take explicit paths, and vendor/ is not shipped inside the wheel. With
-    the editable install used by the Modal image and by local dev,
-    ``frbus.__file__`` is ``<repo>/src/frbus/__init__.py``, so the repo root is
-    two levels up. POLICYENGINE_MACRO_FRB_REPO overrides for non-editable installs.
+    Current frbus wheels expose packaged data through ``_frbus_paths``. This
+    fallback remains for older editable installs and explicit repository
+    overrides.
     """
     env = os.environ.get(FRB_REPO_ENV)
     candidates = []
@@ -380,8 +376,8 @@ def _frbus_repo() -> Path:
     raise FileNotFoundError(
         "Could not locate the us-frb-model checkout containing "
         "vendor/pyfrbus_package/models/model.xml (tried: "
-        f"{', '.join(str(c) for c in candidates)}). Install frbus editably "
-        f"(pip install -e <checkout>) or set {FRB_REPO_ENV}."
+        f"{', '.join(str(c) for c in candidates)}). Upgrade frbus to a wheel "
+        f"that includes package data, install it editably, or set {FRB_REPO_ENV}."
     )
 
 

@@ -148,12 +148,15 @@ def test_frbus_is_not_in_the_supported_score_models():
 
 @pytest.mark.slow
 @requires_frbus
-def test_model_and_data_files_resolve_after_image_pruning():
-    """The Modal image drops ~98% of us-frb-model's bytes. If the pruning ever
-    takes one of these two files, every FRB/US tool 500s in production."""
-    repo = core._frbus_repo()
-    assert (repo / "vendor" / "data_only_package" / "LONGBASE.TXT").exists()
-    assert (repo / "vendor" / "pyfrbus_package" / "models" / "model.xml").exists()
+def test_model_and_data_files_resolve_from_installed_package():
+    """A normal wheel install must carry both files needed by every solve."""
+    from pathlib import Path
+
+    model_path, data_path = core._frbus_paths()
+    assert Path(model_path).is_file()
+    assert Path(data_path).is_file()
+    assert "_data" in Path(model_path).parts
+    assert "_data" in Path(data_path).parts
 
 
 @pytest.mark.slow

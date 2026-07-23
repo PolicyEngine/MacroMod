@@ -16,12 +16,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# OBR and boe_var install from GitHub and ship their runtime data. FRB-US is
-# deliberately excluded: its wheel currently omits model.xml and LONGBASE.TXT,
-# so a normal dependency install imports but cannot run. See integration/README.
+# Model packages install from GitHub and ship their runtime data. In
+# particular, frbus includes model.xml and LONGBASE.TXT inside its wheel, so a
+# clean non-editable installation is a supported access path.
 models = [
     "obr-macro-model @ git+https://github.com/PolicyEngine/obr-macroeconomic-model",
     "boe_var @ git+https://github.com/PolicyEngine/boe-var-model",
+    "frbus @ git+https://github.com/PolicyEngine/us-frb-model",
     # [models] pulls the pinned policyengine-uk / policyengine-us country
     # packages that pe.uk / pe.us need at runtime.
     "policyengine[models]>=4,<5",

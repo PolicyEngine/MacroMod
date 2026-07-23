@@ -115,9 +115,8 @@ models:
   pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
   ```
 
-  FRB-US needs an editable checkout until its upstream wheel includes its two
-  runtime data files. See [`integration/README.md`](integration/README.md) for
-  the supported local setup. Hosted FRB-US already uses that layout.
+  The same extra now installs FRB-US with its packaged model and LONGBASE
+  runtime data; no separate checkout is required.
 - **Code** — drive each model's Python API yourself.
 
 ## The site

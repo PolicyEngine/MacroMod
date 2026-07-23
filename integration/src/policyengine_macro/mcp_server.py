@@ -11,6 +11,7 @@ from mcp.server.fastmcp import FastMCP
 
 from policyengine_macro import core
 from policyengine_macro import capabilities
+from policyengine_macro import reporting
 
 mcp = FastMCP("policyengine-macro")
 
@@ -48,6 +49,22 @@ def recommend_model(
         needs_distribution=needs_distribution,
         horizon=horizon,
     )
+
+
+@mcp.tool()
+def format_score_report(score: dict, output_format: str = "json") -> dict | str:
+    """Convert a common ScoreResult into a stable report envelope or Markdown.
+
+    The report preserves quantities and units, time basis, uncertainty,
+    assumptions, limitations, model/package versions, data and baseline
+    vintages, run time, validation evidence, warnings, and reproduction
+    instructions. ``output_format`` must be ``json`` or ``markdown``.
+    """
+    if output_format == "json":
+        return reporting.build_report(score)
+    if output_format == "markdown":
+        return reporting.render_markdown(score)
+    raise ValueError("output_format must be 'json' or 'markdown'")
 
 
 @mcp.tool()

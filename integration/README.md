@@ -99,10 +99,22 @@ labels cross-class results as complementary unless their definitions align.
 `src/policyengine_macro/core.py` holds the model adapters (single source of truth);
 `cli.py` and `mcp_server.py` are thin wrappers over the same functions.
 
+Every common `ScoreResult` can be converted into a stable JSON report envelope
+or a Markdown report without losing units, time basis, uncertainty,
+limitations, provenance, runtime, or reproduction instructions:
+
+```bash
+pe-macro score ... --json | pe-macro report --format markdown
+pe-macro report saved-result.json --format json
+```
+
+MCP clients can use `format_score_report` with the same `json` or `markdown`
+formats.
+
 ## Install
 
-One pip install pulls the CLI, PolicyEngine, OBR emulator, and SVAR. The OBR
-and SVAR packages ship their data as package data:
+One pip install pulls the CLI, PolicyEngine, OBR emulator, SVAR, and FRB-US.
+All model packages ship their required runtime data:
 
 ```bash
 pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/macro#subdirectory=integration"
@@ -110,18 +122,10 @@ pip install "policyengine-macro[models] @ git+https://github.com/PolicyEngine/ma
 
 A shorter `pip install policyengine-macro` will come with PyPI publication.
 
-FRB-US currently requires an editable checkout because its upstream wheel
-does not package `vendor/model.xml` and `vendor/LONGBASE.TXT`. A normal Git
-dependency can import but cannot run, so it is intentionally not included in
-the `[models]` extra. Install the supported local route explicitly:
-
-```bash
-git clone https://github.com/PolicyEngine/us-frb-model
-pip install -e ./us-frb-model
-```
-
-Alternatively set `POLICYENGINE_MACRO_FRB_REPO` to that checkout. The hosted
-Modal image already clones and installs this repository using the same layout.
+FRB-US packages `model.xml` and `LONGBASE.TXT` under `frbus/_data`; a normal
+wheel installation can therefore execute a solve without a repository
+checkout. `POLICYENGINE_MACRO_FRB_REPO` remains available as an explicit
+override for older editable development checkouts.
 
 For development, install with the available model set (PolicyEngine included
 via the `[models]` extra), then override model packages with local
@@ -200,10 +204,11 @@ benefits the MCP server).
 ## MCP server
 
 Runs over stdio via `python -m policyengine_macro.mcp_server`, exposing
-fourteen tools:
+eighteen tools:
 `score_reform` (a PolicyEngine reform through a chosen macro model),
 `dynamic_reform_impact` (the OG-UK overlay dynamic score; local-only —
 the hosted server returns a "run locally" error),
+`format_score_report` (stable JSON or Markdown reports),
 `obr_shock` and `list_reform_variables` (raw OBR variable shocks),
 `frbus_shock`, `frbus_list_variables` and `frbus_summary` (FRB/US),
 `forecast_uk`, `latest_shocks`, `model_summary` (SVAR), and the PolicyEngine
@@ -215,10 +220,9 @@ from a PolicyEngine US reform to FRB/US fiscal levers, and inventing one would
 return plausible-looking wrong numbers. `frbus_shock` (raw shocks in model
 units) is the supported FRB/US entry point.
 
-The `frbus` package must be installed EDITABLY (`pip install -e <checkout>`):
-`model.xml` and `LONGBASE.TXT` live in the model repo's `vendor/` directory and
-are not shipped inside the wheel, so the adapters resolve them from
-`frbus.__file__` (override with `POLICYENGINE_MACRO_FRB_REPO`).
+The `frbus` package ships `model.xml` and `LONGBASE.TXT` as package data.
+Editable checkouts are also supported, with
+`POLICYENGINE_MACRO_FRB_REPO` available as an explicit path override.
 
 Test locally with Claude Code:
 

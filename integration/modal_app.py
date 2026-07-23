@@ -2,9 +2,9 @@
 
     modal deploy integration/modal_app.py
 
-Serves the FastMCP instance from `policyengine_macro.mcp_server` (17 tools:
+Serves the FastMCP instance from `policyengine_macro.mcp_server` (18 tools:
 list_model_capabilities, get_model_status, recommend_model,
-score_reform, obr_shock, list_reform_variables, frbus_shock,
+format_score_report, score_reform, obr_shock, list_reform_variables, frbus_shock,
 frbus_list_variables, frbus_summary, forecast_uk, latest_shocks, model_summary,
 calculate_household, household_reform_impact, list_reform_parameters,
 population_reform_impact, dynamic_reform_impact — the last returns an
@@ -239,9 +239,8 @@ image = (
                    copy=True, ignore=_IGNORE + ["modal_app.py"])
     # Editable installs keep each package's __file__ inside its repo, so the
     # repos' data/ and results/ directories resolve exactly as on the laptop.
-    # Editable installs keep frbus.__file__ inside its repo too, which is how
-    # _frbus_repo() finds vendor/ — a wheel install would NOT work, because
-    # vendor/ is not package data.
+    # This image retains editable model checkouts for deterministic source
+    # refreshes; normal users can use the packaged frbus wheel data instead.
     .run_commands(
         f"pip install -e {OBR_REPO} -e {BOE_REPO} -e {FRB_REPO} "
         f"-e {HOME}/macro/integration"
