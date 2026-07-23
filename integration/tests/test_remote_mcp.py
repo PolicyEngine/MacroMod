@@ -273,7 +273,7 @@ async def test_score_reform_microsim_scoreresult():
 @pytest.mark.anyio
 async def test_score_reform_obr_bridge_end_to_end():
     """The full #9 pipeline on the hosted server: microsim static costing →
-    HHDI shock path → OBR second-round effects. A basic-rate RISE raises
+    HHDI_ADDFACTOR costing path → OBR second-round effects. A basic-rate RISE raises
     revenue, so disposable income and hence GDP must FALL, by a sane
     magnitude. One-year window to keep the runtime bounded; slow-marked, so
     it runs in the scheduled full validation, not on every deploy."""
@@ -290,8 +290,9 @@ async def test_score_reform_obr_bridge_end_to_end():
     )
     costing = out["annual_costings_bn"][0]["budgetary_impact_bn"]
     assert costing > 0, costing
-    # Sign: revenue raised => HHDI falls => GDP falls.
-    assert all(q < 0 for q in out["quarterly_shock_path_m"])
+    # Positive revenue costings become negative HHDI add-factors in the OBR.
+    assert out["bridge_variable"] == "HHDI_ADDFACTOR"
+    assert all(q > 0 for q in out["quarterly_shock_path_m"])
     cum = out["cumulative_delta_gdp_bn_over_shock_periods"]
     assert cum < 0, cum
     # Magnitude: |cumulative GDP effect| within ~2x the annual costing

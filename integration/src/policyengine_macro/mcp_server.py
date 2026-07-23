@@ -106,8 +106,8 @@ def score_reform(
                     static-costing bridge: the reform is costed per year with
                     the PolicyEngine population microsimulation, the annual
                     budgetary impacts enter the emulator as a quarterly
-                    household-disposable-income (HHDI) shock path
-                    (sign-corrected: revenue raised lowers HHDI), and the
+                    HHDI_ADDFACTOR costing path (positive revenue is converted
+                    to a negative held household-income add-factor), and the
                     second-round demand effects on GDP/consumption/investment
                     come out. Demand-side incidence only; corporation-tax
                     reforms are refused (use obr_shock var='TCPRO'). Takes a

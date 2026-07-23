@@ -2081,12 +2081,11 @@ def _pop_score_block(res: dict) -> dict:
 # OBR bridge: microsim static costing in, second-round effects out (issue #9)
 # ---------------------------------------------------------------------------
 
-# Injection variable for externally costed household reforms: nominal
-# household disposable income, £m per quarter. Chosen because it is the OBR's
-# own demand-side incidence channel — HHDI -> RHHDI (= 100*HHDI/PCE) -> the
-# anchored CONS equation -> the GDPM expenditure identity — so a static
-# costing enters exactly where a household tax/benefit change first bites.
-OBR_BRIDGE_VAR = "HHDI"
+# Declared virtual injection point for externally costed household reforms.
+# The OBR adapter translates positive quarterly revenue costings into negative
+# held add-factors on nominal HHDI, preserving the endogenous HHDI identity and
+# its HHDI -> RHHDI -> CONS -> GDPM transmission chain.
+OBR_BRIDGE_VAR = "HHDI_ADDFACTOR"
 
 _OBR_CORP_TAX_MARKERS = ("corporation_tax", "corporate_tax")
 
@@ -2097,14 +2096,14 @@ def _obr_corp_tax_paths(reform: dict) -> list[str]:
 
 
 def obr_costing_to_shock(annual_budget_bn) -> list[float]:
-    """Pure translation: annual static costings -> the OBR HHDI shock path.
+    """Pure translation: annual static costings -> the OBR add-factor path.
 
     Takes the microsim's annual budgetary impacts (£bn per year, positive =
     the reform raises revenue) and returns the quarterly additive shock on
-    ``OBR_BRIDGE_VAR`` (HHDI, £m per quarter) that run_reform consumes:
+    ``OBR_BRIDGE_VAR`` (HHDI_ADDFACTOR, £m per quarter) that run_reform consumes:
 
-    - Sign: revenue raised means households keep less, so disposable income
-      falls — the shock is the NEGATIVE of the costing.
+    - Sign: positive means revenue raised. The OBR adapter applies the minus
+      sign when it converts the costing into an HHDI held add-factor.
     - Units: £bn/year -> £m/quarter is * 1000 / 4.
     - Interpolation: flat within each year (deliberately crude and declared;
       the microsim only produces annual numbers).
@@ -2113,7 +2112,7 @@ def obr_costing_to_shock(annual_budget_bn) -> list[float]:
     """
     path: list[float] = []
     for bn in annual_budget_bn:
-        quarterly_m = -float(bn) * 1000.0 / 4.0
+        quarterly_m = float(bn) * 1000.0 / 4.0
         path.extend([round(quarterly_m, 4)] * 4)
     return path
 
@@ -2132,18 +2131,17 @@ def obr_score_reform(
       1. pe_population_impact(country="uk", reform=..., year=y) for each year
          in [start_year, start_year+years) -> annual budgetary_impact_bn path
          (needs the private UK microdata; set HUGGING_FACE_TOKEN).
-      2. obr_costing_to_shock: annual £bn -> quarterly £m on HHDI, flat within
-         each year, sign-corrected (revenue raised => disposable income falls).
-      3. run_reform(var="HHDI", shock=[path]) -> per-quarter GDP, consumption
-         and investment deltas: the second-round demand effects of the reform.
+      2. obr_costing_to_shock: annual £bn -> quarterly £m revenue costings, flat
+         within each year (positive = revenue raised).
+      3. run_reform(var="HHDI_ADDFACTOR", shock=[path]) converts the costing
+         to a negative held HHDI add-factor and returns per-quarter GDP,
+         consumption and investment deltas.
 
     What the translation assumes (be honest):
-    - The costing lands on nominal household disposable income (HHDI) because
-      that is where a household tax/benefit change first bites; it propagates
-      HHDI -> RHHDI -> CONS -> GDP. run_reform exogenises HHDI identically in
-      the baseline and the shocked run, so the delta isolates the shock — at
-      the declared cost that the economy's feedback onto disposable income
-      itself (second-round income -> tax -> income) is not recycled.
+    - The costing enters as a held add-factor on nominal household disposable
+      income (HHDI), where a household tax/benefit change first bites. Unlike
+      the former direct HHDI shock, the declared injection point preserves the
+      endogenous HHDI identity while propagating HHDI -> RHHDI -> CONS -> GDP.
     - Demand-side incidence only. Supply-side channels (participation,
       savings, capital) are the OG member's job — that division of labour is
       the point of the suite.
@@ -2195,8 +2193,8 @@ def obr_score_reform(
     mean_costing_bn = round(sum(annual_bn) / len(annual_bn), 3)
 
     caveats = [
-        "static costing enters as an exogenous HHDI path: the economy's "
-        "feedback onto disposable income itself is not recycled",
+        "static costing enters through the declared HHDI_ADDFACTOR path "
+        "(positive revenue is converted to a negative held HHDI add-factor)",
         "demand-side incidence only; supply-side channels belong to the "
         "OG member",
         "annual costings applied flat within each year",

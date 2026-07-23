@@ -22,10 +22,10 @@ from policyengine_macro.cli import main
 # ---------------------------------------------------------------------------
 
 def test_costing_to_shock_sign_units_and_shape():
-    # +£10bn/year raised -> HHDI falls £2,500m per quarter; -£2bn (a giveaway)
-    # -> HHDI rises £500m per quarter. Flat within each year, 4 quarters/year.
+    # The declared interface takes positive revenue costings; the OBR adapter
+    # applies the HHDI minus sign.
     path = core.obr_costing_to_shock([10.0, -2.0])
-    assert path == [-2500.0] * 4 + [500.0] * 4
+    assert path == [2500.0] * 4 + [-500.0] * 4
 
 
 def test_costing_to_shock_empty():
@@ -147,13 +147,13 @@ def test_obr_bridge_costs_each_year_and_injects_hhdi_path(fake_bridge):
     )
     assert fake_bridge["costed_years"] == [2026, 2027]
     (rr,) = fake_bridge["run_reform"]
-    assert rr["var"] == "HHDI"
-    # Sign-corrected and unit-converted: +£10bn/yr -> -£2,500m/quarter.
-    assert rr["shock"] == [-2500.0] * 8
+    assert rr["var"] == "HHDI_ADDFACTOR"
+    # Unit-converted: +£10bn/yr -> +£2,500m/q of revenue costing.
+    assert rr["shock"] == [2500.0] * 8
     assert rr["start"] == "2026Q1" and rr["end"] == "2027Q4"
     assert rr["investment_closure"] is False
 
-    assert res["bridge_variable"] == "HHDI"
+    assert res["bridge_variable"] == "HHDI_ADDFACTOR"
     assert res["annual_costings_bn"] == [
         {"year": 2026, "budgetary_impact_bn": 10.0},
         {"year": 2027, "budgetary_impact_bn": 10.0},
@@ -265,7 +265,7 @@ def test_obr_bridge_end_to_end_basic_rate_rise():
         start_year=2026, years=2,
     )
     assert all(c["budgetary_impact_bn"] > 0 for c in res["annual_costings_bn"])
-    assert all(s < 0 for s in res["quarterly_shock_path_m"])
+    assert all(s > 0 for s in res["quarterly_shock_path_m"])
     assert res["cumulative_delta_gdp_bn_over_shock_periods"] < 0
     assert res["score"]["quantities"]["gdp"]["delta_bn"] < 0
     json.dumps(res)

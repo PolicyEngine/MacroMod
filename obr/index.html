@@ -61,7 +61,7 @@
       <p class="lede reveal" style="--d:2">
         Run selected UK tax and spending scenarios and trace GDP, consumption,
         and investment over 3–5 years against the March 2026 EFO baseline.
-        Borrowing is not yet returned by the MacroMod adapter.
+        Borrowing is not yet returned by the PolicyEngine Macro adapter.
       </p>
       <div class="hero-cta reveal" style="--d:3">
         <a class="btn btn-primary" href="#run">Run it</a>
@@ -228,6 +228,7 @@ results = run_reform(
           <tr><th scope="row"><code>CGG</code></th><td>Government consumption</td><td>exogenous — spending shocks, £m per quarter</td></tr>
           <tr><th scope="row"><code>CGIPS</code></th><td>Central government investment (nominal)</td><td>exogenous — public investment, £m per quarter</td></tr>
           <tr><th scope="row"><code>TCPRO</code></th><td>Corporation tax rate</td><td>exogenous — rate, e.g. −0.05 for a 5pp cut</td></tr>
+          <tr><th scope="row"><code>HHDI_ADDFACTOR</code></th><td>Externally costed household reform</td><td>virtual instrument — quarterly £m; positive revenue raised lowers HHDI through a held add-factor</td></tr>
           <tr><th scope="row"><code>R</code> / <code>GILT</code> / <code>RX</code></th><td>Bank Rate · gilt yields · exchange rate</td><td>exogenous — monetary &amp; market assumptions</td></tr>
           <tr><th scope="row"><code>GDPM</code></th><td>GDP at market prices</td><td>endogenous — headline output</td></tr>
           <tr><th scope="row"><code>CONS</code></th><td>Private consumption</td><td>endogenous</td></tr>
@@ -262,9 +263,11 @@ results = run_reform(
         <strong>£6.46bn in 2026</strong>, rising to <strong>£7.38bn by
         2030</strong>; HMRC's June 2025 ready reckoner puts 1p at £6.9bn in
         2026–27 rising to about £8.2bn by 2028–29, so the static costing sits inside the
-        official range, toward its lower end. Converted to a quarterly
-        <code>HHDI</code> shock of −£1.62bn to −£1.85bn and propagated through
-        the consumption function, GDP falls <strong>0.020% (−£0.14bn) on impact in
+        official range, toward its lower end. Converted to a positive quarterly
+        revenue-costing path of £1.62bn to £1.85bn, the
+        <code>HHDI_ADDFACTOR</code> adapter applies the corresponding negative
+        held add-factor to household disposable income. Propagated through the
+        consumption function, GDP falls <strong>0.020% (−£0.14bn) on impact in
         2026Q1, deepening to 0.058% (−£0.40bn) by 2027Q4</strong> on the
         March 2026 baseline — the sign
         and order of magnitude the OBR's own indirect-effect conventions
@@ -375,8 +378,8 @@ results = run_reform(
             <td>Under the demand closure a spending shock lands directly in the GDP identity and the behavioural second round is largely inactive. The OBR's published impact multiplier for current spending is 0.6.</td>
           </tr>
           <tr>
-            <th scope="row"><strong>Corporation-tax channel unstable</strong></th>
-            <td>The investment closure activates the published <code>TCPRO</code> → cost-of-capital → investment chain, but the re-solved path does not converge; corporation-tax scenarios are excluded until recalibrated. The business-investment equation is reconstructed from the OBR's commented, truncated published line.</td>
+            <th scope="row"><strong>Corporation-tax closure is specialised</strong></th>
+            <td>The investment closure activates the published <code>TCPRO</code> → cost-of-capital → investment chain and is available through <code>obr_shock</code>. It reconstructs the business-investment equation from the OBR's commented, truncated published line, anchors its level with held add-factors, and freezes <code>MSGVA</code>, <code>PIF</code>, and <code>PIRHH</code> to a shared tracking path to prevent uncalibrated feedback. CI hard-gates the expected sign and a £50bn-per-quarter bound; this is a controlled scenario closure, not a fully calibrated supply block.</td>
           </tr>
           <tr>
             <th scope="row"><strong>Passthrough channels</strong></th>

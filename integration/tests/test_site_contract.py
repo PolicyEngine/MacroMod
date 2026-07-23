@@ -3,6 +3,7 @@
 from pathlib import Path
 import csv
 import json
+import re
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -36,6 +37,21 @@ def test_site_does_not_promise_obr_borrowing_output():
     pages = _read("index.html") + _read("models/index.html") + _read("docs/index.html")
     assert "growth and borrowing" not in pages
     assert "borrowing after" not in pages
+
+
+def test_obr_site_uses_declared_household_costing_injection_point():
+    page = _read("obr/index.html")
+    assert "HHDI_ADDFACTOR" in page
+    assert "Corporation-tax channel unstable" not in page
+    assert "corporation-tax scenarios are excluded" not in page
+
+
+def test_connect_page_matches_current_clients_and_switches_both_views():
+    page = _read("connect/index.html")
+    assert "eligible ChatGPT web plan" in page
+    assert "Settings → Apps → Advanced Settings" in page
+    assert "For Codex CLI" in page
+    assert 'document.querySelectorAll("[data-for]")' in page
 
 
 def test_mobile_css_does_not_hide_document_overflow():
@@ -84,3 +100,17 @@ def test_validation_and_paper_landings_lead_with_current_uk_vintages():
     boe_paper = _read("papers/boe-svar/index.html")
     assert "Current forecast: data through" in boe_paper
     assert "2026Q2&ndash;2029Q2" in boe_paper
+
+
+def test_paper_page_counts_match_embedded_pdfs():
+    expected = {
+        "obr-macro": 36,
+        "boe-svar": 29,
+        "frb-us": 36,
+        "psl-og": 34,
+    }
+    listing = _read("papers/index.html")
+    for slug, pages in expected.items():
+        landing = _read(f"papers/{slug}/index.html")
+        assert f"{pages} pages" in landing
+        assert re.search(rf"{re.escape(slug)} · [^<]* · {pages} pages", listing)

@@ -11,7 +11,7 @@ structural analysis behind a common discovery and run surface.
 
 ## The models
 
-Each model answers a different class of economic question. MacroMod provides a
+Each model answers a different class of economic question. PolicyEngine Macro provides a
 common way to discover, run, and interpret them while preserving the assumptions,
 horizons, evidence, and outputs specific to each model. Results from different
 model classes are often complementary rather than directly comparable.
@@ -100,8 +100,8 @@ models:
   `population_reform_impact`). `score_reform` with `model='og'` works locally
   only: OG-UK is deliberately excluded from the hosted image (a score takes
   tens of minutes) — use `pe-macro score --model og` instead. The OBR reform
-  bridge translates a static population costing into a household-disposable-
-  income scenario; it is a demand-side approximation, not a general reform-
+  bridge translates a static population costing through the OBR emulator's
+  `HHDI_ADDFACTOR` interface; it is a demand-side approximation, not a general reform-
   incidence model. Direct OBR scenarios use `obr_shock`.
   The server runs serverless and scales to zero — the first call after idle
   may take ~10 s to wake.

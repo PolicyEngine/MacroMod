@@ -263,8 +263,9 @@
       <p class="lede reveal" style="--d:2;">
         Use the hosted tools in a supported AI client, install the shared CLI,
         or call the Python packages directly. Start with the quickest route
-        that gives you the control you need. No PolicyEngine account or API key
-        is required.
+        that gives you the control you need. The public MCP endpoint itself
+        needs no PolicyEngine account or API key; AI-client plan and workspace
+        permissions still apply.
       </p>
     </div>
   </section>
@@ -273,7 +274,7 @@
     <div class="band-head">
       <span class="kicker mono">hosted</span>
       <h2>Connect in three steps.</h2>
-      <p class="section-intro">No account or API key required.</p>
+      <p class="section-intro">The MCP endpoint is public; client eligibility still applies.</p>
     </div>
     <div class="panel-card">
       <div class="seg" role="tablist" aria-label="Client" id="seg-client">
@@ -294,7 +295,7 @@
         <div class="step" data-for="chatgpt" hidden>
           <span class="step-n mono">2</span>
           <p class="step-h">Add a ChatGPT connector</p>
-          <p>Enable Developer mode under Connectors, create a connector, and paste the URL.</p>
+          <p>On an eligible ChatGPT web plan, enable Developer mode in Settings → Apps → Advanced Settings, create a custom app, and paste the URL. Workspace administrators may need to grant or publish access.</p>
         </div>
         <div class="step">
           <span class="step-n mono">3</span>
@@ -305,7 +306,10 @@
       <details class="more compact-more">
         <summary>Terminal setup</summary>
         <div class="copyblock" data-for="claude"><code>claude mcp add --transport http policyengine-macro https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
-        <div class="copyblock" data-for="chatgpt" hidden><code>codex mcp add policyengine-macro --url https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
+        <div data-for="chatgpt" hidden>
+          <p>For Codex CLI, register the same MCP endpoint:</p>
+          <div class="copyblock"><code>codex mcp add policyengine-macro --url https://policyengine--policyengine-macro-mcp-serve.modal.run/mcp</code><button data-copy>copy</button></div>
+        </div>
       </details>
     </div>
   </section>
@@ -396,7 +400,7 @@
   }
   function applyClient() {
     var c = currentClient();
-    document.querySelectorAll(".pane [data-for]").forEach(function (s) {
+    document.querySelectorAll("[data-for]").forEach(function (s) {
       s.hidden = s.dataset.for !== c;
     });
   }

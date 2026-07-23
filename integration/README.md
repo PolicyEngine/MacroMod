@@ -28,9 +28,9 @@ scoring model by its declared contract:
 - `obr` — the microsim static-costing bridge
   ([#9](https://github.com/PolicyEngine/macro/issues/9)): the reform is
   costed per year with the PolicyEngine population microsimulation, the
-  annual budgetary impacts enter the OBR emulator as a quarterly household
-  disposable income (`HHDI`) shock path (sign-corrected: revenue raised
-  lowers HHDI, flat within each year), and the second-round demand effects
+  annual budgetary impacts enter the OBR emulator through its quarterly
+  `HHDI_ADDFACTOR` costing interface (positive revenue becomes a negative held
+  HHDI add-factor, flat within each year), and the second-round demand effects
   come out. Demand-side incidence only; corporation-tax reforms are refused
   with a pointer to the direct `obr_shock --var TCPRO` lever.
 - `microsim` — the PolicyEngine population costing itself (static, no macro
@@ -247,7 +247,7 @@ Defined in `modal_app.py`. `policyengine[models]` is installed in the image;
 because it is imported lazily inside the adapters, cold starts stay fast and
 only the first PolicyEngine tool call in a fresh container pays the ~20 s
 model load. The private UK microdata credential comes from the Modal secret
-`macromod-hf`, with derived datasets cached on the `policyengine-macro-pe-data` volume.
+a Modal secret, with derived datasets cached on the `policyengine-macro-pe-data` volume.
 
 **Add it as a connector**
 
