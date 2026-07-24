@@ -10,7 +10,7 @@ Paper No. 3):
     repo clone) -- recomputed here, not copied.
   - "Production (weighted)": the repo's production artifact
     (results/summary.md): 10,000 draws, 751 accepted, importance-weighted
-    (ESS 350.3) -- 40.9% GDP / 50.1% CPI.
+    (ESS 355.9) -- 42.1% GDP / 49.5% CPI.
   - "Paper (~)": the approximate shares stated in the publication
     (~40% GDP, ~50% CPI at business-cycle horizons).
 
@@ -68,8 +68,8 @@ H_1YR = 4
 N_DRAWS, SAMPLE_SEED, IDENT_SEED, LAGS = 600, 1, 2, 4
 
 # Production artifact (results/summary.md): 10,000 draws, 751 accepted,
-# importance-weighted, ESS 350.3.
-PROD = {"gdp": 40.9, "cpi": 50.1}
+# importance-weighted, ESS 355.9, sample 1992Q1-2025Q1 (2026Q1 vintage).
+PROD = {"gdp": 42.1, "cpi": 49.5}
 # Published values (approximate, as stated in the paper).
 PAPER = {"gdp": 40.0, "cpi": 50.0}
 
@@ -77,7 +77,7 @@ PAPER = {"gdp": 40.0, "cpi": 50.0}
 def main():
     df = load_data()
     df = df.loc[(df.index >= pd.Period("1992Q1", "Q"))
-                & (df.index <= pd.Period("2023Q2", "Q"))]
+                & (df.index <= pd.Period("2025Q1", "Q"))]
     y = df.to_numpy(dtype=float)
     quarters = pd.period_range("2020Q1", "2021Q2", freq="Q")
     dummies = np.column_stack(

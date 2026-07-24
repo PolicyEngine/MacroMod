@@ -6,7 +6,7 @@ This section compares the replication directly with what \citet{brignone2025} pu
 \subsection{Published anchors, side by side}
 \label{sec:comparison-table}
 
-The paper publishes two quantitative anchors that the replication's test suite locks against --- the one-year global FEVD shares of UK GDP and UK CPI --- plus a set of qualitative results (restriction patterns, the unrestricted oil-price sign check, the shock narrative, and the ranking of domestic CPI contributors). Table~\ref{tab:pubcompare} collects all of them. Two replication configurations are shown: the CI fast configuration (600 posterior draws, fixed seeds, 51 accepted, unweighted --- exactly the configuration the repository's validation tests run on every commit) and the production configuration (10{,}000 draws, 751 accepted, importance-weighted, ESS 350.3).
+The paper publishes two quantitative anchors that the replication's test suite locks against --- the one-year global FEVD shares of UK GDP and UK CPI --- plus a set of qualitative results (restriction patterns, the unrestricted oil-price sign check, the shock narrative, and the ranking of domestic CPI contributors). Table~\ref{tab:pubcompare} collects all of them. Two replication configurations are shown: the CI fast configuration (600 posterior draws, fixed seeds, 51 accepted, unweighted --- exactly the configuration the repository's validation tests run on every commit) and the production configuration (10{,}000 draws, 751 accepted, importance-weighted, ESS 355.9).
 
 \begin{table}[t]
 \centering
@@ -17,9 +17,9 @@ The paper publishes two quantitative anchors that the replication's test suite l
 \toprule
 Quantity & Paper & Fast config & Production & Deviation \\
 \midrule
-Global share, UK GDP FEVD, 1 yr & $\sim$40\% & 47.4\% & 40.9\% & $+7.4$ / $+0.9$ pp \\
-Global share, UK CPI FEVD, 1 yr & $\sim$50\% & 42.4\% & 50.1\% & $-7.6$ / $+0.1$ pp \\
-Oil-price impact IRF, world supply shock & positive (Fig.~2) & $+6.06$ & positive & sign matches \\
+Global share, UK GDP FEVD, 1 yr & $\sim$40\% & 49.6\% & 42.1\% & $+9.6$ / $+2.1$ pp \\
+Global share, UK CPI FEVD, 1 yr & $\sim$50\% & 43.8\% & 49.5\% & $-6.2$ / $-0.5$ pp \\
+Oil-price impact IRF, world supply shock & positive (Fig.~2) & $+5.83$ & positive & sign matches \\
 Zero restrictions (paper Table~2) & imposed & \multicolumn{2}{l}{hold exactly ($<10^{-9}$), every draw} & none \\
 Sign restrictions (paper Table~2) & imposed & \multicolumn{2}{l}{hold on every draw and median IRF} & none \\
 Shock narrative episodes (paper Fig.~5) & 2008, 2022--23 & \multicolumn{2}{l}{reproduced} & none \\
@@ -29,10 +29,10 @@ UK GDP IRF to world shocks, long horizons & persistently positive & \multicolumn
 \bottomrule
 \end{tabularx}
 \par\smallskip
-\parbox{0.97\textwidth}{\footnotesize \emph{Notes:} ``Fast config'': 600 posterior draws, sample seed 1, identification seed 2, 51 accepted, unweighted --- the repository's per-commit CI validation configuration, re-estimated fresh for this table by \texttt{figures/make\_comparison.py}. ``Production'': 10{,}000 draws, 751 accepted, importance-weighted (ESS 350.3), from the repository's production artifact. Deviations are fast~/~production in percentage points against the paper's approximate published shares; both configurations lie inside the $[30,60]$ per cent calibration band. The paper publishes IRFs only as figures --- no numeric values --- so IRF comparisons are of sign and shape; the final two rows are the replication's known, documented discrepancies (attributed to proxy world aggregates and the smaller accepted sample).}
+\parbox{0.97\textwidth}{\footnotesize \emph{Notes:} ``Fast config'': 600 posterior draws, sample seed 1, identification seed 2, 51 accepted, unweighted --- the repository's per-commit CI validation configuration, re-estimated fresh for this table by \texttt{figures/make\_comparison.py}. ``Production'': 10{,}000 draws, 751 accepted, importance-weighted (ESS 355.9), from the repository's production artifact. Deviations are fast~/~production in percentage points against the paper's approximate published shares; both configurations lie inside the $[30,60]$ per cent calibration band. The paper publishes IRFs only as figures --- no numeric values --- so IRF comparisons are of sign and shape; the final two rows are the replication's known, documented discrepancies (attributed to proxy world aggregates and the smaller accepted sample).}
 \end{table}
 
-The headline pattern is reassuring: the importance-weighted production run essentially reproduces the paper's published shares ($40.9$ against $\sim$40 for GDP, $50.1$ against $\sim$50 for CPI --- deviations of one percentage point or less), while the deliberately cheap unweighted CI configuration deviates by $7$--$8$ percentage points in opposite directions for the two variables. The gap between the two configurations is itself informative: the importance weights correct the \citet{arias2018} zero-restriction sampler towards the uniform-over-rotations posterior, and doing so moves both shares onto the published values.
+The headline pattern is reassuring: the importance-weighted production run closely tracks the paper's published shares ($42.1$ against $\sim$40 for GDP, $49.5$ against $\sim$50 for CPI --- CPI within half a percentage point, GDP $2.1$ points high), while the deliberately cheap unweighted CI configuration deviates by $6$--$10$ percentage points in opposite directions for the two variables. The gap between the two configurations is itself informative: the importance weights correct the \citet{arias2018} zero-restriction sampler towards the uniform-over-rotations posterior, and doing so moves both shares substantially towards the published values.
 
 Figure~\ref{fig:comparison} shows the same comparison graphically. No ours-versus-paper IRF overlay is drawn because \citet{brignone2025} publish impulse responses only as figures; neither the paper nor the repository's validation data contains digitised numeric IRF paths, so the IRF comparison is confined to the sign and shape checks in Table~\ref{tab:pubcompare} and Section~\ref{sec:validation}.
 
