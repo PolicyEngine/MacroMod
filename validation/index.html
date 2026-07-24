@@ -115,7 +115,7 @@
             <th scope="row"><a href="#svar"><strong>boe-svar</strong></a></th>
             <td>Replication with a published anchor</td>
             <td>Brignone &amp; Piffer (2025), BoE Macro Technical Paper No. 3; ONS outturns</td>
-            <td>FEVD shares 40.9% / 50.1% vs the paper's ~40% / ~50%</td>
+            <td>FEVD shares 42.1% / 49.5% vs the paper's ~40% / ~50%</td>
           </tr>
           <tr>
             <th scope="row"><a href="#frbus"><strong>frb-us</strong></a></th>
@@ -155,7 +155,7 @@
         <caption>Independent model-quality audit by evidence dimension</caption>
         <thead><tr><th scope="col">Evidence dimension</th><th scope="col">obr-macro</th><th scope="col">boe-svar</th><th scope="col">frb-us</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Implementation fidelity</th><td>Moderate — incomplete channels</td><td>Strong — restrictions and identities gated</td><td>Strong — reference-solver noise floor</td></tr>
+          <tr><th scope="row">Implementation fidelity</th><td>Moderate — incomplete channels</td><td>Strong — restrictions and identities gated</td><td>Strong — four gated scenarios at the reference-solver noise floor</td></tr>
           <tr><th scope="row">Predictive validation</th><td class="vc-warn">Weak — raw GDP 5.75%, consumption 9.56% MAPE</td><td>Moderate — CPI beats no change; GDP does not in rolling tests</td><td>Not assessed — LONGBASE is not a Fed forecast</td></tr>
           <tr><th scope="row">Identification robustness</th><td>Not applicable</td><td>Moderate — proxy data and specification matter</td><td>Not applicable</td></tr>
           <tr><th scope="row">Policy-counterfactual validity</th><td class="vc-warn">Weak — one independent tax benchmark, constrained channels</td><td>Not applicable — reform scoring refused</td><td>Moderate — published ranges, VAR expectations only</td></tr>
@@ -480,13 +480,13 @@
       <p>
         Against Brignone &amp; Piffer (2025), the one-year share of UK
         forecast-error variance from global shocks is
-        <strong>40.9%</strong> for GDP and <strong>50.1%</strong> for CPI.
+        <strong>42.1%</strong> for GDP and <strong>49.5%</strong> for CPI.
         The paper reports roughly 40% and 50%.
       </p>
       <figure class="vfig">
         <svg class="vchart" data-chart="svar-fevd" viewBox="0 0 760 304" role="img" aria-labelledby="svar-fevd-t svar-fevd-d">
 <title id="svar-fevd-t">boe-svar: global-shock FEVD shares, ours vs Brignone &amp; Piffer (2025)</title>
-<desc id="svar-fevd-d">Grouped bar chart. Share of UK forecast-error variance attributed to identified global shocks (world demand, energy and supply) at the one-year horizon. For GDP, our 10,000-draw production run gives 40.9% against the paper's 40.0%; for CPI, 50.1% against 50.0%. Both deviations are a percentage point or less. The paper's values are approximate.</desc>
+<desc id="svar-fevd-d">Grouped bar chart. Share of UK forecast-error variance attributed to identified global shocks (world demand, energy and supply) at the one-year horizon. For GDP, our 10,000-draw production run gives 42.1% against the paper's 40.0%; for CPI, 49.5% against 50.0%. GDP sits 2.1 points above the paper's figure, CPI half a point below. The paper's values are approximate.</desc>
 <line class="vc-axis" x1="64" y1="258.0" x2="724" y2="258.0"/>
 <text class="vc-tick" x="54" y="262.0" text-anchor="end">0%</text>
 <line class="vc-grid" x1="64" y1="180.7" x2="724" y2="180.7"/>
@@ -495,15 +495,15 @@
 <text class="vc-tick" x="54" y="107.3" text-anchor="end">40%</text>
 <line class="vc-grid" x1="64" y1="26.0" x2="724" y2="26.0"/>
 <text class="vc-tick" x="54" y="30.0" text-anchor="end">60%</text>
-<rect class="vc-b1" x="141.9" y="99.9" width="79.2" height="158.1"/>
-<text class="vc-val" x="181.5" y="91.9" text-anchor="middle">40.9</text>
+<rect class="vc-b1" x="141.9" y="95.2" width="79.2" height="162.8"/>
+<text class="vc-val" x="181.5" y="87.2" text-anchor="middle">42.1</text>
 <text class="vc-tick" x="181.5" y="276" text-anchor="middle">ours</text>
 <rect class="vc-b2" x="233.0" y="103.3" width="79.2" height="154.7"/>
 <text class="vc-val" x="272.6" y="95.3" text-anchor="middle">40.0</text>
 <text class="vc-tick" x="272.6" y="276" text-anchor="middle">paper</text>
 <text class="vc-lab" x="229.0" y="296" text-anchor="middle">UK GDP, 1-yr horizon</text>
-<rect class="vc-b1" x="471.9" y="64.3" width="79.2" height="193.7"/>
-<text class="vc-val" x="511.5" y="56.3" text-anchor="middle">50.1</text>
+<rect class="vc-b1" x="471.9" y="66.6" width="79.2" height="191.4"/>
+<text class="vc-val" x="511.5" y="58.6" text-anchor="middle">49.5</text>
 <text class="vc-tick" x="511.5" y="276" text-anchor="middle">ours</text>
 <rect class="vc-b2" x="563.0" y="64.7" width="79.2" height="193.3"/>
 <text class="vc-val" x="602.6" y="56.7" text-anchor="middle">50.0</text>
@@ -515,13 +515,14 @@
       <details class="more">
         <summary>Why the fast CI configuration lands 7&ndash;8 points off</summary>
       <p>
-        The deliberately cheap unweighted CI configuration lands at 47.4% and
-        42.4% — 7&ndash;8 points off, in opposite directions for the two
+        The deliberately cheap unweighted CI configuration lands at 49.6% and
+        43.8% — 6&ndash;10 points off, in opposite directions for the two
         variables. That gap is itself informative rather than embarrassing:
         the importance weights correct the Arias et al. (2018)
         zero-restriction sampler towards the uniform-over-rotations
-        posterior, and applying them moves both shares onto the published
-        values. Both configurations sit inside the wide [30, 60]% acceptance
+        posterior, and applying them moves both shares substantially towards
+        the published values, though on the 2026Q1 vintage GDP still lands
+        2.1 points high. Both configurations sit inside the wide [30, 60]% acceptance
         band that CI enforces, which is chosen to catch gross regressions
         without being flaky to Monte-Carlo variation.
       </p>
@@ -530,8 +531,8 @@
         <caption>boe-svar global-shock FEVD shares against Brignone &amp; Piffer (2025)</caption>
         <thead><tr><th scope="col">Global share, 1-yr FEVD</th><th scope="col">Paper</th><th scope="col">CI config (fast)</th><th scope="col">Production (10k draws)</th><th scope="col">Deviation, CI / production</th></tr></thead>
         <tbody>
-          <tr><th scope="row">UK GDP</th><td>~40%</td><td>47.4%</td><td>40.9%</td><td>+7.4 / +0.9 pp</td></tr>
-          <tr><th scope="row">UK CPI</th><td>~50%</td><td>42.4%</td><td>50.1%</td><td>&minus;7.6 / +0.1 pp</td></tr>
+          <tr><th scope="row">UK GDP</th><td>~40%</td><td>49.6%</td><td>42.1%</td><td>+9.6 / +2.1 pp</td></tr>
+          <tr><th scope="row">UK CPI</th><td>~50%</td><td>43.8%</td><td>49.5%</td><td>&minus;6.2 / &minus;0.5 pp</td></tr>
         </tbody>
       </table>
       </div>
