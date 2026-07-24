@@ -183,17 +183,20 @@ MODEL_QUALITY = {
             "Keep all exact invariants hard-gated for every specification.",
         ),
         "predictive_validation": _quality(
-            "moderate",
-            "Across 49 leakage-safe rolling origins, only 3 of 64 (variable, "
-            "horizon) cells differ significantly from a random walk by a "
-            "Diebold-Mariano test. UK CPI is significantly better at short "
-            "horizons (ratio 0.63, p<0.005 at h=1); UK GDP's higher ratio "
-            "(1.06-1.09) is NOT significant at any horizon (p=0.38-0.67), so "
-            "it is indistinguishable from the benchmark rather than beaten by "
-            "it. The exchange rate is significantly worse at h=8 (1.41, "
-            "p=0.03). The frozen-edge evaluation gives 0.32pp RMSE.",
-            "Add a declared BVAR benchmark, score the predictive densities "
-            "(not just point forecasts), and report interval coverage.",
+            "weak",
+            "Against a no-change random walk the model looked strong on CPI "
+            "(0.63 at h=1), but a driftless walk on a trending log level is "
+            "too weak a benchmark: against a random walk WITH DRIFT the CPI "
+            "ratio becomes 0.83 at h=1 and 1.03 at h=8, i.e. no better than "
+            "naive. Bank Rate is the one series that improves under the "
+            "harder benchmark (0.79 at h=1, p=0.018) and is the defensible "
+            "forecasting claim. UK GDP is not distinguishable from either "
+            "benchmark (p=0.38-0.67), and excluding six Covid-target origins "
+            "its ratio falls to 0.77. The frozen-edge run gives 0.32pp RMSE "
+            "from a single origin.",
+            "Score the predictive densities rather than point forecasts, "
+            "report rolling interval coverage, and re-run once the estimation "
+            "sample extends past the Covid dummies.",
         ),
         "identification_robustness": _quality(
             "moderate",

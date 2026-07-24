@@ -155,7 +155,7 @@
         <thead><tr><th scope="col">Evidence dimension</th><th scope="col">obr-macro</th><th scope="col">boe-svar</th><th scope="col">frb-us</th></tr></thead>
         <tbody>
           <tr><th scope="row">Implementation fidelity</th><td>Moderate — incomplete channels</td><td>Strong — restrictions and identities gated</td><td>Strong — four gated scenarios at the reference-solver noise floor</td></tr>
-          <tr><th scope="row">Predictive validation</th><td class="vc-warn">Weak — raw GDP 5.75%, consumption 9.56% MAPE</td><td>Moderate — CPI significantly beats no change at short horizons; GDP is statistically indistinguishable from it</td><td>Not assessed — LONGBASE is not a Fed forecast</td></tr>
+          <tr><th scope="row">Predictive validation</th><td class="vc-warn">Weak — raw GDP 5.75%, consumption 9.56% MAPE</td><td class="vc-warn">Weak — the CPI win does not survive a drift benchmark; Bank Rate is the only defensible claim</td><td>Not assessed — LONGBASE is not a Fed forecast</td></tr>
           <tr><th scope="row">Identification robustness</th><td>Not applicable</td><td>Moderate — proxy data and specification matter</td><td>Not applicable</td></tr>
           <tr><th scope="row">Policy-counterfactual validity</th><td class="vc-warn">Weak — one independent tax benchmark, constrained channels</td><td>Not applicable — reform scoring refused</td><td>Moderate — published ranges, VAR expectations only</td></tr>
           <tr><th scope="row">Uncertainty calibration</th><td class="vc-warn">Weak — sensitivity envelopes pending</td><td>Moderate — posterior bands, limited coverage history</td><td class="vc-warn">Weak — bootstrap engine exists, public runs remain deterministic</td></tr>
@@ -547,10 +547,14 @@
         <strong>Rolling-origin audit.</strong> A stricter expanding-window test
         now evaluates 49 historical origins without future-data leakage. Against
         a no-change benchmark, CPI-level relative RMSE is 0.63 at one quarter
-        and 0.67 at eight quarters (lower is better), while UK GDP is worse at
-        1.06 at both horizons. The model therefore has useful inflation signal,
-        but the single frozen-edge result must not be read as broad GDP forecast
-        superiority.
+        and 0.67 at eight quarters (lower is better), while UK GDP sits at
+        1.06. But a no-change benchmark is too weak for a trending price
+        level: against a random walk with drift the CPI figures become 0.83
+        and 1.03, and the GDP gap is not statistically significant at any
+        horizon. See <a href="#accuracy">section 08</a> for the full benchmark
+        comparison. The defensible forecasting claim is Bank Rate, not
+        inflation, and the single frozen-edge result must not be read as broad
+        GDP forecast superiority.
       </p>
       <figure class="vfig">
         <svg class="vchart" data-chart="svar-fan" viewBox="0 0 760 340" role="img" aria-labelledby="svar-fan-t svar-fan-d">
@@ -891,10 +895,47 @@
         An expanding-window pseudo-out-of-sample exercise re-fits the BVAR at
         49 quarterly origins (2012Q1&ndash;2024Q1, data sample
         1992Q1&ndash;2026Q1) and scores forecasts one to eight quarters ahead
-        against a no-change random walk. A ratio below 1.0 means the model
-        beats the naive benchmark. The honest result: it beats the random
-        walk clearly on CPI at every horizon, and does <em>not</em> beat it
-        on the level of real GDP.
+        against three naive benchmarks. A ratio below 1.0 means the model beats
+        the benchmark.
+      </p>
+      <p>
+        <strong>The benchmark decides the answer.</strong> A no-change random
+        walk on a trending log level forfeits the whole trend as forecast
+        error, so beating it on a price index is close to uninformative.
+        Against a random walk <em>with drift</em> &mdash; the textbook naive
+        for a trending series &mdash; the CPI result largely evaporates:
+        <strong>0.63 becomes 0.83</strong> at one quarter and
+        <strong>0.67 becomes 1.03</strong> at eight, where the model is no
+        longer ahead at all. The pattern in the original numbers, wins only on
+        the two trending price series and ties or losses on the four series
+        where a random walk is a genuinely hard benchmark, was an artefact of
+        the benchmark rather than a finding about the model.
+      </p>
+      <p>
+        <strong>What survives is Bank Rate.</strong> It is the one series here
+        that does not trend, so no-change <em>is</em> the right naive for it,
+        and it is the one series that improves under the harder benchmark:
+        <strong>0.79 against drift at one quarter</strong> (Diebold&ndash;Mariano
+        p&nbsp;=&nbsp;0.018) and 0.85 at eight. On the evidence assembled here
+        that, not inflation, is the model's defensible forecasting claim.
+      </p>
+      <p>
+        <strong>UK GDP is not beaten by the benchmark either.</strong> Its
+        ratio of 1.06&ndash;1.09 is not statistically distinguishable from a
+        random walk at any horizon (p&nbsp;=&nbsp;0.38 to 0.67), and excluding
+        the six origins whose target quarter falls in 2020Q1&ndash;2021Q2 it
+        becomes <strong>0.77</strong> at one quarter. Under squared loss the
+        2020Q2 collapse dominates a 49-origin average. Both the full-sample
+        and the excluding-Covid figures are published; neither is the
+        preferred number.
+      </p>
+      <p class="vc-note">
+        The AR(1) comparison is reported in the source file but is
+        <strong>not usable at long horizons</strong>: 94.5% of its eight-step
+        squared error for UK GDP comes from a single origin, because an AR(1)
+        extrapolates the Covid collapse. The apparent 3:1 win against it is
+        arithmetic, not evidence. Every benchmark now carries a
+        <code>worst_origin_mse_share</code> diagnostic for exactly this reason.
       </p>
       <figure class="vfig">
         <svg class="vchart" data-chart="svar-relrmse" viewBox="0 0 760 304" role="img" aria-labelledby="svar-relrmse-t svar-relrmse-d">
